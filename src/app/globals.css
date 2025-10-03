@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base font */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* CSS Variables for your theme */
+@layer base {
+  :root {
+    /* Border radius */
+    --radius: 0.5rem;
+
+    /* Colors */
+    --jet: #353535;
+    --caribbean-current: #3c6e71;
+    --white: #ffffff;
+    --platinum: #d9d9d9;
+    --indigo-dye: #284b63;
+
+    /* Background & Foreground defaults */
+    --background: var(--white);
+    --foreground: var(--jet);
+
+    /* Gradients */
+    --gradient-top: linear-gradient(0deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-right: linear-gradient(90deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-bottom: linear-gradient(180deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-left: linear-gradient(270deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-top-right: linear-gradient(45deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-bottom-right: linear-gradient(135deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-top-left: linear-gradient(225deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-bottom-left: linear-gradient(315deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-radial: radial-gradient(circle, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+  }
+}
