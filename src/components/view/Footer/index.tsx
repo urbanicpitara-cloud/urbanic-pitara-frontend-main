@@ -73,10 +73,8 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold mb-4">Follow Us</h3>
           <div className="flex flex-col space-y-2 text-sm">
-            <Link href="#" className="hover:text-caribbean-current transition-colors">Instagram</Link>
-            <Link href="#" className="hover:text-caribbean-current transition-colors">Facebook</Link>
-            <Link href="#" className="hover:text-caribbean-current transition-colors">Pinterest</Link>
-            <Link href="#" className="hover:text-caribbean-current transition-colors">Twitter</Link>
+            <Link href="https://www.instagram.com/urbanic_pitara?igsh=MWljeGF4dzlxdDk5cw==" className="hover:text-caribbean-current transition-colors">Instagram</Link>
+            <Link href="https://www.facebook.com/profile.php?id=61579619826981" className="hover:text-caribbean-current transition-colors">Facebook</Link>
           </div>
         </div>
       </div>
