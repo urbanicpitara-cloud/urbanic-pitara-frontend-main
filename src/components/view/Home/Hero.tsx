@@ -7,26 +7,46 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <section className="relative w-full h-[90vh] md:h-[100vh]">
+    <section className="relative w-full h-[90vh] md:h-[100vh] overflow-hidden">
+      {/* Background Image */}
       <Image
-        src="/hero-bridal.jpg" // Replace with premium bridal image
+        src="/hero-bridal.jpg" // Replace with your premium bridal image
         alt="Bridal Collection"
         fill
-        className=" object-center"
+        className="object-cover object-center"
+        priority
       />
-      <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-center justify-center text-center px-6">
-        <h1 className="text-white text-5xl md:text-6xl font-serif font-bold mb-4 leading-tight">
+
+      {/* Overlay with gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/50 flex flex-col items-center justify-center text-center px-6">
+        {/* Accent Line */}
+        <div className="w-24 h-1 bg-gold mb-6 rounded-full"></div>
+
+        {/* Title */}
+        <h1 className="text-white text-5xl md:text-7xl font-serif font-extrabold mb-4 leading-tight uppercase tracking-wide">
           Urbanic Pitara
         </h1>
-        <p className="text-white text-lg md:text-2xl mb-6">
-          Where Tradition Meets Elegance
+
+        {/* Subtitle */}
+        <p className="text-white text-lg md:text-2xl mb-8 max-w-xl">
+          Where Tradition Meets Elegance – Curated Designer Collections for Every Occasion
         </p>
-        <Link
-          href="/collections/bridal"
-          className="bg-white text-black px-8 py-3 md:px-10 md:py-4 font-semibold rounded-lg hover:bg-gray-200 transition"
-        >
-          Explore Bridal Collection
-        </Link>
+
+        {/* Call-to-Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/collections/bridal"
+            className="bg-white text-black px-10 py-4 font-semibold rounded-lg shadow-lg hover:bg-gray-200 transition transform hover:scale-105"
+          >
+            Explore Bridal Collection
+          </Link>
+          <Link
+            href="/collections/all"
+            className="border border-white text-white px-10 py-4 font-semibold rounded-lg hover:bg-white hover:text-black transition transform hover:scale-105"
+          >
+            View All Collections
+          </Link>
+        </div>
       </div>
     </section>
   );
