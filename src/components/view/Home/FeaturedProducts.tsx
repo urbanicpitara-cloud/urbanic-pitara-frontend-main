@@ -6,10 +6,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 const featuredProducts = [
-    { name: "Premium Branded Quality Kurtis Set", href: "/products/some-white-dress", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250830_160518.jpg?v=1758608402&width=493", price: "₹2,499" },
-  { name: "Women Printed Flared Anarkali Kurta with Pant Dupatta Suit Set", href: "/products/blue-dress", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/7N2A1293.jpg?v=1758610231&width=823", price: "₹4,699" },
-  { name: "Elegant Embroidered Sharara Set with Dupatta", href: "/products/kurti", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250902_173902.jpg?v=1757569940&width=823", price: "₹2,899" },
-  { name: "Wedding Special Embroidery Work Top Sharara with Dupatta - Red", href: "/products/red-plazo", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250903_171241.jpg?v=1757485927&width=823", price: "₹2,999" }
+    { name: "Premium Branded Quality Kurtis Set", href: "/product/some-white-dress", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250830_160518.jpg?v=1758608402&width=493", price: "₹2,499" },
+  { name: "Women Printed Flared Anarkali Kurta with Pant Dupatta Suit Set", href: "/product/blue-dress", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/7N2A1293.jpg?v=1758610231&width=823", price: "₹4,699" },
+  { name: "Elegant Embroidered Sharara Set with Dupatta", href: "/product/kurti", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250902_173902.jpg?v=1757569940&width=823", price: "₹2,899" },
+  { name: "Wedding Special Embroidery Work Top Sharara with Dupatta - Red", href: "/product/red-plazo", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250903_171241.jpg?v=1757485927&width=823", price: "₹2,999" }
 ];
 
 const FeaturedProducts = () => {
