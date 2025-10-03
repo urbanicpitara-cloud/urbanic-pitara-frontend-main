@@ -1,5 +1,6 @@
 // app/about/page.tsx
 import Image from "next/image";
+import Link from "next/link";
 
 export default function AboutPage() {
   return (
@@ -99,12 +100,12 @@ export default function AboutPage() {
         <p className="text-xl md:text-2xl mb-10">
           Experience fashion that tells a story — yours.
         </p>
-        <a
-          href="/collections"
+        <Link
+          href="/collections/all"
           className="inline-block bg-jet text-white px-10 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-jet transition"
         >
           Shop Now
-        </a>
+        </Link>
       </section>
 
     </main>

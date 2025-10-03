@@ -1,79 +1,96 @@
+import Link from "next/link";
+
+// app/contact/page.tsx
 export default function ContactPage() {
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 leading-relaxed">
-      <h1 className="text-4xl font-bold mb-6 text-center">Contact Us</h1>
-      <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
+    <main className="max-w-7xl mx-auto px-8 py-32 space-y-32 text-jet">
+
+      {/* Page Title */}
+      <h1 className="text-6xl md:text-7xl font-serif font-extrabold text-center mb-6">
+        Contact Us
+      </h1>
+
+      {/* Intro */}
+      <p className="text-center text-gray-600 text-2xl md:text-3xl max-w-4xl mx-auto">
         We’d love to hear from you! Whether you have a question about your order, our products,
         or just want to share feedback — the <strong>Urbanic Pitara</strong> team is here to help.
       </p>
 
       {/* Contact Methods */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        <div className="p-6 border rounded-lg shadow-sm bg-white">
-          <h2 className="text-xl font-semibold mb-2">Customer Support</h2>
-          <p className="text-gray-600 mb-1">Email: support@urbanicpitara.com</p>
-          <p className="text-gray-600 mb-1">Phone: +91-XXXXXXXXXX</p>
-          <p className="text-gray-600 text-sm">Mon – Sat, 10:00 AM – 6:00 PM (IST)</p>
-        </div>
-
-        <div className="p-6 border rounded-lg shadow-sm bg-white">
-          <h2 className="text-xl font-semibold mb-2">Business Address</h2>
-          <p className="text-gray-600">
-            Urbanic Pitara <br />
-            [Your Full Address Here] <br />
-            India
+      <section className="space-y-16 md:space-y-0 md:flex md:justify-between md:gap-10">
+        {/* Customer Support */}
+        <div className="flex-1 p-10 bg-white border rounded-2xl shadow-2xl hover:shadow-3xl transition">
+          <h2 className="text-3xl font-semibold mb-5">Customer Support</h2>
+          <p className="text-gray-700 mb-2">
+            Email: <strong>support@urbanicpitara.com</strong>
+          </p>
+          <p className="text-gray-700 mb-2">
+            WhatsApp / Call: <strong>+91-9639798848</strong>
+          </p>
+          <p className="text-gray-600 text-sm">
+            Mon – Sat, 10:00 AM – 7:00 PM (IST). We usually respond within 24 hours on business days.
           </p>
         </div>
 
-        <div className="p-6 border rounded-lg shadow-sm bg-white">
-          <h2 className="text-xl font-semibold mb-2">Legal & Policies</h2>
-          <p className="text-gray-600">
-            For concerns related to Terms of Service, Privacy, or Refunds, please contact us at:{" "}
-            <strong>legal@urbanicpitara.com</strong>
+        {/* Registered Office */}
+        <div className="flex-1 p-10 bg-white border rounded-2xl shadow-2xl hover:shadow-3xl transition">
+          <h2 className="text-3xl font-semibold mb-5">Registered Office</h2>
+          <p className="text-gray-700">
+            Urbanic Pitara <br />
+            84 Neshvilla Road, Opp. Church <br />
+            Dehradun, Uttarakhand, Pin: 248001 <br />
+            India
           </p>
         </div>
       </section>
 
       {/* Quick Help */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-4">Quick Help</h2>
-        <ul className="list-disc list-inside space-y-2 text-gray-700">
-          <li>Check our <a href="/faq" className="text-blue-600 hover:underline">FAQ section</a> for common queries.</li>
-          <li>Track your order in <a href="/orders" className="text-blue-600 hover:underline">My Account</a>.</li>
-          <li>Review our <a href="/returns" className="text-blue-600 hover:underline">Returns & Refunds Policy</a>.</li>
+      <section className="relative py-20 px-12 bg-gradient-to-r from-beige/80 to-beige/60 rounded-3xl shadow-xl">
+        <h2 className="text-4xl font-semibold mb-8 text-center">Quick Help</h2>
+        <ul className="list-disc list-inside space-y-4 text-gray-700 text-xl max-w-3xl mx-auto">
+          <li>
+            Check our <Link href="/faq" className="text-blue-600 hover:underline">FAQ section</Link> for common queries.
+          </li>
+          <li>
+            Track your order in <Link href="/orders" className="text-blue-600 hover:underline">My Account</Link>.
+          </li>
+          <li>
+            Review our <Link href="/returns" className="text-blue-600 hover:underline">Returns & Refunds Policy</Link>.
+          </li>
         </ul>
       </section>
 
-      {/* Contact Form Placeholder */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Send Us a Message</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Contact Form */}
+      <section className="space-y-12">
+        <h2 className="text-4xl md:text-5xl font-semibold text-center mb-8">Send Us a Message</h2>
+        <form className="space-y-6 max-w-3xl mx-auto bg-white p-12 rounded-3xl shadow-2xl">
           <input
             type="text"
             placeholder="Your Name"
-            className="p-3 border rounded-md"
+            className="w-full p-5 border rounded-xl focus:ring-2 focus:ring-gold focus:outline-none text-lg"
             required
           />
           <input
             type="email"
             placeholder="Your Email"
-            className="p-3 border rounded-md"
+            className="w-full p-5 border rounded-xl focus:ring-2 focus:ring-gold focus:outline-none text-lg"
             required
           />
           <textarea
             placeholder="Your Message"
-            rows={5}
-            className="p-3 border rounded-md md:col-span-2"
+            rows={6}
+            className="w-full p-5 border rounded-xl focus:ring-2 focus:ring-gold focus:outline-none text-lg"
             required
           />
           <button
             type="submit"
-            className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition md:col-span-2"
+            className="w-full bg-black text-white text-xl font-semibold px-6 py-5 rounded-xl hover:bg-gray-800 transition-transform transform hover:scale-105"
           >
             Submit
           </button>
         </form>
       </section>
+
     </main>
   );
 }
