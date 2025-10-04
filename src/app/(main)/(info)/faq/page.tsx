@@ -11,11 +11,11 @@ const faqs = [
   },
   {
     q: "Do I need to register to shop, or can I checkout as a guest?",
-    a: `You don’t need to register to shop — guest checkout is available. Registering makes future purchases faster and lets you view order history.`,
+    a: `Yes you need to register to checkout. But you can still add items to the cart. Registering makes future purchases faster and lets you view order history.`,
   },
   {
     q: "Can I edit my personal information?",
-    a: `Yes — after logging in, visit the ‘My Account’ section to update your details.`,
+    a: `Yes — after logging in, visit the ‘Profile’ page to update your details.`,
   },
   {
     q: "I forgot my password, how do I reset it?",
@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     q: "How can I contact your support team?",
-    a: `Email us at support@urbanicpitara.com or between 10:00 AM–7:00 PM (Mon–Sat). We usually respond within 24 hours on business days.`,
+    a: `Email us at support@urbanicpitara.com or whatsApp/call: +91-9639798848 between 10:00 AM–7:00 PM (Mon–Sat). We usually respond within 24 hours on business days.`,
   },
   {
     q: "What are the shipping charges?",

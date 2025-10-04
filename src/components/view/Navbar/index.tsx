@@ -36,12 +36,13 @@ const Navbar = () => {
   const { menu: menMenu } = useShopifyMenu("men");
   const { menu: womenMenu } = useShopifyMenu("women");
 
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  useEffect(() => setIsLoggedIn(isAuthenticated()), []);
+  useEffect(() => {
+    setIsLoggedIn(isAuthenticated());
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,95 +60,87 @@ const Navbar = () => {
     router.push("/");
   };
 
-  const renderSubMenu = (items?: MenuItem[]) => {
-    if (!items?.length) return null;
-    return (
-      <ul className="ml-4 mt-2 space-y-2 border-l pl-4 text-sm">
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link href={item.url || "#"} className="block py-1 text-gray-700 hover:text-caribbean-current">
-              {item.title}
-            </Link>
-            {item.children && renderSubMenu(item.children)}
-          </li>
-        ))}
-      </ul>
-    );
+  // Recursive function to render nested menus inside dropdown
+  const renderDropdownItems = (items?: MenuItem[]) => {
+    if (!items || items.length === 0) return null;
+    return items.map((item) => {
+      if (item.children && item.children.length > 0) {
+        return (
+          <DropdownMenuItem key={item.id} className="relative">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex justify-between w-full">
+                  {item.title} <ChevronDown className="ml-2 h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[180px] left-full top-0 absolute z-50">
+                {renderDropdownItems(item.children)}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DropdownMenuItem>
+        );
+      }
+      return (
+        <DropdownMenuItem key={item.id} asChild>
+          <Link href={item.url || "#"} className="w-full text-left">
+            {item.title}
+          </Link>
+        </DropdownMenuItem>
+      );
+    });
   };
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b bg-white shadow-md transition-transform duration-500 ${visible ? "translate-y-0" : "-translate-y-full"
-        }`}
+      className={`fixed top-0 z-50 w-full border-b bg-white shadow-md transition-transform duration-500 ${
+        visible ? "translate-y-0" : "-translate-y-full"
+      }`}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-<Link href="/" className="flex items-center">
-  <div className="relative w-[130px] md:w-[220px] h-[50px] md:h-[60px]">
-    <Image
-      src="/new_logo.png"
-      alt="Urbanic Pitara"
-      fill
-      className="object-contain"
-      priority
-    />
-  </div>
-</Link>
+        <Link href="/" className="flex items-center">
+          <div className="relative w-[130px] md:w-[220px] h-[50px] md:h-[60px]">
+            <Image
+              src="/new_logo.png"
+              alt="Urbanic Pitara"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+        </Link>
 
-        {/* Desktop Nav */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {/* Men */}
-          <div
-            className="relative"
-            onMouseEnter={() => setOpenMenu("men")}
-            onMouseLeave={() => setOpenMenu(null)}
-          >
-            <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
-              Men <ChevronDown className="h-4 w-4" />
-            </button>
-            {openMenu === "men" && (
-              <ul className="absolute left-0 top-full mt-2 min-w-[200px] flex-col rounded-md border bg-white shadow-lg">
-                {menMenu?.map((item) => (
-                  <li key={item.id}>
-                    <Link
-                      href={item.url || "#"}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {/* Men Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
+                Men <ChevronDown className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="min-w-[200px]">
+              {renderDropdownItems(menMenu)}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          {/* Women */}
-          <div
-            className="relative"
-            onMouseEnter={() => setOpenMenu("women")}
-            onMouseLeave={() => setOpenMenu(null)}
-          >
-            <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
-              Women <ChevronDown className="h-4 w-4" />
-            </button>
-            {openMenu === "women" && (
-              <ul className="absolute left-0 top-full mt-2 min-w-[200px] flex-col rounded-md border bg-white shadow-lg">
-                {womenMenu?.map((item) => (
-                  <li key={item.id}>
-                    <Link
-                      href={item.url || "#"}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {/* Women Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
+                Women <ChevronDown className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="min-w-[200px]">
+              {renderDropdownItems(womenMenu)}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Cart */}
-          <Link href="/cart" className="relative text-gray-700 hover:text-caribbean-current">
+          <Link
+            href="/cart"
+            className="relative text-gray-700 hover:text-caribbean-current"
+          >
             <ShoppingCart className="h-6 w-6" />
             {itemCount > 0 && (
               <Badge
@@ -159,7 +152,7 @@ const Navbar = () => {
             )}
           </Link>
 
-          {/* Auth */}
+          {/* Auth Dropdown */}
           {isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -188,7 +181,9 @@ const Navbar = () => {
             </DropdownMenu>
           ) : (
             <Link href="/auth">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Login</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                Login
+              </Button>
             </Link>
           )}
         </nav>
@@ -197,6 +192,7 @@ const Navbar = () => {
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden text-gray-800"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -204,31 +200,31 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white shadow-inner border-t">
+        <nav className="md:hidden bg-white shadow-inner border-t">
           <div className="px-4 py-4 flex flex-col gap-4">
-            <div>
-              <button
-                className="flex items-center justify-between w-full text-gray-700 font-medium gap-2"
-                onClick={() =>
-                  setOpenMenu(openMenu === "men" ? null : "men")
-                }
-              >
-                Men <ChevronDown className="h-4 w-4" />
-              </button>
-              {openMenu === "men" && renderSubMenu(menMenu)}
-            </div>
+            {/* Mobile dropdown for Men */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex justify-between w-full text-gray-700 font-medium">
+                  Men <ChevronDown className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[200px]">
+                {renderDropdownItems(menMenu)}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            <div>
-              <button
-                className="flex items-center justify-between w-full text-gray-700 font-medium gap-2"
-                onClick={() =>
-                  setOpenMenu(openMenu === "women" ? null : "women")
-                }
-              >
-                Women <ChevronDown className="h-4 w-4" />
-              </button>
-              {openMenu === "women" && renderSubMenu(womenMenu)}
-            </div>
+            {/* Mobile dropdown for Women */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex justify-between w-full text-gray-700 font-medium">
+                  Women <ChevronDown className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[200px]">
+                {renderDropdownItems(womenMenu)}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Link
               href="/cart"
@@ -260,7 +256,7 @@ const Navbar = () => {
               </Link>
             )}
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );

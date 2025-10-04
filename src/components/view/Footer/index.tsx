@@ -2,17 +2,27 @@
 
 import Link from "next/link";
 import { Instagram, Facebook, Mail } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   return (
     <footer className="bg-jet text-platinum mt-16">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-5 gap-12">
-        
+
         {/* Brand */}
         <div className="md:col-span-2">
-          <h2 className="text-3xl font-bold mb-4 text-white">
+          {/* <h2 className="text-3xl font-bold mb-4 text-white">
             Urbanic <span className="text-caribbean-current">Pitara</span>
-          </h2>
+          </h2> */}
+          <div className="relative w-[15rem] h-[7rem]">
+            <Image
+              src="/white_logo.png"
+              alt="Urbanic Pitara"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
           <p className="text-sm leading-relaxed mb-6">
             Discover premium fashion with elegance. Handpicked collections curated to
             match your unique lifestyle and occasions.
@@ -59,12 +69,13 @@ export default function Footer() {
         <div>
           <h3 className="font-semibold mb-4 text-white">Connect</h3>
           <div className="flex flex-col space-y-3 text-sm">
-            <Link
-              href="mailto:support@urbanicpitara.com"
+            <a
+              href="mailto:urbanicpitara@gmail.com"
               className="flex items-center gap-2 hover:text-caribbean-current"
             >
               <Mail size={16} /> support@urbanicpitara.com
-            </Link>
+            </a>
+
             <Link
               href="https://www.instagram.com/urbanic_pitara"
               className="flex items-center gap-2 hover:text-caribbean-current"
