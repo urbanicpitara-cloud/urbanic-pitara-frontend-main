@@ -14,7 +14,7 @@ const newArrivals = [
 
 const NewArrivals = () => {
   return (
-    <section className="py-16 px-4 md:px-8 bg-gray-50">
+    <section className="py-10 px-4 md:px-8 bg-gray-50">
       <h2 className="text-3xl md:text-4xl font-serif font-bold mb-12 text-center">
         New Arrivals
       </h2>

@@ -115,10 +115,11 @@ export default function ProductCarousel({ images = [] }: Props) {
                 <div key={node.id ?? i} className="min-w-full flex items-center justify-center bg-white">
                   <Image
                     src={node.url}
-                    alt={node.altText ?? `Product image ${i + 1}`}
+                    alt={node.altText || `Product view ${i + 1}`}
                     width={1200}
                     height={900}
                     priority={i === 0}
+                    loading={i === 0 ? "eager" : "lazy"}
                     className="w-full max-h-[70vh] object-contain"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
                   />

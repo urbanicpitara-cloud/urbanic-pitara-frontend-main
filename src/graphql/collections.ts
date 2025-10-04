@@ -124,3 +124,20 @@ export const GET_COLLECTION_BY_HANDLE_WITH_PAGINATION_QUERY = gql`
     }
   }
 `;
+
+export const GET_COLLECTION_BY_HANDLE = gql`
+  query GetCollectionByHandle($handle: String!) {
+    collection(handle: $handle) {
+      id
+      title
+      description
+      handle
+      image {
+        url
+        width
+        height
+        altText
+      }
+    }
+  }
+`;

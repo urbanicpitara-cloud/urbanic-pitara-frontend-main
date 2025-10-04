@@ -65,3 +65,31 @@ export const GET_PRODUCT_BY_HANDLE_QUERY = gql`
     }
   }
 `;
+
+export const GET_ALL_PRODUCTS = gql`
+  query GetAllProducts {
+    products(first: 250) {
+      edges {
+        node {
+          id
+          handle
+          updatedAt
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ALL_COLLECTIONS = gql`
+  query GetAllCollections {
+    collections(first: 250) {
+      edges {
+        node {
+          id
+          handle
+          updatedAt
+        }
+      }
+    }
+  }
+`;
