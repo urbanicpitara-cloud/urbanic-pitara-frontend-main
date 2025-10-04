@@ -77,16 +77,22 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b bg-white shadow-md transition-transform duration-500 ${
-        visible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className={`fixed top-0 z-50 w-full border-b bg-white shadow-md transition-transform duration-500 ${visible ? "translate-y-0" : "-translate-y-full"
+        }`}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="text-xl font-bold text-gray-800">
-          {/* Urbanic Pitara */}
-          <Image src={"/new_logo.png"} alt="Urbanic Pitara" width={260} height={150} />
-        </Link>
+<Link href="/" className="flex items-center">
+  <div className="relative w-[130px] md:w-[220px] h-[50px] md:h-[60px]">
+    <Image
+      src="/new_logo.png"
+      alt="Urbanic Pitara"
+      fill
+      className="object-contain"
+      priority
+    />
+  </div>
+</Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
