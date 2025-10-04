@@ -75,7 +75,7 @@ export default function ProductCarousel({ images = [] }: Props) {
       {/* Thumbnails: mobile horizontal below main; desktop vertical left */}
       <div
         ref={thumbRef as EmblaViewportRefType}
-        className="order-2 mt-3 flex gap-3 overflow-x-auto px-1 lg:order-1 lg:mt-0 lg:block lg:overflow-visible"
+        className="order-2 mt-3  gap-3 overflow-x-auto px-1 hidden lg:order-1 lg:mt-0 lg:block lg:overflow-visible"
         aria-hidden={validImages.length <= 1}
       >
         {validImages.map((edge, i) => {

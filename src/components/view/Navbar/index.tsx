@@ -2,79 +2,74 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ShoppingCart, ChevronDown } from "lucide-react";
+import {
+  ShoppingCart,
+  ChevronDown,
+  User,
+  LogOut,
+  Menu,
+  X,
+  ShoppingBag,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/atoms/cart";
 import { useShopifyMenu, MenuItem } from "@/hooks/useShopifyMenu";
+import { isAuthenticated } from "@/hooks/useStorefront";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const Navbar = () => {
   const { cart } = useCart();
   const itemCount = cart?.totalQuantity ?? 0;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
 
   const { menu: menMenu } = useShopifyMenu("men");
   const { menu: womenMenu } = useShopifyMenu("women");
 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // ✅ Navbar scroll hide state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => setIsLoggedIn(isAuthenticated()), []);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > lastScrollY.current) {
-        // scrolling down
-        setVisible(false);
-      } else {
-        // scrolling up
-        setVisible(true);
-      }
+      if (window.scrollY > lastScrollY.current) setVisible(false);
+      else setVisible(true);
       lastScrollY.current = window.scrollY;
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // detect mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const handleOpen = (menu: string) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setOpenMenu(menu);
-  };
-
-  const handleClose = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setOpenMenu(null);
-    }, 500); // 0.5 second delay before closing
-  };
-
-  const toggleMobileMenu = (menu: string) => {
-    setOpenMenu(openMenu === menu ? null : menu);
+  const handleLogout = () => {
+    document.cookie =
+      "customerAccessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    router.push("/");
   };
 
   const renderSubMenu = (items?: MenuItem[]) => {
-    if (!items || items.length === 0) return null;
+    if (!items?.length) return null;
     return (
-      <ul className="absolute left-0 top-full mt-2 min-w-[200px] flex-col rounded-md border bg-white shadow-lg">
+      <ul className="ml-4 mt-2 space-y-2 border-l pl-4 text-sm">
         {items.map((item) => (
-          <li key={item.id} className="relative group">
-            <Link
-              href={item.url || "#"}
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-            >
+          <li key={item.id}>
+            <Link href={item.url || "#"} className="block py-1 text-gray-700 hover:text-caribbean-current">
               {item.title}
             </Link>
-            {item.children && item.children.length > 0 && renderSubMenu(item.children)}
+            {item.children && renderSubMenu(item.children)}
           </li>
         ))}
       </ul>
@@ -90,46 +85,64 @@ const Navbar = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="text-xl font-bold text-gray-800">
-          Urbanic Pitara
+          {/* Urbanic Pitara */}
+          <Image src={"/new_logo.png"} alt="Urbanic Pitara" width={260} height={150} />
         </Link>
 
-        {/* Main navigation */}
-        <nav className="flex items-center gap-8">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-8">
           {/* Men */}
           <div
             className="relative"
-            onMouseEnter={() => !isMobile && handleOpen("men")}
-            onMouseLeave={() => !isMobile && handleClose()}
+            onMouseEnter={() => setOpenMenu("men")}
+            onMouseLeave={() => setOpenMenu(null)}
           >
-            <button
-              onClick={() => isMobile && toggleMobileMenu("men")}
-              className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors"
-            >
+            <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
               Men <ChevronDown className="h-4 w-4" />
             </button>
-            {openMenu === "men" && renderSubMenu(menMenu)}
+            {openMenu === "men" && (
+              <ul className="absolute left-0 top-full mt-2 min-w-[200px] flex-col rounded-md border bg-white shadow-lg">
+                {menMenu?.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      href={item.url || "#"}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Women */}
           <div
             className="relative"
-            onMouseEnter={() => !isMobile && handleOpen("women")}
-            onMouseLeave={() => !isMobile && handleClose()}
+            onMouseEnter={() => setOpenMenu("women")}
+            onMouseLeave={() => setOpenMenu(null)}
           >
-            <button
-              onClick={() => isMobile && toggleMobileMenu("women")}
-              className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors"
-            >
+            <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
               Women <ChevronDown className="h-4 w-4" />
             </button>
-            {openMenu === "women" && renderSubMenu(womenMenu)}
+            {openMenu === "women" && (
+              <ul className="absolute left-0 top-full mt-2 min-w-[200px] flex-col rounded-md border bg-white shadow-lg">
+                {womenMenu?.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      href={item.url || "#"}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Cart */}
-          <Link
-            href="/cart"
-            className="relative text-gray-700 hover:text-caribbean-current"
-          >
+          <Link href="/cart" className="relative text-gray-700 hover:text-caribbean-current">
             <ShoppingCart className="h-6 w-6" />
             {itemCount > 0 && (
               <Badge
@@ -140,8 +153,110 @@ const Navbar = () => {
               </Badge>
             )}
           </Link>
+
+          {/* Auth */}
+          {isLoggedIn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" /> Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile/orders">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> Orders
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/auth">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Login</Button>
+            </Link>
+          )}
         </nav>
+
+        {/* Mobile Menu Toggle */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden text-gray-800"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white shadow-inner border-t">
+          <div className="px-4 py-4 flex flex-col gap-4">
+            <div>
+              <button
+                className="flex items-center justify-between w-full text-gray-700 font-medium gap-2"
+                onClick={() =>
+                  setOpenMenu(openMenu === "men" ? null : "men")
+                }
+              >
+                Men <ChevronDown className="h-4 w-4" />
+              </button>
+              {openMenu === "men" && renderSubMenu(menMenu)}
+            </div>
+
+            <div>
+              <button
+                className="flex items-center justify-between w-full text-gray-700 font-medium gap-2"
+                onClick={() =>
+                  setOpenMenu(openMenu === "women" ? null : "women")
+                }
+              >
+                Women <ChevronDown className="h-4 w-4" />
+              </button>
+              {openMenu === "women" && renderSubMenu(womenMenu)}
+            </div>
+
+            <Link
+              href="/cart"
+              className="flex items-center gap-2 text-gray-700 font-medium"
+            >
+              <ShoppingCart className="h-5 w-5" /> Cart ({itemCount})
+            </Link>
+
+            {isLoggedIn ? (
+              <>
+                <Link href="/profile" className="block text-gray-700">
+                  Profile
+                </Link>
+                <Link href="/profile/orders" className="block text-gray-700">
+                  Orders
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block text-red-600 font-medium"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link href="/auth">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  Login
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 };

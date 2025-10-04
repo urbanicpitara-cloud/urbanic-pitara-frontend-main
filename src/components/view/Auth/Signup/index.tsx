@@ -1,8 +1,9 @@
-import { useState } from "react";
+"use client";
+
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-
 import {
   Form,
   FormControl,
@@ -17,6 +18,7 @@ import { useStorefrontMutation } from "@/hooks/useStorefront";
 import { CUSTOMER_CREATE } from "@/graphql/auth";
 import { toast } from "sonner";
 import { CustomerCreateResponse } from "@/types";
+import { motion } from "framer-motion";
 
 const signupSchema = z
   .object({
@@ -32,12 +34,11 @@ const signupSchema = z
   });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
-
 type SignupFormProps = {
   setShowRegister: (show: boolean) => void;
 };
 
-export default function SignupForm({ setShowRegister }: SignupFormProps) {
+const Signup = ({ setShowRegister }: SignupFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { mutate } = useStorefrontMutation<CustomerCreateResponse>();
 
@@ -66,111 +67,97 @@ export default function SignupForm({ setShowRegister }: SignupFormProps) {
           },
         },
       });
+
       if (response.customerCreate.customerUserErrors.length > 0) {
         throw new Error(response.customerCreate.customerUserErrors[0].message);
       }
 
-      toast.success("Account created successfully. Please login.");
+      toast.success("Account created successfully! Please log in.");
       form.reset();
+      setShowRegister(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create account"
-      );
+      toast.error(error instanceof Error ? error.message : "Signup failed");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full space-y-4"
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            form.handleSubmit(onSubmit)(e);
-          }
-        }}
-      >
-        <FormField
-          control={form.control}
-          name="firstName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>First Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="w-full max-w-sm sm:max-w-md mx-auto"
+    >
+      <h1 className="text-3xl font-semibold text-center text-gray-900 mb-2">
+        Create Account
+      </h1>
+      <p className="text-center text-gray-500 mb-8 text-sm sm:text-base">
+        Join the Urbanic Pitara family
+      </p>
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-5"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              form.handleSubmit(onSubmit)(e);
+            }
+          }}
+        >
+          {/* Fields */}
+          {["firstName", "lastName", "email", "password", "confirmPassword"].map(
+            (fieldName) => (
+              <FormField
+                key={fieldName}
+                control={form.control}
+                name={fieldName as keyof SignupFormValues}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 capitalize text-sm">
+                      {fieldName === "confirmPassword"
+                        ? "Confirm Password"
+                        : fieldName}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type={
+                          fieldName.includes("password") ? "password" : "text"
+                        }
+                        {...field}
+                        className="border-gray-300 focus-visible:ring-2 focus-visible:ring-[#c4a676] focus-visible:border-[#c4a676]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )
           )}
-        />
-        <FormField
-          control={form.control}
-          name="lastName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Last Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="email@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex items-center justify-between">
-          <Button
-            variant="link"
-            onClick={() => setShowRegister(false)}
-            className="text-sm"
-          >
-            Already have an account? <b>Login</b>
-          </Button>
-          <Button type="submit" className="w-1/2" disabled={isLoading}>
-            {isLoading ? "Creating account..." : "Sign Up"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <Button
+              variant="link"
+              onClick={() => setShowRegister(false)}
+              className="text-sm text-gray-600 hover:text-[#bfa065]"
+            >
+              Already have an account? <b className="ml-1">Login</b>
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full sm:w-auto bg-[#c4a676] hover:bg-[#b39054] text-white font-medium shadow-md transition"
+            >
+              {isLoading ? "Creating..." : "Sign Up"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </motion.div>
   );
-}
+};
+
+export default Signup;

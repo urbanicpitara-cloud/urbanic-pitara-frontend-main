@@ -5,7 +5,7 @@ import Link from "next/link";
 const Logo = ({ className }: { className?: string }) => {
   return (
     <Link className={cn("text-sm font-medium", className)} href="/">
-      Minimal Store
+      Urbanic Pitara
     </Link>
   );
 };

@@ -1,5 +1,6 @@
 import { QueryKey, useMutation, useQuery } from "@tanstack/react-query";
 import { GraphQLClient, RequestDocument } from "graphql-request";
+import { parseCookies } from "nookies";
 
 // Add URL validation and fallback
 const getValidEndpoint = () => {
@@ -91,3 +92,8 @@ export function useStorefrontMutation<
     data: mutation.data,
   };
 }
+
+export const isAuthenticated = () => {
+  const token = parseCookies()?.customerAccessToken;
+  return !!token;
+};

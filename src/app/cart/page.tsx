@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import Image from "next/image";
+import { isAuthenticated } from "@/hooks/useStorefront";
 
 export default function CartPage() {
   const { cart, loading, error, updateItem, removeItem } = useCart();
@@ -124,14 +125,14 @@ export default function CartPage() {
               </div>
             </div>
             
-            <a
-              href={cart.checkoutUrl}
+            <Link
+              href={`${isAuthenticated() ? `${cart.checkoutUrl}` : `/auth`}`}
               className="mt-4 w-full"
             >
               <Button className="w-full">
                 Proceed to Checkout
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
