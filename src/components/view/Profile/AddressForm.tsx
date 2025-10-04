@@ -120,6 +120,7 @@ export function AddressForm({
       onSuccess();
     } catch (error) {
       toast.error("Failed to save address");
+      console.log(error)
     } finally {
       setIsSubmitting(false);
     }

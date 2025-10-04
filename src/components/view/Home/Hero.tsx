@@ -13,7 +13,7 @@ const Hero = () => {
         src="/hero-bridal.jpg" // Replace with your premium bridal image
         alt="Bridal Collection"
         fill
-        className="object-cover object-center"
+        className="object-contain "
         priority
       />
 

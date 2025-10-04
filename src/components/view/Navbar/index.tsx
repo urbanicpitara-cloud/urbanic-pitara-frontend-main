@@ -40,7 +40,6 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => setIsLoggedIn(isAuthenticated()), []);
 
