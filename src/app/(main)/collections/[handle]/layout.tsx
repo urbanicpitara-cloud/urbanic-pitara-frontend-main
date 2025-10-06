@@ -2,9 +2,11 @@ import { Metadata } from 'next'
 import { fetchGraphQL } from "@/shopify/client"
 import { GET_COLLECTION_BY_HANDLE } from "@/graphql/collections"
 
-export async function generateMetadata({ params }: { 
-  params: { handle: string } 
-}): Promise<Metadata> {
+interface Params {
+  handle: string
+}
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const data = await fetchGraphQL(GET_COLLECTION_BY_HANDLE, { 
     handle: params.handle 
   })
@@ -17,22 +19,30 @@ export async function generateMetadata({ params }: {
     openGraph: {
       title: collection?.title,
       description: collection?.description,
-      images: collection?.image ? [
-        {
-          url: collection.image.url,
-          width: 1200,
-          height: 630,
-          alt: collection.title
-        }
-      ] : []
+      images: collection?.image
+        ? [{ url: collection.image.url, width: 1200, height: 630, alt: collection.title }]
+        : []
     }
   }
 }
 
-export default function CollectionLayout({
+// Async layout now
+export default async function CollectionLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Params
 }) {
-  return children
+  // You can fetch data here if needed
+  const data = await fetchGraphQL(GET_COLLECTION_BY_HANDLE, { handle: params.handle })
+  const collection = data?.collection
+
+  return (
+    <div>
+      {/* Optional: use collection info in layout */}
+      <h1 className="sr-only">{collection?.title}</h1>
+      {children}
+    </div>
+  )
 }
