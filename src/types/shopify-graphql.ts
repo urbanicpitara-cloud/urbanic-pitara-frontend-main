@@ -9654,3 +9654,120 @@ export const useGetCustomerQuery = <
       queryFn: () => fetcher<GetCustomerQuery, GetCustomerQueryVariables>(GetCustomerDocument, variables)(),
       ...options
     })};
+
+    
+export type GetCollectionByHandleQueryVariables = Exact<{
+  handle: Scalars["String"]["input"];
+  first: Scalars["Int"]["input"];
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  sortKey?: InputMaybe<ProductCollectionSortKeys>;
+  reverse?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filters?: InputMaybe<Array<ProductFilter> | ProductFilter>;
+}>;
+
+export type GetCollectionByHandleQuery = {
+  __typename?: "QueryRoot";
+  collection?: {
+    __typename?: "Collection";
+    id: string;
+    handle: string;
+    title: string;
+    description: string;
+    descriptionHtml: any;
+    products: {
+      __typename?: "ProductConnection";
+      edges: Array<{
+        __typename?: "ProductEdge";
+        cursor: string;
+        node: {
+          __typename?: "Product";
+          id: string;
+          title: string;
+          vendor: string;
+          handle: string;
+          priceRange: {
+            __typename?: "ProductPriceRange";
+            minVariantPrice: {
+              __typename?: "MoneyV2";
+              amount: any;
+              currencyCode: CurrencyCode;
+            };
+            maxVariantPrice: {
+              __typename?: "MoneyV2";
+              amount: any;
+              currencyCode: CurrencyCode;
+            };
+          };
+          compareAtPriceRange: {
+            __typename?: "ProductPriceRange";
+            minVariantPrice: {
+              __typename?: "MoneyV2";
+              amount: any;
+              currencyCode: CurrencyCode;
+            };
+            maxVariantPrice: {
+              __typename?: "MoneyV2";
+              amount: any;
+              currencyCode: CurrencyCode;
+            };
+          };
+          images: {
+            __typename?: "ImageConnection";
+            edges: Array<{
+              __typename?: "ImageEdge";
+              node: { __typename?: "Image"; url: any; altText?: string | null };
+            }>;
+          };
+          featuredImage?: { __typename?: "Image"; url: any } | null;
+          options: Array<{
+            __typename?: "ProductOption";
+            name: string;
+            optionValues: Array<{
+              __typename?: "ProductOptionValue";
+              id: string;
+              name: string;
+              swatch?: {
+                __typename?: "ProductOptionValueSwatch";
+                color?: any | null;
+              } | null;
+            }>;
+          }>;
+          variants: {
+            __typename?: "ProductVariantConnection";
+            edges: Array<{
+              __typename?: "ProductVariantEdge";
+              node: {
+                __typename?: "ProductVariant";
+                id: string;
+                availableForSale: boolean;
+                compareAtPrice?: {
+                  __typename?: "MoneyV2";
+                  amount: any;
+                  currencyCode: CurrencyCode;
+                } | null;
+                price: {
+                  __typename?: "MoneyV2";
+                  amount: any;
+                  currencyCode: CurrencyCode;
+                };
+                selectedOptions: Array<{
+                  __typename?: "SelectedOption";
+                  name: string;
+                  value: string;
+                }>;
+              };
+            }>;
+          };
+        };
+      }>;
+      pageInfo: {
+        __typename?: "PageInfo";
+        hasNextPage: boolean;
+        endCursor?: string | null;
+        hasPreviousPage: boolean;
+        startCursor?: string | null;
+      };
+    };
+  } | null;
+};
+
