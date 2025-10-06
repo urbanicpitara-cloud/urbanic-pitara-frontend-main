@@ -36,3 +36,13 @@ body {
     --gradient-radial: radial-gradient(circle, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
   }
 }
+
+/* In your global CSS file like globals.css */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}

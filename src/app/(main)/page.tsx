@@ -12,7 +12,7 @@ const fadeUpTransition = { duration: 0.6, ease: easeOut };
 
 export default function HomePage() {
   return (
-    <>
+    <div className="overflow-x-hidden scrollbar-hide">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -66,6 +66,6 @@ export default function HomePage() {
       >
         <Testimonials />
       </motion.div>
-    </>
+    </div>
   );
 }
