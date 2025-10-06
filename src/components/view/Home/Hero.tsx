@@ -15,9 +15,10 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({
   images = {
-    fallback: "/hero-bridal.jpg", // default image if no props are passed
-    mobile: "/test.jpeg",
-    desktop: "/hero-bridal.jpg",
+    fallback: "/34.jpg", // default image if no props are passed
+    mobile: "/12.jpg",
+    desktop: "/34.jpg",
+    tablet: "/34.jpg",
   },
 }) => {
   // Ensure fallback image exists
