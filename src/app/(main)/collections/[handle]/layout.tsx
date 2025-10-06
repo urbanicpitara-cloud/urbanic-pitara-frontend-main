@@ -26,22 +26,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   }
 }
 
-// Async layout now
-export default async function CollectionLayout({
+// Layout must NOT be async
+export default function CollectionLayout({
   children,
-  params,
 }: {
   children: React.ReactNode
-  params: Params
 }) {
-  // You can fetch data here if needed
-  const data = await fetchGraphQL(GET_COLLECTION_BY_HANDLE, { handle: params.handle })
-  const collection = data?.collection
-
   return (
     <div>
-      {/* Optional: use collection info in layout */}
-      <h1 className="sr-only">{collection?.title}</h1>
       {children}
     </div>
   )
