@@ -18,7 +18,7 @@ const Hero: React.FC<HeroProps> = ({
     fallback: "/34.jpg", // default image if no props are passed
     mobile: "/12.jpg",
     desktop: "/34.jpg",
-    tablet: "/34.jpg",
+    // tablet: "/34.jpg",
   },
 }) => {
   // Ensure fallback image exists

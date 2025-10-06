@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   ShoppingBag,
+  Search,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,11 +27,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { SearchDialog } from "@/components/view/Search/SearchDialog";
 
 const Navbar = () => {
   const { cart } = useCart();
   const itemCount = cart?.totalQuantity ?? 0;
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const { menu: menMenu } = useShopifyMenu("men");
@@ -60,7 +63,6 @@ const Navbar = () => {
     router.push("/");
   };
 
-  // Recursive function to render nested menus inside dropdown
   const renderDropdownItems = (items?: MenuItem[]) => {
     if (!items || items.length === 0) return null;
     return items.map((item) => {
@@ -69,11 +71,11 @@ const Navbar = () => {
           <DropdownMenuItem key={item.id} className="relative">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex justify-between w-full">
+                <button className="flex justify-between w-full text-gray-700 hover:text-[var(--gold)] transition-colors">
                   {item.title} <ChevronDown className="ml-2 h-3 w-3" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-[180px] left-full top-0 absolute z-50">
+              <DropdownMenuContent className="min-w-[180px] left-full top-0 absolute z-50 shadow-md">
                 {renderDropdownItems(item.children)}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -81,7 +83,11 @@ const Navbar = () => {
         );
       }
       return (
-        <DropdownMenuItem key={item.id} asChild>
+        <DropdownMenuItem
+          key={item.id}
+          asChild
+          className="hover:bg-gray-100 transition"
+        >
           <Link href={item.url || "#"} className="w-full text-left">
             {item.title}
           </Link>
@@ -92,14 +98,13 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b bg-white shadow-md transition-transform duration-500 ${
-        visible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className={`fixed top-0 z-50 w-full border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500 ${visible ? "translate-y-0" : "-translate-y-full"
+        }`}
     >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <div className="relative w-[130px] md:w-[220px] h-[50px] md:h-[60px]">
+          <div className="relative w-[130px] md:w-[200px] h-[50px] md:h-[60px]">
             <Image
               src="/new_logo.png"
               alt="Urbanic Pitara"
@@ -115,11 +120,11 @@ const Navbar = () => {
           {/* Men Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
+              <button className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors">
                 Men <ChevronDown className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-[200px]">
+            <DropdownMenuContent className="min-w-[200px] shadow-lg">
               {renderDropdownItems(menMenu)}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -127,40 +132,56 @@ const Navbar = () => {
           {/* Women Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-caribbean-current transition-colors">
+              <button className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors">
                 Women <ChevronDown className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-[200px]">
+            <DropdownMenuContent className="min-w-[200px] shadow-lg">
               {renderDropdownItems(womenMenu)}
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Search Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setOpen(true)}
+            className="text-gray-800 hover:text-[var(--gold)] transition-colors"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+
           {/* Cart */}
           <Link
             href="/cart"
-            className="relative text-gray-700 hover:text-caribbean-current"
+            className="relative text-gray-800 hover:text-[var(--gold)] transition-colors"
           >
             <ShoppingCart className="h-6 w-6" />
             {itemCount > 0 && (
               <Badge
                 variant="secondary"
-                className="absolute -right-2 -top-2 h-5 min-w-[20px] rounded-full px-1"
+                className="absolute -right-2 -top-2 h-5 min-w-[20px] rounded-full px-1 
+               bg-black text-white text-xs font-semibold flex items-center justify-center shadow-sm z-10"
               >
                 {itemCount}
               </Badge>
             )}
+
           </Link>
 
           {/* Auth Dropdown */}
           {isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 text-gray-800 hover:text-[var(--gold)] transition"
+                >
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuContent className="w-56 shadow-lg" align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -174,14 +195,17 @@ const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-red-600 hover:text-red-700"
+                >
                   <LogOut className="mr-2 h-4 w-4" /> Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <Link href="/auth">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-[var(--gold)] hover:bg-[var(--gold-dark)] text-white font-medium rounded-full px-6">
                 Login
               </Button>
             </Link>
@@ -191,7 +215,7 @@ const Navbar = () => {
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-gray-800"
+          className="md:hidden text-gray-800 hover:text-[var(--gold)] transition"
           aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -200,57 +224,65 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <nav className="md:hidden bg-white shadow-inner border-t">
+        <nav className="md:hidden bg-white border-t shadow-inner animate-slideDown">
           <div className="px-4 py-4 flex flex-col gap-4">
-            {/* Mobile dropdown for Men */}
+            {/* Search */}
+            <button
+              onClick={() => setOpen(true)}
+              className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition"
+            >
+              <Search className="h-5 w-5" /> Search
+            </button>
+
+            {/* Men */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex justify-between w-full text-gray-700 font-medium">
+                <button className="flex justify-between w-full text-gray-800 font-medium hover:text-[var(--gold)] transition">
                   Men <ChevronDown className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-[200px]">
+              <DropdownMenuContent className="min-w-[200px] shadow-md">
                 {renderDropdownItems(menMenu)}
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Mobile dropdown for Women */}
+            {/* Women */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex justify-between w-full text-gray-700 font-medium">
+                <button className="flex justify-between w-full text-gray-800 font-medium hover:text-[var(--gold)] transition">
                   Women <ChevronDown className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-[200px]">
+              <DropdownMenuContent className="min-w-[200px] shadow-md">
                 {renderDropdownItems(womenMenu)}
               </DropdownMenuContent>
             </DropdownMenu>
 
             <Link
               href="/cart"
-              className="flex items-center gap-2 text-gray-700 font-medium"
+              className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition font-medium"
             >
               <ShoppingCart className="h-5 w-5" /> Cart ({itemCount})
             </Link>
 
             {isLoggedIn ? (
               <>
-                <Link href="/profile" className="block text-gray-700">
+                <Link href="/profile" className="text-gray-800 hover:text-[var(--gold)] transition">
                   Profile
                 </Link>
-                <Link href="/profile/orders" className="block text-gray-700">
+                <Link href="/profile/orders" className="text-gray-800 hover:text-[var(--gold)] transition">
                   Orders
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block text-red-600 font-medium"
+                  className="text-red-600 font-medium hover:text-red-700 transition"
                 >
                   Logout
                 </button>
               </>
             ) : (
               <Link href="/auth">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="w-full bg-[var(--gold)] hover:bg-[var(--gold-dark)] text-white font-medium rounded-full">
                   Login
                 </Button>
               </Link>
@@ -258,6 +290,9 @@ const Navbar = () => {
           </div>
         </nav>
       )}
+
+      {/* Search Dialog */}
+      <SearchDialog open={open} onOpenChange={setOpen} />
     </header>
   );
 };
