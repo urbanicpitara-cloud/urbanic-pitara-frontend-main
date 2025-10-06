@@ -90,6 +90,7 @@ export default async function OpenImage({ params }: { params: { handle: string }
     )
   } catch (error) {
     // Fallback image on error
+    console.log(error)
     return new ImageResponse(
       (
         <div

@@ -1,24 +1,26 @@
-export default function ProductStructuredData({ product }: { product: any }) {
+import { Product } from "@/types/shopify-graphql";
+
+export default function ProductStructuredData({ product }: { product: Product }) {
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
+    "@context": "https://schema.org",
+    "@type": "Product",
     name: product.title,
     description: product.description,
     image: product.images?.edges?.[0]?.node?.url,
     offers: {
-      '@type': 'Offer',
+      "@type": "Offer",
       price: product.priceRange?.minVariantPrice?.amount,
       priceCurrency: product.priceRange?.minVariantPrice?.currencyCode,
-      availability: product.availableForSale 
-        ? 'https://schema.org/InStock' 
-        : 'https://schema.org/OutOfStock'
-    }
-  }
+      availability: product.availableForSale
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+    },
+  };
 
   return (
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
     />
-  )
+  );
 }

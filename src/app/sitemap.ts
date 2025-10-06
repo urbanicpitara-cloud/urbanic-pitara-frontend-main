@@ -48,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // Product routes
-  const productUrls = productData?.products?.edges?.map(({ node }: any) => ({
+  const productUrls = productData?.products?.edges?.map(({ node }: ProductNode) => ({
     url: `${process.env.NEXT_PUBLIC_SITE_URL}/product/${node.handle}`,
     lastModified: new Date(node.updatedAt),
     changeFrequency: 'daily' as const,
@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   })) || []
 
   // Collection routes
-  const collectionUrls = collectionData?.collections?.edges?.map(({ node }: any) => ({
+  const collectionUrls = collectionData?.collections?.edges?.map(({ node }: CollectionNode) => ({
     url: `${process.env.NEXT_PUBLIC_SITE_URL}/collections/${node.handle}`,
     lastModified: new Date(node.updatedAt),
     changeFrequency: 'weekly' as const,
