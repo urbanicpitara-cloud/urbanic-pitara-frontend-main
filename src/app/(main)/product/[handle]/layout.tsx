@@ -2,12 +2,14 @@ import { Metadata } from 'next'
 import { fetchGraphQL } from "@/shopify/client"
 import { GET_PRODUCT_BY_HANDLE_QUERY } from "@/graphql/products"
 
-export async function generateMetadata({ params }: { 
-  params: { handle: string } 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ handle: string }>
 }): Promise<Metadata> {
-  const data = await fetchGraphQL(GET_PRODUCT_BY_HANDLE_QUERY, {
-    handle: params.handle
-  })
+  const { handle } = await params;
+
+  const data = await fetchGraphQL(GET_PRODUCT_BY_HANDLE_QUERY, { handle });
 
   if (!data?.product) {
     return {
@@ -38,4 +40,4 @@ export default function ProductLayout({
   children: React.ReactNode
 }) {
   return children
-}
+}   
