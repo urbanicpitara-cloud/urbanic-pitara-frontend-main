@@ -6,12 +6,16 @@ interface Params {
   handle: string
 }
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const data = await fetchGraphQL(GET_COLLECTION_BY_HANDLE, { 
-    handle: params.handle 
-  })
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Params>;
+}): Promise<Metadata> {
+  const { handle } = await params;
 
-  const collection = data?.collection
+  const data = await fetchGraphQL(GET_COLLECTION_BY_HANDLE, { handle });
+
+  const collection = data?.collection;
 
   return {
     title: collection?.title || 'Collection',
@@ -23,10 +27,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         ? [{ url: collection.image.url, width: 1200, height: 630, alt: collection.title }]
         : []
     }
-  }
+  };
 }
 
-// Layout must NOT be async
 export default function CollectionLayout({
   children,
 }: {
@@ -37,4 +40,4 @@ export default function CollectionLayout({
       {children}
     </div>
   )
-}
+}   
