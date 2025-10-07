@@ -15,7 +15,7 @@ const CollectionPage = () => {
 
   const storefront = useStorefrontClient(); // ✅ we’ll use client.query() instead of refetch
   const [products, setProducts] = useState<Product[]>([]);
-  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
+  // const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageInfo, setPageInfo] = useState<{ hasNextPage: boolean; endCursor: string | null }>({
@@ -54,7 +54,7 @@ const fetchProducts = useCallback(
   // Reset when collection changes
   useEffect(() => {
     setProducts([]);
-    setCurrentCursor(null);
+    // setCurrentCursor(null);
     setLoading(true);
     fetchProducts(null);
   }, [handle, fetchProducts]);
