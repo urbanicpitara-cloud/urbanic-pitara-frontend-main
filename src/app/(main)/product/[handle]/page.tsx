@@ -33,6 +33,7 @@ export default function Product() {
     title?: string;
     qty: number;
   } | null>(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const { data, isLoading } = useStorefrontQuery<GetProductByHandleQuery>(
     ["product", params.handle],
@@ -99,6 +100,7 @@ export default function Product() {
   };
 
   const description = data?.product?.descriptionHtml ?? data?.product?.description ?? "";
+  const descriptionPreview = description.split(" ").slice(0, 50).join(" ");
 
   if (isLoading)
     return (
@@ -116,117 +118,140 @@ export default function Product() {
     );
 
   return (
-    <motion.div
-      className="flex flex-col md:flex-row gap-6 my-10 px-4 max-w-7xl mx-auto"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-    >
-      <div className="w-full md:w-2/3">
-        <ProductCarousel images={data?.product?.images?.edges as ImageEdge[]} />
-      </div>
-
-      <motion.aside
-        className="w-full md:w-1/3 flex flex-col gap-4"
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+    <>
+      <motion.div
+        className="flex flex-col md:flex-row gap-6 my-10 px-4 max-w-7xl mx-auto"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div>
-          <h1 className="text-2xl font-bold">{data?.product?.title}</h1>
-
-          {description && (
-            <div
-              className="prose prose-sm mt-2 text-gray-700 max-w-none"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          )}
+        {/* Product Images */}
+        <div className="w-full md:w-2/3">
+          <ProductCarousel images={data?.product?.images?.edges as ImageEdge[]} />
         </div>
 
-        <ProductOptions
-          selectedOptions={selectedOptions}
-          setSelectedOptions={handleSelectOptions}
-          options={data?.product?.options as ProductOption[]}
-        />
+        {/* Sidebar */}
+        <motion.aside
+          className="w-full md:w-1/3 flex flex-col gap-4 sticky top-20"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <div>
+            <h1 className="text-2xl font-bold">{data?.product?.title}</h1>
 
-        <div className="flex items-center justify-between">
-          <ProductPrice priceRange={data?.product?.priceRange as ProductPriceRange} />
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground">Qty</label>
-            <div className="inline-flex items-center rounded-md border bg-white">
-              <button
-                aria-label="Decrease quantity"
-                className="px-3 py-1 text-lg"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              >
-                −
-              </button>
-              <input
-                className="w-12 text-center bg-transparent outline-none"
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(1, Number(e.target.value || 1)))
-                }
-                inputMode="numeric"
-              />
-              <button
-                aria-label="Increase quantity"
-                className="px-3 py-1 text-lg"
-                onClick={() => setQuantity((q) => q + 1)}
-              >
-                +
-              </button>
-            </div>
+            {description && (
+              <div className="prose prose-sm mt-2 text-gray-700 max-w-none">
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: showFullDescription ? description : descriptionPreview,
+                  }}
+                />
+                {description.length > descriptionPreview.length && (
+                  <button
+                    onClick={() => setShowFullDescription(!showFullDescription)}
+                    className="mt-1 text-blue-600 underline"
+                  >
+                    {showFullDescription ? "Show Less" : "Read More"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <motion.div whileTap={{ scale: 0.95 }} className="mt-3 sm:mt-0 sm:flex-1">
-            <Button
-              disabled={!selectedVariant}
-              onClick={handleAddtoCart}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              Add to cart
-              {selectedVariant && (
-                <span className="inline-flex items-center justify-center ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm">
-                  {quantity}
-                </span>
-              )}
-            </Button>
-          </motion.div>
-        </div>
+          <ProductOptions
+            selectedOptions={selectedOptions}
+            setSelectedOptions={handleSelectOptions}
+            options={data?.product?.options as ProductOption[]}
+          />
 
-        <AnimatePresence>
-          {justAdded && (
-            <motion.div
-              className="mt-3 flex items-center justify-between gap-3 rounded-md bg-green-50 p-3"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="text-sm">
-                Added <strong>{justAdded.qty}</strong> × <span>{justAdded.title}</span>
-              </div>
+          <div className="flex items-center justify-between">
+            <ProductPrice priceRange={data?.product?.priceRange as ProductPriceRange} />
+          </div>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => router.push("/cart")}
-                  className="text-sm"
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Qty</label>
+              <div className="inline-flex items-center rounded-md border bg-white">
+                <button
+                  aria-label="Decrease quantity"
+                  className="px-3 py-1 text-lg"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 >
-                  View cart
-                </Button>
-                <Button variant="link" onClick={handleUndo} className="text-sm">
-                  Undo
-                </Button>
+                  −
+                </button>
+                <input
+                  className="w-12 text-center bg-transparent outline-none"
+                  value={quantity}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, Number(e.target.value || 1)))
+                  }
+                  inputMode="numeric"
+                />
+                <button
+                  aria-label="Increase quantity"
+                  className="px-3 py-1 text-lg"
+                  onClick={() => setQuantity((q) => q + 1)}
+                >
+                  +
+                </button>
               </div>
+            </div>
+
+            <motion.div whileTap={{ scale: 0.95 }} className="mt-3 sm:mt-0 sm:flex-1">
+              <Button
+                disabled={!selectedVariant}
+                onClick={handleAddtoCart}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                Add to cart
+                {selectedVariant && (
+                  <span className="inline-flex items-center justify-center ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm">
+                    {quantity}
+                  </span>
+                )}
+              </Button>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.aside>
-    </motion.div>
+          </div>
+
+          <AnimatePresence>
+            {justAdded && (
+              <motion.div
+                className="mt-3 flex items-center justify-between gap-3 rounded-md bg-green-50 p-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="text-sm">
+                  Added <strong>{justAdded.qty}</strong> × <span>{justAdded.title}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.push("/cart")}
+                    className="text-sm"
+                  >
+                    View cart
+                  </Button>
+                  <Button variant="link" onClick={handleUndo} className="text-sm">
+                    Undo
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.aside>
+      </motion.div>
+
+      {/* Mobile sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 md:hidden flex justify-between items-center">
+        <ProductPrice priceRange={data?.product?.priceRange as ProductPriceRange} />
+        <Button onClick={handleAddtoCart} disabled={!selectedVariant}>
+          Add to Cart
+        </Button>
+      </div>
+    </>
   );
 }
