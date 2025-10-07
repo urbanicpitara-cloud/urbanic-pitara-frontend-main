@@ -5,7 +5,9 @@
 /* Base font */
 body {
   font-family: Arial, Helvetica, sans-serif;
+  @apply bg-white text-gray-900;
 }
+
 
 /* CSS Variables for your theme */
 @layer base {

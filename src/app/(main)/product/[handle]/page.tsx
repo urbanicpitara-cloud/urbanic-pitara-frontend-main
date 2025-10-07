@@ -16,27 +16,42 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ProductPrice from "@/components/view/ProductCard/ProductPrice";
 import { Button } from "@/components/ui/button";
 import ProductOptions from "@/components/view/ProductOptions";
-import { useCart } from "@/lib/atoms/cart"; // Updated import
-import { toast } from "sonner"; // Add this import
+import { useCart } from "@/lib/atoms/cart";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Product() {
   const params = useParams();
   const router = useRouter();
-  const { addItem, removeItem } = useCart(); // Add removeItem to destructuring
+  const { addItem, removeItem } = useCart();
 
-  // States
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
-    {}
-  );
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>();
   const [quantity, setQuantity] = useState<number>(1);
-
-  // small transient UI state after adding to cart
   const [justAdded, setJustAdded] = useState<{
     id: string;
     title?: string;
     qty: number;
   } | null>(null);
+
+  const { data, isLoading } = useStorefrontQuery<GetProductByHandleQuery>(
+    ["product", params.handle],
+    {
+      query: GET_PRODUCT_BY_HANDLE_QUERY,
+      variables: { handle: params.handle },
+    }
+  );
+
+  useEffect(() => {
+    if (!data?.product) return;
+    const first = data.product.variants?.edges?.[0]?.node;
+    if (first) {
+      setSelectedVariant((prev) => prev ?? (first as ProductVariant));
+      const initialOptions: Record<string, string> = {};
+      first.selectedOptions.forEach((o) => (initialOptions[o.name] = o.value));
+      setSelectedOptions((prev) => (Object.keys(prev).length ? prev : initialOptions));
+    }
+  }, [data]);
 
   const handleSelectOptions = (options: Record<string, string>) => {
     const variant = data?.product?.variants?.edges.find((variant) => {
@@ -50,44 +65,9 @@ export default function Product() {
     setSelectedOptions(options);
   };
 
-  const { data, isLoading } = useStorefrontQuery<GetProductByHandleQuery>(
-    ["product", params.handle],
-    {
-      query: GET_PRODUCT_BY_HANDLE_QUERY,
-      variables: { handle: params.handle },
-    }
-  );
-
-  // set sensible default variant when product loads
-  useEffect(() => {
-    if (!data?.product) return;
-    const first = data.product.variants?.edges?.[0]?.node;
-    if (first) {
-      setSelectedVariant((prev) => prev ?? (first as ProductVariant));
-      const initialOptions: Record<string, string> = {};
-      first.selectedOptions.forEach((o) => (initialOptions[o.name] = o.value));
-      setSelectedOptions((prev) => (Object.keys(prev).length ? prev : initialOptions));
-    }
-  }, [data]);
-
-  if (isLoading)
-    return (
-      <div className="flex flex-col md:flex-row gap-4 my-10 px-4 pt-10">
-        <div className="w-full md:w-2/3">
-          <Skeleton className="h-[320px] w-full rounded-lg" />
-        </div>
-        <div className="w-full md:w-1/3 flex flex-col gap-4">
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-      </div>
-    );
-
   const handleAddtoCart = async () => {
     if (!selectedVariant) return;
-    
+
     try {
       await addItem?.(selectedVariant.id, quantity);
       toast.success(`Added ${quantity} × ${data?.product?.title} to cart`, {
@@ -114,24 +94,53 @@ export default function Product() {
     if (!justAdded) return;
     try {
       removeItem(justAdded.id);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     setJustAdded(null);
   };
 
-  const description = data?.product?.description ?? "";
+  const description = data?.product?.descriptionHtml ?? data?.product?.description ?? "";
+
+  if (isLoading)
+    return (
+      <div className="flex flex-col md:flex-row gap-4 my-10 px-4 pt-10">
+        <div className="w-full md:w-2/3">
+          <Skeleton className="h-[320px] w-full rounded-lg" />
+        </div>
+        <div className="w-full md:w-1/3 flex flex-col gap-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      </div>
+    );
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 my-10 px-4 max-w-7xl mx-auto">
+    <motion.div
+      className="flex flex-col md:flex-row gap-6 my-10 px-4 max-w-7xl mx-auto"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       <div className="w-full md:w-2/3">
         <ProductCarousel images={data?.product?.images?.edges as ImageEdge[]} />
       </div>
 
-      <aside className="w-full md:w-1/3 flex flex-col gap-4">
+      <motion.aside
+        className="w-full md:w-1/3 flex flex-col gap-4"
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <div>
           <h1 className="text-2xl font-bold">{data?.product?.title}</h1>
-          <p className="mt-2 text-sm text-gray-500 line-clamp-4">{description}</p>
+
+          {description && (
+            <div
+              className="prose prose-sm mt-2 text-gray-700 max-w-none"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+          )}
         </div>
 
         <ProductOptions
@@ -141,12 +150,9 @@ export default function Product() {
         />
 
         <div className="flex items-center justify-between">
-          <ProductPrice
-            priceRange={data?.product?.priceRange as ProductPriceRange}
-          />
+          <ProductPrice priceRange={data?.product?.priceRange as ProductPriceRange} />
         </div>
 
-        {/* Quantity + Add to cart row (improved UI & responsive) */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground">Qty</label>
@@ -176,42 +182,51 @@ export default function Product() {
             </div>
           </div>
 
-          <Button
-            disabled={!selectedVariant}
-            onClick={handleAddtoCart}
-            className="mt-3 sm:mt-0 sm:flex-1 flex items-center justify-center gap-2"
-          >
-            Add to cart
-            {selectedVariant && (
-              <span className="inline-flex items-center justify-center ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm">
-                {quantity}
-              </span>
-            )}
-          </Button>
+          <motion.div whileTap={{ scale: 0.95 }} className="mt-3 sm:mt-0 sm:flex-1">
+            <Button
+              disabled={!selectedVariant}
+              onClick={handleAddtoCart}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              Add to cart
+              {selectedVariant && (
+                <span className="inline-flex items-center justify-center ml-2 rounded-full bg-white/10 px-2 py-0.5 text-sm">
+                  {quantity}
+                </span>
+              )}
+            </Button>
+          </motion.div>
         </div>
 
-        {/* Inline feedback panel */}
-        {justAdded && (
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-md bg-green-50 p-3">
-            <div className="text-sm">
-              Added <strong>{justAdded.qty}</strong> × <span>{justAdded.title}</span>
-            </div>
+        <AnimatePresence>
+          {justAdded && (
+            <motion.div
+              className="mt-3 flex items-center justify-between gap-3 rounded-md bg-green-50 p-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="text-sm">
+                Added <strong>{justAdded.qty}</strong> × <span>{justAdded.title}</span>
+              </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => router.push("/cart")}
-                className="text-sm"
-              >
-                View cart
-              </Button>
-              <Button variant="link" onClick={handleUndo} className="text-sm">
-                Undo
-              </Button>
-            </div>
-          </div>
-        )}
-      </aside>
-    </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => router.push("/cart")}
+                  className="text-sm"
+                >
+                  View cart
+                </Button>
+                <Button variant="link" onClick={handleUndo} className="text-sm">
+                  Undo
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.aside>
+    </motion.div>
   );
 }
