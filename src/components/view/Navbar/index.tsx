@@ -104,7 +104,7 @@ const Navbar = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <div className="relative w-[130px] md:w-[200px] h-[50px] md:h-[60px]">
+          <div className="relative w-[140px] md:w-[200px] h-[60px] md:h-[70px]">
             <Image
               src="/new_logo.png"
               alt="Urbanic Pitara"
