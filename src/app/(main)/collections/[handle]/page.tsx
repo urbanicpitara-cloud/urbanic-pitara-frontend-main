@@ -3,9 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import ProductCard from "@/components/view/ProductCard";
-import { GET_COLLECTION_BY_HANDLE_WITH_PAGINATION_QUERY } from "@/graphql/collections";
-import { useStorefrontClient } from "@/hooks/useStorefront"; // ✅ use client to manually query
-import { GetCollectionByHandleQuery, Product } from "@/types/shopify-graphql";
+import { productsRepository } from "@/lib/api/repositories/products";
+import { ProductSummary } from "@/lib/api/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "motion/react";
 
@@ -13,8 +12,7 @@ const CollectionPage = () => {
   const params = useParams();
   const handle = params.handle as string;
 
-  const storefront = useStorefrontClient(); // ✅ we’ll use client.query() instead of refetch
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductSummary[]>([]);
   // const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -27,27 +25,18 @@ const CollectionPage = () => {
 const fetchProducts = useCallback(
   async (cursor: string | null = null) => {
     try {
-      const data = await storefront.request<GetCollectionByHandleQuery>(
-        GET_COLLECTION_BY_HANDLE_WITH_PAGINATION_QUERY,
-        { handle, first: 12, after: cursor }
-      );
-
-      const newProducts =
-        data?.collection?.products?.edges
-          ?.map((e) => e?.node)
-          .filter(Boolean) as Product[];
-
-      setProducts((prev) => (cursor ? [...prev, ...newProducts] : newProducts));
-      setPageInfo({
-        hasNextPage: data?.collection?.products?.pageInfo?.hasNextPage || false,
-        endCursor: data?.collection?.products?.pageInfo?.endCursor || null,
+      const response = await productsRepository.listByCollectionHandle(handle, {
+        first: 12,
+        after: cursor,
       });
+      setProducts((prev) => (cursor ? [...prev, ...response.items] : response.items));
+      setPageInfo(response.pageInfo);
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
   },
-  [storefront, handle]
+  [handle]
 );
 
 
@@ -82,12 +71,21 @@ const fetchProducts = useCallback(
     return () => observer.disconnect();
   }, [handleObserver]);
 
+  if (!loading && products.length === 0) {
+    return (
+      <div className="my-16 text-center">
+        <h1 className="text-2xl font-bold">No products in this collection</h1>
+        <p className="text-muted-foreground mt-2">Try browsing other collections.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="my-16">
       {/* Collection Header */}
       <div className="flex flex-col items-center gap-2 mb-12">
         <h1 className="text-4xl font-serif font-bold text-black text-center">
-          {products.length > 0 ? products[0]?.productType || handle : "Loading..."}
+          {products.length > 0 ? products[0]?.title || handle : "Loading..."}
         </h1>
         <div className="mt-3 w-24 h-[2px] bg-gold rounded-full"></div>
       </div>

@@ -3,20 +3,20 @@ import { GraphQLClient, RequestDocument } from "graphql-request";
 import { parseCookies } from "nookies";
 
 /* -------------------------------------------------------------------------- */
-/* 🏪 Shopify Storefront GraphQL Client Setup                                 */
+/* Legacy: Shopify Storefront GraphQL Client (deprecated)                     */
 /* -------------------------------------------------------------------------- */
 
 // Validate and get API endpoint
 const getValidEndpoint = () => {
   const url = process.env.NEXT_PUBLIC_SHOPIFY_STORE_API_URL;
   if (!url) {
-    throw new Error("Shopify Storefront API URL is not defined");
+    throw new Error("Shopify Storefront API URL is not defined (legacy)");
   }
   try {
     new URL(url); // Validate URL format
     return url;
   } catch {
-    throw new Error("Invalid Shopify Storefront API URL");
+    throw new Error("Invalid Shopify Storefront API URL (legacy)");
   }
 };
 
@@ -24,7 +24,7 @@ const endpoint = getValidEndpoint();
 const accessToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
 if (!accessToken) {
-  throw new Error("Shopify Storefront access token is not defined");
+  throw new Error("Shopify Storefront access token is not defined (legacy)");
 }
 
 // Create Shopify Storefront client

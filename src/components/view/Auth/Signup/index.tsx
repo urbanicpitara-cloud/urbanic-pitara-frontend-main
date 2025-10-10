@@ -14,10 +14,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useStorefrontMutation } from "@/hooks/useStorefront";
-import { CUSTOMER_CREATE } from "@/graphql/auth";
+import { authRepository } from "@/lib/api/repositories/auth";
 import { toast } from "sonner";
-import { CustomerCreateResponse } from "@/types";
 import { motion } from "framer-motion";
 
 const signupSchema = z
@@ -40,7 +38,7 @@ type SignupFormProps = {
 
 const Signup = ({ setShowRegister }: SignupFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { mutate } = useStorefrontMutation<CustomerCreateResponse>();
+  // Using backend auth
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -56,21 +54,7 @@ const Signup = ({ setShowRegister }: SignupFormProps) => {
   async function onSubmit(values: SignupFormValues) {
     setIsLoading(true);
     try {
-      const response = await mutate({
-        query: CUSTOMER_CREATE,
-        variables: {
-          input: {
-            firstName: values.firstName,
-            lastName: values.lastName,
-            email: values.email,
-            password: values.password,
-          },
-        },
-      });
-
-      if (response.customerCreate.customerUserErrors.length > 0) {
-        throw new Error(response.customerCreate.customerUserErrors[0].message);
-      }
+      await authRepository.signup(values.email, values.password, values.firstName, values.lastName);
 
       toast.success("Account created successfully! Please log in.");
       form.reset();

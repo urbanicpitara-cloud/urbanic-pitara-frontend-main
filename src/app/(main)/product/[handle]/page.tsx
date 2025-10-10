@@ -2,15 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { GET_PRODUCT_BY_HANDLE_QUERY } from "@/graphql/products";
-import { useStorefrontQuery } from "@/hooks/useStorefront";
-import {
-  GetProductByHandleQuery,
-  ImageEdge,
-  ProductOption,
-  ProductPriceRange,
-  ProductVariant,
-} from "@/types/shopify-graphql";
+import { productsRepository } from "@/lib/api/repositories/products";
+import { Image, ProductDetail, ProductOption, ProductVariant } from "@/lib/api/types";
 import ProductCarousel from "@/components/view/ProductCarousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProductPrice from "@/components/view/ProductCard/ProductPrice";
@@ -35,17 +28,26 @@ export default function Product() {
   } | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  const { data, isLoading } = useStorefrontQuery<GetProductByHandleQuery>(
-    ["product", params.handle],
-    {
-      query: GET_PRODUCT_BY_HANDLE_QUERY,
-      variables: { handle: params.handle },
-    }
-  );
+  const [data, setData] = useState<ProductDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!data?.product) return;
-    const first = data.product.variants?.edges?.[0]?.node;
+    let active = true;
+    setIsLoading(true);
+    productsRepository
+      .getByHandle(String(params.handle))
+      .then((res) => {
+        if (active) setData(res);
+      })
+      .finally(() => active && setIsLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [params.handle]);
+
+  useEffect(() => {
+    if (!data) return;
+    const first = data.variants?.[0];
     if (first) {
       setSelectedVariant((prev) => prev ?? (first as ProductVariant));
       const initialOptions: Record<string, string> = {};
@@ -55,14 +57,14 @@ export default function Product() {
   }, [data]);
 
   const handleSelectOptions = (options: Record<string, string>) => {
-    const variant = data?.product?.variants?.edges.find((variant) => {
+    const variant = data?.variants?.find((variant) => {
       return Object.keys(options).every((key) => {
-        return variant.node.selectedOptions.some(
+        return variant.selectedOptions.some(
           (option) => option.name === key && option.value === options[key]
         );
       });
     });
-    setSelectedVariant(variant?.node as ProductVariant);
+    setSelectedVariant(variant as ProductVariant);
     setSelectedOptions(options);
   };
 
@@ -71,7 +73,7 @@ export default function Product() {
 
     try {
       await addItem?.(selectedVariant.id, quantity);
-      toast.success(`Added ${quantity} × ${data?.product?.title} to cart`, {
+      toast.success(`Added ${quantity} × ${data?.title} to cart`, {
         description: "Item has been added to your cart",
         action: {
           label: "View Cart",
@@ -84,7 +86,7 @@ export default function Product() {
 
     setJustAdded({
       id: selectedVariant.id,
-      title: data?.product?.title,
+      title: data?.title,
       qty: quantity,
     });
 
@@ -99,7 +101,7 @@ export default function Product() {
     setJustAdded(null);
   };
 
-  const description = data?.product?.descriptionHtml ?? data?.product?.description ?? "";
+  const description = data?.descriptionHtml ?? data?.description ?? "";
   const descriptionPreview = description.split(" ").slice(0, 50).join(" ");
 
   if (isLoading)
@@ -117,6 +119,16 @@ export default function Product() {
       </div>
     );
 
+  if (!data) {
+    return (
+      <div className="max-w-3xl mx-auto my-16 text-center">
+        <h1 className="text-2xl font-bold">Product not found</h1>
+        <p className="text-muted-foreground mt-2">The product you are looking for doesn’t exist or has been removed.</p>
+        <Button className="mt-6" onClick={() => router.push("/")}>Go back home</Button>
+      </div>
+    );
+  }
+
   return (
     <>
       <motion.div
@@ -127,7 +139,7 @@ export default function Product() {
       >
         {/* Product Images */}
         <div className="w-full md:w-2/3">
-          <ProductCarousel images={data?.product?.images?.edges as ImageEdge[]} />
+          <ProductCarousel images={(data?.images ?? []) as unknown as { node: Image }[]} />
         </div>
 
         {/* Sidebar */}
@@ -162,11 +174,11 @@ export default function Product() {
           <ProductOptions
             selectedOptions={selectedOptions}
             setSelectedOptions={handleSelectOptions}
-            options={data?.product?.options as ProductOption[]}
+            options={(data?.options ?? []) as ProductOption[]}
           />
 
           <div className="flex items-center justify-between">
-            <ProductPrice priceRange={data?.product?.priceRange as ProductPriceRange} />
+            <ProductPrice priceRange={{ minVariantPrice: data?.priceRange.minVariantPrice, maxVariantPrice: data?.priceRange.maxVariantPrice }} />
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
@@ -247,7 +259,7 @@ export default function Product() {
 
       {/* Mobile sticky bottom bar */}
       <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 md:hidden flex justify-between items-center">
-        <ProductPrice priceRange={data?.product?.priceRange as ProductPriceRange} />
+        <ProductPrice priceRange={{ minVariantPrice: data?.priceRange.minVariantPrice, maxVariantPrice: data?.priceRange.maxVariantPrice }} />
         <Button onClick={handleAddtoCart} disabled={!selectedVariant}>
           Add to Cart
         </Button>

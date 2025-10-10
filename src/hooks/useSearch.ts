@@ -1,31 +1,39 @@
-import { useStorefrontQuery } from "./useStorefront";
 import { useDebounce } from "./useDebounce";
-import { SEARCH_PRODUCTS_QUERY } from "@/graphql/search";
-import type { SearchProductsResponse } from "@/graphql/search";
-import { useState } from "react";
+import React, { useState } from "react";
+import { searchRepository } from "@/lib/api/repositories/search";
 
 export function useSearch() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const { data, isLoading } = useStorefrontQuery<SearchProductsResponse>(
-    ["search", debouncedSearch],
-    {
-      query: SEARCH_PRODUCTS_QUERY,
-      variables: { 
-        query: debouncedSearch,
-        first: 12
+  const [results, setResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    const run = async () => {
+      if (!debouncedSearch) {
+        setResults([]);
+        return;
       }
-    },
-    // {
-    //   enabled: debouncedSearch.length > 0,
-    // }
-  );
+      setIsLoading(true);
+      try {
+        const items = await searchRepository.searchProducts(debouncedSearch);
+        if (active) setResults(items);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [debouncedSearch]);
 
   return {
     searchTerm,
     setSearchTerm,
-    results: data?.products?.edges || [],
+    results,
     isLoading,
   };
 }

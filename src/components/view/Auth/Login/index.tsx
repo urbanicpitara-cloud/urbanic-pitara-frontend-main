@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useStorefrontMutation } from "@/hooks/useStorefront";
-import { CUSTOMER_ACCESS_TOKEN_CREATE } from "@/graphql/auth";
+import { authRepository } from "@/lib/api/repositories/auth";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { setCookie } from "nookies";
@@ -32,7 +31,7 @@ type LoginFormProps = {
 
 const Login = ({ setShowRegister }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { mutate } = useStorefrontMutation();
+  // using backend auth
   const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -43,24 +42,8 @@ const Login = ({ setShowRegister }: LoginFormProps) => {
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
     try {
-      const response = (await mutate({
-        query: CUSTOMER_ACCESS_TOKEN_CREATE,
-        variables: { input: values },
-      })) as {
-        customerAccessTokenCreate: {
-          customerUserErrors: { message: string }[];
-          customerAccessToken: { accessToken: string } | null;
-        };
-      };
-
-      const { customerUserErrors, customerAccessToken } =
-        response.customerAccessTokenCreate;
-
-      if (customerUserErrors.length || !customerAccessToken?.accessToken) {
-        throw new Error(customerUserErrors[0]?.message || "Login failed");
-      }
-
-      setCookie(null, "customerAccessToken", customerAccessToken.accessToken, {
+      const { token } = await authRepository.login(values.email, values.password);
+      setCookie(null, "customerAccessToken", token, {
         maxAge: 30 * 24 * 60 * 60,
         path: "/",
       });

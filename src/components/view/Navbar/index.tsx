@@ -16,7 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/atoms/cart";
 import { useShopifyMenu, MenuItem } from "@/hooks/useShopifyMenu";
-import { isAuthenticated } from "@/hooks/useStorefront";
+import { authRepository } from "@/lib/api/repositories/auth";
+import { parseCookies } from "nookies";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +45,16 @@ const Navbar = () => {
   const lastScrollY = useRef(0);
 
   useEffect(() => {
-    setIsLoggedIn(isAuthenticated());
+    const cookies = parseCookies();
+    const token = cookies.customerAccessToken;
+    if (!token) {
+      setIsLoggedIn(false);
+      return;
+    }
+    authRepository
+      .me(token)
+      .then(() => setIsLoggedIn(true))
+      .catch(() => setIsLoggedIn(false));
   }, []);
 
   useEffect(() => {
@@ -205,7 +215,7 @@ const Navbar = () => {
             </DropdownMenu>
           ) : (
             <Link href="/auth">
-              <Button className="bg-[var(--gold)] hover:bg-[var(--gold-dark)] text-white font-medium rounded-full px-6">
+              <Button className="bg-blue-400 text-black hover:bg-blue-500 hover:text-white font-medium rounded-full px-6">
                 Login
               </Button>
             </Link>

@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseCookies } from "nookies";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useStorefrontQuery } from "@/hooks/useStorefront";
-import { GET_CUSTOMER_PROFILE } from "@/graphql/profile";
-import type { CustomerProfile } from "@/types/profile";
+import { authRepository } from "@/lib/api/repositories/auth";
+import { profileRepository } from "@/lib/api/repositories/profile";
 import { Button } from "@/components/ui/button";
 import { EditProfileForm } from "@/components/view/Profile/EditProfileForm";
 import { AddressForm } from "@/components/view/Profile/AddressForm";
@@ -19,15 +18,29 @@ export default function ProfilePage() {
   const cookies = parseCookies();
   const customerAccessToken = cookies.customerAccessToken;
 
-  const { data, isLoading, error, refetch } = useStorefrontQuery<{ customer: CustomerProfile }>(
-    ["customerProfile", customerAccessToken],
-    {
-      query: GET_CUSTOMER_PROFILE,
-      variables: { customerAccessToken },
-      // do not attempt fetch on server — only when token exists on client
-      enabled: !!customerAccessToken && mounted,
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<{ id: string; email: string; firstName?: string; lastName?: string } | null>(null);
+
+  const refetch = async () => {
+    if (!customerAccessToken) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await profileRepository.me(customerAccessToken);
+      setUser(res.user);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load profile");
+    } finally {
+      setIsLoading(false);
     }
-  );
+  };
+
+  useEffect(() => {
+    if (mounted && customerAccessToken) {
+      refetch();
+    }
+  }, [mounted, customerAccessToken]);
 
   useEffect(() => {
     // redirect only after client mount
@@ -49,7 +62,7 @@ export default function ProfilePage() {
               <Skeleton className="h-[200px] w-full md:col-span-2" />
             </div>
           </>
-        ) : error || !data?.customer ? (
+        ) : error || !user ? (
           <div className="text-center">
             <p className="text-red-500 mb-4">Error loading profile</p>
             <Button onClick={() => refetch()}>Try Again</Button>
@@ -73,38 +86,13 @@ export default function ProfilePage() {
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <h2 className="text-lg font-medium mb-2">Personal</h2>
-                <p className="text-sm text-gray-600">{data.customer.firstName} {data.customer.lastName}</p>
-                <p className="text-sm text-gray-600">{data.customer.email}</p>
-                <p className="text-sm text-gray-600">{data.customer.phone || "No phone"}</p>
-
-                <EditProfileForm
-                  customerAccessToken={customerAccessToken}
-                  customer={data.customer}
-                  onSuccess={() => refetch()}
-                  trigger={<Button variant="outline" className="mt-4">Edit Profile</Button>}
-                />
+                <p className="text-sm text-gray-600">{user.firstName} {user.lastName}</p>
+                <p className="text-sm text-gray-600">{user.email}</p>
               </div>
 
               <div>
                 <h2 className="text-lg font-medium mb-2">Address</h2>
-                {data.customer.defaultAddress ? (
-                  <>
-                    <p>{data.customer.defaultAddress.address1}</p>
-                    <p>{data.customer.defaultAddress.city}, {data.customer.defaultAddress.province} {data.customer.defaultAddress.zip}</p>
-                    <AddressForm
-                      customerAccessToken={customerAccessToken}
-                      existingAddress={data.customer.defaultAddress}
-                      onSuccess={() => refetch()}
-                      trigger={<Button variant="outline" className="mt-4">Edit Address</Button>}
-                    />
-                  </>
-                ) : (
-                  <AddressForm
-                    customerAccessToken={customerAccessToken}
-                    onSuccess={() => refetch()}
-                    trigger={<Button variant="outline">Add Address</Button>}
-                  />
-                )}
+                <p className="text-sm text-gray-600">Addresses will appear here.</p>
               </div>
             </div>
           </>

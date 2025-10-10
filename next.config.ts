@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "0dpp0x-v0.myshopify.com",
       }
+      ,
+         {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+      }
     ],
   },
 };

@@ -1,38 +1,28 @@
-import { useStorefrontQuery } from "./useStorefront";
-import { GET_MENU_QUERY, RawMenuItem, MenuItem } from "../graphql/menu";
+import { useEffect, useState } from "react";
+import { menuRepository, type MenuItem } from "@/lib/api/repositories/menu";
 
-export type { MenuItem }; // re-export clean type
+export type { MenuItem };
 
 export const useShopifyMenu = (handle: string) => {
-  const { data, isLoading, error } = useStorefrontQuery<{ menu: { items: RawMenuItem[] } }>(
-    ["menu", handle],
-    {
-      query: GET_MENU_QUERY,
-      variables: { handle },
-    }
-  );
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // normalize Shopify URLs
-  const normalizeUrl = (url?: string) => {
-    if (!url) return "#";
-    try {
-      const u = new URL(url);
-      return u.pathname; // keep only /collections/... etc
-    } catch {
-      return url; // already relative
-    }
-  };
-
-  // convert Shopify's "items" → our "children"
-  const transformItems = (items: RawMenuItem[]): MenuItem[] =>
-    items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      url: normalizeUrl(item.url),
-      children: item.items ? transformItems(item.items) : [],
-    }));
-
-  const menu: MenuItem[] = data?.menu?.items ? transformItems(data.menu.items) : [];
+  useEffect(() => {
+    let active = true;
+    setIsLoading(true);
+    setError(null);
+    menuRepository
+      .getMenu(handle)
+      .then((items) => {
+        if (active) setMenu(items);
+      })
+      .catch((e) => active && setError(e?.message || "Failed to load menu"))
+      .finally(() => active && setIsLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [handle]);
 
   return { menu, isLoading, error };
 };

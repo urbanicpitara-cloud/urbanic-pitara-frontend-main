@@ -1,20 +1,27 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { GET_COLLECTIONS_QUERY } from "@/graphql/collections";
-import { useStorefrontQuery } from "@/hooks/useStorefront";
-import { GetCollectionsQuery } from "@/types/shopify-graphql";
+import { collectionsRepository, type Collection } from "@/lib/api/repositories/collections";
 import Image from "next/image";
 import React from "react";
 import { useRouter } from "next/navigation";
 const AllCollections = () => {
   const router = useRouter();
-  const { data, isLoading } = useStorefrontQuery<GetCollectionsQuery>(
-    ["collections"],
-    {
-      query: GET_COLLECTIONS_QUERY,
-    }
-  );
+  const [isLoading, setLoading] = React.useState(true);
+  const [collections, setCollections] = React.useState<Collection[]>([]);
+
+  React.useEffect(() => {
+    let active = true;
+    collectionsRepository
+      .list()
+      .then((items) => {
+        if (active) setCollections(items);
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -29,21 +36,21 @@ const AllCollections = () => {
 
   return (
     <div className="grid grid-cols-2 gap-6 w-full my-10">
-      {data?.collections.edges.map((collection) => (
+      {collections.map((collection) => (
         <button
-          onClick={() => router.push(`/collections/${collection.node.handle}`)}
-          key={collection.node.id}
+          onClick={() => router.push(`/collections/${collection.handle}`)}
+          key={collection.id}
         >
           <div className="relative w-full h-[500px] rounded-lg overflow-hidden">
             <Image
-              src={collection.node.image?.url ?? ""}
-              alt={collection.node.image?.altText ?? ""}
+              src={collection.image?.url ?? ""}
+              alt={collection.image?.altText ?? ""}
               layout="fill"
               className="w-full h-full object-cover rounded-lg shadow-lg"
             />
           </div>
-          <h1>{collection.node.title}</h1>
-          <p>{collection.node.description}</p>
+          <h1>{collection.title}</h1>
+          <p>{collection.description}</p>
         </button>
       ))}
     </div>
