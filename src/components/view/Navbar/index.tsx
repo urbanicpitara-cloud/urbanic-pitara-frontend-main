@@ -45,16 +45,34 @@ const Navbar = () => {
   const lastScrollY = useRef(0);
 
   useEffect(() => {
-    const cookies = parseCookies();
-    const token = cookies.customerAccessToken;
-    if (!token) {
-      setIsLoggedIn(false);
-      return;
-    }
-    authRepository
-      .me(token)
-      .then(() => setIsLoggedIn(true))
-      .catch(() => setIsLoggedIn(false));
+    (async () => {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        // Prefer cookie-based session (browser must have accepted cookie)
+        const res = await fetch(`${apiBase}/auth/me`, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (res.ok) {
+          setIsLoggedIn(true);
+          return;
+        }
+        // Fallback: token returned by login saved in localStorage by your login() helper
+        const fallback = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+        if (fallback) {
+          const r2 = await fetch(`${apiBase}/auth/me`, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${fallback}` },
+          });
+          setIsLoggedIn(r2.ok);
+          return;
+        }
+        setIsLoggedIn(false);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -68,9 +86,19 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    document.cookie =
-      "customerAccessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    router.push("/");
+    (async () => {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        await fetch(`${apiBase}/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch {}
+      try { localStorage.removeItem("auth_token"); } catch {}
+      // also clear legacy cookie name just in case
+      document.cookie = "customerAccessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+      router.push("/");
+    })();
   };
 
   const renderDropdownItems = (items?: MenuItem[]) => {
