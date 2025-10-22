@@ -1,13 +1,19 @@
 // In Next.js, this file would be called: app/providers.jsx
 "use client";
 
-import React from "react";
-// Since QueryClientProvider relies on useContext under the hood, we have to put 'use client' on top
-import {
-  isServer,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { authRepository } from "@/lib/api/repositories/auth";
+
+export const AuthContext = createContext<{
+  user: any;
+  setUser: (user: any) => void;
+  logout: () => Promise<void>;
+}>({
+  user: null,
+  setUser: () => {},
+  logout: async () => {},
+});
 
 function makeQueryClient() {
   return new QueryClient({
@@ -24,7 +30,7 @@ function makeQueryClient() {
 let browserQueryClient: QueryClient | undefined = undefined;
 
 function getQueryClient() {
-  if (isServer) {
+  if (typeof window === 'undefined') {
     // Server: always make a new query client
     return makeQueryClient();
   } else {
@@ -32,23 +38,35 @@ function getQueryClient() {
     // This is very important, so we don't re-make a new client if React
     // suspends during the initial render. This may not be needed if we
     // have a suspense boundary BELOW the creation of the query client
-    if (!browserQueryClient) browserQueryClient = makeQueryClient();
+    browserQueryClient = browserQueryClient ?? makeQueryClient();
     return browserQueryClient;
   }
 }
 
-interface ProvidersProps {
-  children: React.ReactNode;
-}
-
-export default function Providers({ children }: ProvidersProps) {
-  // NOTE: Avoid useState when initializing the query client if you don't
-  //       have a suspense boundary between this and the code that may
-  //       suspend because React will throw away the client on the initial
-  //       render if it suspends and there is no boundary
+export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Check auth status on mount
+    authRepository.me()
+      .then(response => setUser(response.user))
+      .catch(() => setUser(null));
+  }, []);
+
+  const logout = async () => {
+    await authRepository.logout();
+    setUser(null);
+  };
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthContext.Provider value={{ user, setUser, logout }}>
+        {children}
+      </AuthContext.Provider>
+    </QueryClientProvider>
   );
 }
+
+// Helper hook to use auth context
+export const useAuth = () => useContext(AuthContext);

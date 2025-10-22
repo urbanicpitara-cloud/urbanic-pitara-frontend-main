@@ -20,53 +20,48 @@ const baseUrl = getBaseUrl();
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-interface RequestOptions {
-  method?: HttpMethod;
+interface BaseRequestOptions extends Omit<RequestInit, "body" | "method"> {
   headers?: Record<string, string>;
-  body?: any;
-  signal?: AbortSignal;
+  credentials?: RequestCredentials;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const url = `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers ?? {}),
-  };
-
-  const res = await fetch(url, {
-    method: options.method ?? "GET",
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-    signal: options.signal,
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`API ${res.status} ${res.statusText}: ${text}`);
-  }
-
-  // Handle empty responses
-  const contentType = res.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) {
-    // @ts-expect-error - caller must know the type
-    return undefined;
-  }
-  return (await res.json()) as T;
+export interface RequestOptions extends BaseRequestOptions {
+  method?: HttpMethod;
+  body?: string;
 }
 
 export const apiClient = {
-  get: <T>(path: string, init?: Omit<RequestOptions, "method" | "body">) =>
-    request<T>(path, { ...init, method: "GET" }),
-  post: <T>(path: string, body?: any, init?: Omit<RequestOptions, "method">) =>
-    request<T>(path, { ...init, method: "POST", body }),
-  put: <T>(path: string, body?: any, init?: Omit<RequestOptions, "method">) =>
-    request<T>(path, { ...init, method: "PUT", body }),
-  patch: <T>(path: string, body?: any, init?: Omit<RequestOptions, "method">) =>
-    request<T>(path, { ...init, method: "PATCH", body }),
-  delete: <T>(path: string, init?: Omit<RequestOptions, "method" | "body">) =>
-    request<T>(path, { ...init, method: "DELETE" }),
+  async request<T>(url: string, options: RequestOptions = {}): Promise<T> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+    const response = await fetch(`${baseUrl}${url}`, {
+      ...options,
+      credentials: "include", // Always include credentials
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || "Request failed");
+    }
+
+    return response.json();
+  },
+
+  get<T>(url: string, options: RequestOptions = {}) {
+    return this.request<T>(url, { ...options, method: "GET" });
+  },
+
+  post<T>(url: string, body: any, options: RequestOptions = {}) {
+    return this.request<T>(url, {
+      ...options,
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
 };
 
 export type PageInfo = {

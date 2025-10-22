@@ -29,51 +29,21 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { SearchDialog } from "@/components/view/Search/SearchDialog";
+import { useAuth } from "@/providers";
 
 const Navbar = () => {
   const { cart } = useCart();
+  const { user, logout } = useAuth();
   const itemCount = cart?.totalQuantity ?? 0;
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const { menu: menMenu } = useShopifyMenu("men");
   const { menu: womenMenu } = useShopifyMenu("women");
 
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-        // Prefer cookie-based session (browser must have accepted cookie)
-        const res = await fetch(`${apiBase}/auth/me`, {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (res.ok) {
-          setIsLoggedIn(true);
-          return;
-        }
-        // Fallback: token returned by login saved in localStorage by your login() helper
-        const fallback = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-        if (fallback) {
-          const r2 = await fetch(`${apiBase}/auth/me`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${fallback}` },
-          });
-          setIsLoggedIn(r2.ok);
-          return;
-        }
-        setIsLoggedIn(false);
-      } catch {
-        setIsLoggedIn(false);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,20 +55,13 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    (async () => {
-      try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-        await fetch(`${apiBase}/auth/logout`, {
-          method: "POST",
-          credentials: "include",
-        });
-      } catch {}
-      try { localStorage.removeItem("auth_token"); } catch {}
-      // also clear legacy cookie name just in case
-      document.cookie = "customerAccessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+  const handleLogout = async () => {
+    try {
+      await logout();
       router.push("/");
-    })();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const renderDropdownItems = (items?: MenuItem[]) => {
@@ -135,10 +98,7 @@ const Navbar = () => {
   };
 
   return (
-    <header
-      className={`fixed top-0 z-50 w-full border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500 ${visible ? "translate-y-0" : "-translate-y-full"
-        }`}
-    >
+    <header className="fixed top-0 z-50 w-full border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center">
@@ -183,7 +143,7 @@ const Navbar = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setOpen(true)}
+            onClick={() => setIsSearchOpen(true)}
             className="text-gray-800 hover:text-[var(--gold)] transition-colors"
           >
             <Search className="h-5 w-5" />
@@ -207,8 +167,8 @@ const Navbar = () => {
 
           </Link>
 
-          {/* Auth Dropdown */}
-          {isLoggedIn ? (
+          {/* Auth Section */}
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -220,7 +180,9 @@ const Navbar = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56 shadow-lg" align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  {user.firstName || user.email}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/profile">
@@ -266,7 +228,7 @@ const Navbar = () => {
           <div className="px-4 py-4 flex flex-col gap-4">
             {/* Search */}
             <button
-              onClick={() => setOpen(true)}
+              onClick={() => setIsSearchOpen(true)}
               className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition"
             >
               <Search className="h-5 w-5" /> Search
@@ -303,7 +265,7 @@ const Navbar = () => {
               <ShoppingCart className="h-5 w-5" /> Cart ({itemCount})
             </Link>
 
-            {isLoggedIn ? (
+            {user ? (
               <>
                 <Link href="/profile" className="text-gray-800 hover:text-[var(--gold)] transition">
                   Profile
@@ -330,7 +292,10 @@ const Navbar = () => {
       )}
 
       {/* Search Dialog */}
-      <SearchDialog open={open} onOpenChange={setOpen} />
+      <SearchDialog 
+        open={isSearchOpen} 
+        onOpenChange={setIsSearchOpen}
+      />
     </header>
   );
 };
