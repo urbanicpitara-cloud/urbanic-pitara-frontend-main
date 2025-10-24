@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { setCookie } from "nookies";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useAuth } from "@/providers";
+import { useAuth } from "@/lib/auth";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -32,7 +32,7 @@ type LoginFormProps = {
 
 const Login = ({ setShowRegister }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -43,16 +43,9 @@ const Login = ({ setShowRegister }: LoginFormProps) => {
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
     try {
-      const { token, user } = await authRepository.login(
-        values.email,
-        values.password
-      );
-      setCookie(null, "customerAccessToken", token, {
-        maxAge: 30 * 24 * 60 * 60,
-        path: "/",
-      });
-
-      setUser(user); // Update auth context immediately
+      await login(values.email, values.password);
+      
+      // The login function from useAuth will handle setting the user in context
 
       toast.success("Login successful");
       router.refresh();

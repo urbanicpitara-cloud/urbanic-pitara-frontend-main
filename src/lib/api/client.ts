@@ -3,16 +3,13 @@
 // Lightweight REST client with base URL and JSON handling
 
 const getBaseUrl = () => {
-  const url = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!url) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL is not defined");
-  }
+  const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   try {
     // Validate URL
     new URL(url);
     return url.replace(/\/$/, "");
   } catch {
-    throw new Error("Invalid NEXT_PUBLIC_API_BASE_URL");
+    throw new Error("Invalid API URL");
   }
 };
 
@@ -32,8 +29,6 @@ export interface RequestOptions extends BaseRequestOptions {
 
 export const apiClient = {
   async request<T>(url: string, options: RequestOptions = {}): Promise<T> {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
     const response = await fetch(`${baseUrl}${url}`, {
       ...options,
       credentials: "include", // Always include credentials

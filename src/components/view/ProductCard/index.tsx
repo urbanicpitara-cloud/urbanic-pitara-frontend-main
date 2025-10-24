@@ -1,114 +1,176 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Product } from "@/types/shopify-graphql";
-import React, { useState } from "react";
+import { useState, useCallback } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import ProductPrice from "./ProductPrice";
-import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/atoms/cart";
 import { toast } from "sonner";
 
-const CARD_HEIGHT = 600; // Adjust as needed
+interface ProductImage {
+  url: string;
+  altText?: string;
+}
 
-const ProductCard = ({ product }: { product: Product }) => {
-  const router = useRouter();
+interface ProductOption {
+  id: string;
+  name: string;
+  values: (string | { id: string; name?: string })[];
+}
+
+interface ProductVariant {
+  id: string;
+  selectedOptions: { optionId: string; value: string | { id: string; name?: string } }[];
+}
+
+interface Product {
+  id: string;
+  title: string;
+  handle: string;
+  description: string;
+  featuredImageUrl: string;
+  featuredImageAlt?: string;
+  images?: ProductImage[];
+  tags: (string | { id?: string; name?: string })[];
+  options?: ProductOption[];
+  variants: ProductVariant[];
+  minPriceAmount?: string;
+  minPriceCurrency?: string;
+  maxPriceAmount?: string;
+  maxPriceCurrency?: string;
+  compareMinAmount?: string;
+  compareMinCurrency?: string;
+  compareMaxAmount?: string;
+  compareMaxCurrency?: string;
+}
+
+interface ProductCardProps {
+  product: Product;
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
-  const [isAdding, setIsAdding] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
 
-  // Get primary and hover images
-  const primaryImage = product.featuredImage?.url ?? "";
-  const hoverImage = product.images?.edges?.[1]?.node?.url ?? primaryImage;
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    product.variants[0] ?? null
+  );
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsAdding(true);
+  const price = parseFloat(product.minPriceAmount || "0");
+  const maxPrice = parseFloat(product.maxPriceAmount || "0");
+  const comparePrice = parseFloat(product.compareMaxAmount || "0");
+  const currency = product.minPriceCurrency || "₹";
 
+  const displayPrice =
+    price && maxPrice && price !== maxPrice
+      ? `${currency} ${price.toFixed(2)} - ${currency} ${maxPrice.toFixed(2)}`
+      : `${currency} ${price.toFixed(2)}`;
+
+  const displayCompare =
+    comparePrice && comparePrice > maxPrice
+      ? `${currency} ${comparePrice.toFixed(2)}`
+      : null;
+
+  const firstImage =
+    product.images && product.images[0]?.url
+      ? product.images[0].url
+      : product.featuredImageUrl;
+  const secondImage =
+    product.images && product.images[1]?.url
+      ? product.images[1].url
+      : firstImage;
+
+  const handleAddToCart = useCallback(async () => {
+    if (!selectedVariant || adding) return;
+    setAdding(true);
     try {
-      const defaultVariant =
-        product.variants.edges.find(
-          ({ node }) =>
-            node.selectedOptions.some(
-              (opt) => opt.name === "Size" && opt.value === "M"
-            )
-        )?.node || product.variants.edges[0]?.node;
-
-      if (!defaultVariant) throw new Error("No variant available");
-
-      await addItem(defaultVariant.id, 1);
-      toast.success(`Added ${product.title} to cart`);
+      await addItem(product.id, quantity, selectedVariant.id);
+      toast.success(`${product.title} added to cart`);
     } catch {
-      toast.error("Failed to add item to cart");
+      toast.error("Failed to add to cart");
     } finally {
-      setIsAdding(false);
+      setAdding(false);
     }
-  };
+  }, [addItem, product.id, selectedVariant, quantity, adding, product.title]);
 
   return (
-    <div
-      role="button"
-      className="group flex flex-col cursor-pointer bg-ivory rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-500"
-      onClick={() => router.push(`/product/${product.handle}`)}
-      style={{ height: CARD_HEIGHT }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+    <motion.div
+      key={product.id}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      whileHover={{ scale: 1.03 }}
+      className="group h-full"
     >
-      <div className="flex flex-col h-full justify-between">
-        {/* Image Container */}
-        <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden border border-beige-200">
-          {/* Image wrapper for smooth scaling */}
-          <div className="absolute inset-0 w-full h-full transform group-hover:scale-105 transition-transform duration-[1.2s] ease-out">
-            {/* Primary Image */}
-            <Image
-              src={primaryImage}
-              alt={product.featuredImage?.altText ?? product.title}
-              fill
-              className={`object-cover transition-opacity duration-700 ease-in will-change-transform ${
-                isHovered ? "opacity-0" : "opacity-100"
-              }`}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
-            />
+      <div className="border rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow bg-white flex flex-col h-full">
+        {/* Image wrapper */}
+        <div className="relative w-full h-[28rem] bg-gray-100 overflow-hidden">
+          <Image
+            src={firstImage}
+            alt={product.featuredImageAlt || product.title}
+            fill
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0"
+            sizes="(max-width: 768px) 100vw, 25vw"
+            priority
+          />
+          <Image
+            src={secondImage}
+            alt={product.featuredImageAlt || product.title}
+            fill
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100"
+            sizes="(max-width: 768px) 100vw, 25vw"
+          />
+        </div>
 
-            {/* Hover Image - Preloaded but hidden */}
-            <Image
-              src={hoverImage}
-              alt={`${product.title} alternate view`}
-              fill
-              className={`object-cover absolute inset-0 transition-opacity duration-700 ease-out will-change-transform ${
-                isHovered ? "opacity-100" : "opacity-0"
-              }`}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
-            />
+        {/* Content */}
+        <div className="p-4 flex flex-col justify-between flex-1">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+              {product.title}
+            </h2>
+            <p className="text-gray-700 mt-1">
+              {displayPrice}{" "}
+              {displayCompare && (
+                <span className="ml-2 line-through text-gray-400">{displayCompare}</span>
+              )}
+            </p>
+
+            {product.tags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {product.tags.map((tag, idx) => {
+                  const key = typeof tag === "string" ? tag : tag.id || idx;
+                  const label = typeof tag === "string" ? tag : tag.name || "Tag";
+                  return (
+                    <span key={key} className="text-xs bg-gray-200 px-2 py-1 rounded-md">
+                      {label}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center mt-4">
+            <Link
+              href={`/products/${product.handle}`}
+              className="text-sm text-indigo-600 hover:underline"
+            >
+              View
+            </Link>
+
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleAddToCart}
+              disabled={adding || !selectedVariant}
+            >
+              {adding ? "Adding..." : "Add to Cart"}
+            </Button>
           </div>
         </div>
-
-        {/* Title + Price */}
-        <div className="mt-3">
-          <h2 className="text-lg font-serif tracking-wide text-black line-clamp-2">
-            {product.title}
-          </h2>
-          <ProductPrice priceRange={product.priceRange} />
-        </div>
-
-        {/* Add to Cart Button */}
-        <div className="mt-4">
-          <Button
-            className={`w-full rounded-xl transition-colors ${
-              isAdding
-                ? "bg-gold text-black"
-                : "bg-black text-white hover:bg-gold"
-            }`}
-            onClick={handleAddToCart}
-          >
-            {isAdding ? "Added!" : "Add to Cart"}
-          </Button>
-        </div>
       </div>
-    </div>
+    </motion.div>
   );
-};
-
-export default ProductCard;
+}
