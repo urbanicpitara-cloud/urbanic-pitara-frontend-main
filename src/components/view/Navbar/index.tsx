@@ -25,18 +25,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/lib/atoms/cart";
-import { useShopifyMenu, MenuItem } from "@/hooks/useShopifyMenu";
 import { SearchDialog } from "@/components/view/Search/SearchDialog";
 import { useAuth } from "@/lib/auth";
 
 const Navbar = () => {
   const { cart } = useCart();
-  const { user, loading, logout } = useAuth(); // ✅ include loading
+  const { user, logout } = useAuth();
   const router = useRouter();
   const itemCount = cart?.totalQuantity ?? 0;
-
-  const { menu: menMenu } = useShopifyMenu("men");
-  const { menu: womenMenu } = useShopifyMenu("women");
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -61,36 +57,6 @@ const Navbar = () => {
     }
   };
 
-  const renderMenuItems = (items?: MenuItem[]) => {
-    if (!items || items.length === 0) return null;
-    return items.map((item) => {
-      if (item.children && item.children.length > 0) {
-        return (
-          <DropdownMenu key={item.id}>
-            <DropdownMenuTrigger asChild>
-              <button className="flex justify-between w-full text-gray-800 hover:text-[var(--gold)] transition-colors">
-                {item.title} <ChevronDown className="ml-2 h-3 w-3" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-[180px] left-full top-0 absolute shadow-md z-50">
-              {renderMenuItems(item.children)}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      }
-      return (
-        <DropdownMenuItem key={item.id} asChild>
-          <Link href={item.url || "#"} className="w-full text-left">
-            {item.title}
-          </Link>
-        </DropdownMenuItem>
-      );
-    });
-  };
-
-  // Show nothing while auth is loading to avoid flicker
-  if (loading) return null;
-
   return (
     <header
       className={`fixed top-0 w-full z-50 border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500 ${
@@ -113,7 +79,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {/* Men & Women Dropdowns */}
+          {/* Men Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors">
@@ -121,10 +87,22 @@ const Navbar = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-[200px] shadow-lg">
-              {renderMenuItems(menMenu)}
+              {/* <DropdownMenuItem asChild>
+                <Link href="/search?q=shirts">Shirts</Link>
+              </DropdownMenuItem> */}
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=t-shirt">T-Shirts</Link>
+              </DropdownMenuItem>
+              {/* <DropdownMenuItem asChild>
+                <Link href="/search?q=jeans">Jeans</Link>
+              </DropdownMenuItem> */}
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=men">All</Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Women Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors">
@@ -132,9 +110,27 @@ const Navbar = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-[200px] shadow-lg">
-              {renderMenuItems(womenMenu)}
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=lehenga">Lehenga</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=kurti">Kurti</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=traditional">Tradionals</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=plazzo">Plazzo</Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Link
+            href={"/products"}
+            className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
+          >
+            Catalog
+          </Link>
 
           {/* Search */}
           <Button
@@ -220,9 +216,10 @@ const Navbar = () => {
               onClick={() => setIsSearchOpen(true)}
               className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition"
             >
-              <Search className="h-5 w-5" /> Search
+              <Search className="h-5 w-5" />
             </button>
 
+            {/* Men Dropdown Mobile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex justify-between w-full text-gray-800 font-medium hover:text-[var(--gold)] transition">
@@ -230,10 +227,23 @@ const Navbar = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[200px] shadow-md">
-                {renderMenuItems(menMenu)}
+                {/* <DropdownMenuItem asChild>
+                  <Link href="/search?q=shirts">Shirts</Link>
+                </DropdownMenuItem> */}
+                <DropdownMenuItem asChild>
+                  <Link href={`/search?q=${encodeURIComponent("t-shirt")}`}>T-Shirts</Link>
+                </DropdownMenuItem>
+                {/* <DropdownMenuItem asChild>
+                  <Link href="/search?q=jeans">Jeans</Link>
+                </DropdownMenuItem> */}
+                <DropdownMenuItem asChild>
+                  
+                  <Link href={`/search?q=${encodeURIComponent("men")}`}>All</Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Women Dropdown Mobile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex justify-between w-full text-gray-800 font-medium hover:text-[var(--gold)] transition">
@@ -241,9 +251,27 @@ const Navbar = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[200px] shadow-md">
-                {renderMenuItems(womenMenu)}
+             <DropdownMenuItem asChild>
+                <Link href="/search?q=lehenga">Lehenga</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=kurti">Kurti</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=traditional">Tradionals</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/search?q=plazzo">Plazzo</Link>
+              </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Link
+              href={"/products"}
+              className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
+            >
+              Catalog <ChevronDown className="h-4 w-4" />
+            </Link>
 
             <Link
               href="/cart"

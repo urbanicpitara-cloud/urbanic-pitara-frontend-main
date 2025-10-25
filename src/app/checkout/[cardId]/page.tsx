@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cartAPI, ordersAPI, addressesAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
+// ------------------ Types ------------------
 interface CartItem {
   id: string;
   product: {
@@ -44,6 +45,7 @@ interface Address {
   isDefault: boolean;
 }
 
+// ------------------ Component ------------------
 export default function CheckoutPage() {
   const { cartId } = useParams();
   const router = useRouter();
@@ -52,18 +54,20 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [address, setAddress] = useState<Omit<Address, "id" | "isDefault"> | null>(null);
-  const [existingAddress, setExistingAddress] = useState<Address | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [newAddress, setNewAddress] = useState<Omit<Address, "id" | "isDefault"> | null>(null);
+  const [placingOrder, setPlacingOrder] = useState(false);
 
-  // Map backend cart response
+  // ------------------ Helpers ------------------
   const mapCartResponse = (apiData: any): Cart => {
     const items: CartItem[] = apiData.lines.map((line: any) => ({
       id: line.id,
       product: {
         id: line.product.id,
         title: line.product.title,
-        featuredImageUrl: line.product.featuredImage?.url,
-        featuredImageAlt: line.product.featuredImage?.altText,
+        featuredImageUrl: line.featuredImage?.url,
+        featuredImageAlt: line.featuredImage?.altText,
       },
       variantId: line.variant?.id,
       title: line.variant?.selectedOptions?.size || "",
@@ -83,23 +87,28 @@ export default function CheckoutPage() {
     };
   };
 
-  const fetchCartAndAddress = async () => {
+  // ------------------ Fetch Data ------------------
+  const fetchCartAndAddresses = async () => {
     setLoading(true);
     setError("");
+
     try {
-      // Fetch cart
+      // Cart
       const cartRes = await cartAPI.get();
       setCart(mapCartResponse(cartRes.data));
 
-      // Fetch user's default address
+      // Addresses
       const addrRes = await addressesAPI.getAll();
-      const defaultAddr = addrRes.data.items?.find((a: Address) => a.isDefault) || null;
+      const allAddrs = addrRes.data.items || [];
+      setAddresses(allAddrs);
 
-      if (defaultAddr) {
-        setExistingAddress(defaultAddr);
-      } else {
-        // No address yet, initialize empty
-        setAddress({
+      // Default address
+      const defaultAddr = allAddrs.find((a: Address) => a.isDefault);
+      if (defaultAddr) setSelectedAddressId(defaultAddr.id);
+
+      // If no addresses → show new address form
+      if (!allAddrs.length) {
+        setNewAddress({
           firstName: "",
           lastName: "",
           address1: "",
@@ -111,51 +120,84 @@ export default function CheckoutPage() {
           phone: "",
         });
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load data");
+    } catch (err: any) {
+      setError(err.message || "Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCartAndAddress();
+    fetchCartAndAddresses();
   }, [cartId]);
 
+  // ------------------ Handlers ------------------
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!address) return;
-    setAddress((prev) => ({ ...prev!, [e.target.name]: e.target.value }));
+    if (!newAddress) return;
+    setNewAddress((prev) => ({ ...prev!, [e.target.name]: e.target.value }));
   };
 
   const handlePlaceOrder = async () => {
     if (!cart || !user) return;
 
-    try {
-      let shippingAddress: Address | null = existingAddress;
+    setPlacingOrder(true);
 
-      // If no existing default, create one
-      if (!existingAddress && address) {
-        const res = await addressesAPI.create({ ...address, isDefault: true });
-        shippingAddress = res.data;
-        setExistingAddress(shippingAddress);
+    try {
+      let shippingAddress: Address | null = null;
+
+      // If user selected existing address
+      if (selectedAddressId) {
+        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
+      }
+
+      // If adding a new address
+      if (!shippingAddress && newAddress) {
+        const duplicate = addresses.find(
+          (a) =>
+            a.firstName === newAddress.firstName &&
+            a.lastName === newAddress.lastName &&
+            a.address1 === newAddress.address1 &&
+            a.address2 === newAddress.address2 &&
+            a.city === newAddress.city &&
+            a.province === newAddress.province &&
+            a.zip === newAddress.zip &&
+            a.country === newAddress.country &&
+            a.phone === newAddress.phone
+        );
+
+        if (duplicate) {
+          shippingAddress = duplicate;
+          setSelectedAddressId(duplicate.id);
+        } else {
+          // Create new address
+          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
+          shippingAddress = res.data as Address;
+
+          // Update addresses state safely
+          setAddresses((prev: Address[]) => [...prev, shippingAddress!]);
+          setSelectedAddressId(shippingAddress!.id);
+        }
       }
 
       if (!shippingAddress) throw new Error("No shipping address selected");
 
-      const orderData = {
+      // Create order
+      await ordersAPI.create({
         cartId: cart.id,
-        shippingAddress,
-      };
+        shippingAddressId: shippingAddress.id,
+      });
 
-      await ordersAPI.create(orderData);
       alert("Order placed successfully!");
       router.push(`/orders`);
     } catch (err) {
       console.error(err);
       alert("Failed to place order");
+    } finally {
+      setPlacingOrder(false);
     }
   };
 
+  // ------------------ Render ------------------
   if (loading) return <p className="p-8 text-center">Loading checkout...</p>;
   if (error) return <p className="p-8 text-center text-red-500">{error}</p>;
   if (!cart || !cart.items.length)
@@ -173,7 +215,7 @@ export default function CheckoutPage() {
       <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* Cart Summary */}
+        {/* ------------------ Cart Summary ------------------ */}
         <div className="lg:col-span-8 space-y-4">
           {cart.items.map((item) => (
             <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
@@ -191,46 +233,98 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        {/* Shipping & Place Order */}
+        {/* ------------------ Address + Order Section ------------------ */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="p-4 border rounded-lg space-y-2">
-            <h2 className="text-lg font-semibold mb-2">Shipping Address</h2>
+          <div className="p-4 border rounded-lg space-y-3">
+            <h2 className="text-lg font-semibold">Shipping Address</h2>
 
-            {existingAddress ? (
-              <div className="space-y-1">
-                <p>
-                  {existingAddress.firstName} {existingAddress.lastName}, {existingAddress.address1},{" "}
-                  {existingAddress.city}, {existingAddress.country}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2 mt-2">
-                {address &&
-                  [
-                    ["firstName", "First Name"],
-                    ["lastName", "Last Name"],
-                    ["address1", "Address 1"],
-                    ["address2", "Address 2"],
-                    ["city", "City"],
-                    ["province", "Province/State"],
-                    ["zip", "ZIP/Postal Code"],
-                    ["country", "Country"],
-                    ["phone", "Phone"],
-                  ].map(([key, label]) => (
+            {addresses.length > 0 && (
+              <div className="space-y-2">
+                {addresses.map((addr) => (
+                  <label
+                    key={addr.id}
+                    className={`flex items-start gap-2 border rounded-md p-3 cursor-pointer ${
+                      selectedAddressId === addr.id
+                        ? "border-black bg-gray-50"
+                        : "border-gray-200"
+                    }`}
+                  >
                     <input
-                      key={key}
-                      type="text"
-                      name={key}
-                      value={(address as any)[key]}
-                      onChange={handleInputChange}
-                      placeholder={label as string}
-                      className="w-full border px-3 py-2 rounded"
+                      type="radio"
+                      name="selectedAddress"
+                      checked={selectedAddressId === addr.id}
+                      onChange={() => {
+                        setSelectedAddressId(addr.id);
+                        setNewAddress(null);
+                      }}
                     />
-                  ))}
+                    <div className="text-sm">
+                      <p className="font-medium">
+                        {addr.firstName} {addr.lastName}
+                      </p>
+                      <p>{addr.address1}</p>
+                      {addr.address2 && <p>{addr.address2}</p>}
+                      <p>
+                        {addr.city}, {addr.province} {addr.zip}
+                      </p>
+                      <p>{addr.country}</p>
+                      {addr.phone && <p>📞 {addr.phone}</p>}
+                    </div>
+                  </label>
+                ))}
+
+                <div className="text-center text-sm mt-3">
+                  <button
+                    className="underline text-gray-600"
+                    onClick={() =>
+                      setNewAddress({
+                        firstName: "",
+                        lastName: "",
+                        address1: "",
+                        address2: "",
+                        city: "",
+                        province: "",
+                        zip: "",
+                        country: "",
+                        phone: "",
+                      })
+                    }
+                  >
+                    + Add New Address
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* New address form */}
+            {newAddress && (
+              <div className="space-y-2 mt-3 border-t pt-3">
+                {[
+                  ["firstName", "First Name"],
+                  ["lastName", "Last Name"],
+                  ["address1", "Address 1"],
+                  ["address2", "Address 2"],
+                  ["city", "City"],
+                  ["province", "Province/State"],
+                  ["zip", "ZIP/Postal Code"],
+                  ["country", "Country"],
+                  ["phone", "Phone"],
+                ].map(([key, label]) => (
+                  <input
+                    key={key}
+                    type="text"
+                    name={key}
+                    value={(newAddress as any)[key]}
+                    onChange={handleInputChange}
+                    placeholder={label}
+                    className="w-full border px-3 py-2 rounded text-sm"
+                  />
+                ))}
               </div>
             )}
           </div>
 
+          {/* ------------------ Order Summary ------------------ */}
           <div className="p-4 border rounded-lg space-y-2">
             <div className="flex justify-between">
               <span>Subtotal</span>
@@ -244,8 +338,12 @@ export default function CheckoutPage() {
                 {cart.totalAmount} {cart.currency}
               </span>
             </div>
-            <Button onClick={handlePlaceOrder} className="w-full mt-4">
-              Place Order
+            <Button
+              onClick={handlePlaceOrder}
+              className="w-full mt-4"
+              disabled={placingOrder || (!selectedAddressId && !newAddress)}
+            >
+              {placingOrder ? "Placing Order..." : "Place Order"}
             </Button>
           </div>
         </div>

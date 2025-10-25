@@ -94,7 +94,6 @@ export default function ProductsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center md:text-left">All Products</h1>
 
       {/* Filters */}
       <div className="bg-white p-4 rounded shadow-md mb-8 flex flex-wrap gap-4 sticky top-20 z-10">

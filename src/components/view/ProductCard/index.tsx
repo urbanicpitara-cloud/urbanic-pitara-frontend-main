@@ -47,6 +47,7 @@ interface Product {
 
 interface ProductCardProps {
   product: Product;
+  idx? : number;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
@@ -106,7 +107,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <div className="border rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow bg-white flex flex-col h-full">
         {/* Image wrapper */}
-        <div className="relative w-full h-[28rem] bg-gray-100 overflow-hidden">
+        <div className="relative w-full h-[22rem] bg-gray-100 overflow-hidden">
           <Image
             src={firstImage}
             alt={product.featuredImageAlt || product.title}
@@ -127,9 +128,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Content */}
         <div className="p-4 flex flex-col justify-between flex-1">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+            <Link
+              href={`/products/${product.handle}`} className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
               {product.title}
-            </h2>
+            </Link>
             <p className="text-gray-700 mt-1">
               {displayPrice}{" "}
               {displayCompare && (
@@ -137,7 +139,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               )}
             </p>
 
-            {product.tags.length > 0 && (
+            {/* {product.tags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {product.tags.map((tag, idx) => {
                   const key = typeof tag === "string" ? tag : tag.id || idx;
@@ -149,21 +151,22 @@ export default function ProductCard({ product }: ProductCardProps) {
                   );
                 })}
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="flex justify-between items-center mt-4">
-            <Link
+            {/* <Link
               href={`/products/${product.handle}`}
               className="text-sm text-indigo-600 hover:underline"
             >
               View
-            </Link>
+            </Link> */}
 
             <Button
               size="sm"
               variant="default"
               onClick={handleAddToCart}
+              className="w-full"
               disabled={adding || !selectedVariant}
             >
               {adding ? "Adding..." : "Add to Cart"}

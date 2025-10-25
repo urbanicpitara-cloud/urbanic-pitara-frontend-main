@@ -1,138 +1,191 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import ProductCard from "@/components/view/ProductCard";
-import { productsRepository } from "@/lib/api/repositories/products";
-import { ProductSummary } from "@/lib/api/types";
-import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "motion/react";
+import { collectionsAPI } from "@/lib/api";
+import Image from "next/image";
+import Link from "next/link";
 
-const CollectionPage = () => {
-  const params = useParams();
-  const handle = params.handle as string;
-
-  const [products, setProducts] = useState<ProductSummary[]>([]);
-  // const [currentCursor, setCurrentCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [pageInfo, setPageInfo] = useState<{ hasNextPage: boolean; endCursor: string | null }>({
-    hasNextPage: false,
-    endCursor: null,
-  });
-
-  // Initial fetch
-const fetchProducts = useCallback(
-  async (cursor: string | null = null) => {
-    try {
-      const response = await productsRepository.listByCollectionHandle(handle, {
-        first: 12,
-        after: cursor,
-      });
-      setProducts((prev) => (cursor ? [...prev, ...response.items] : response.items));
-      setPageInfo(response.pageInfo);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  },
-  [handle]
-);
-
-
-  // Reset when collection changes
-  useEffect(() => {
-    setProducts([]);
-    // setCurrentCursor(null);
-    setLoading(true);
-    fetchProducts(null);
-  }, [handle, fetchProducts]);
-
-  // Infinite scroll observer
-  const loaderRef = useRef<HTMLDivElement>(null);
-  const handleObserver = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const target = entries[0];
-      if (target.isIntersecting && pageInfo.hasNextPage && !loadingMore) {
-        setLoadingMore(true);
-        fetchProducts(pageInfo.endCursor);
-      }
-    },
-    [pageInfo, loadingMore, fetchProducts]
-  );
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(handleObserver, {
-      root: null,
-      rootMargin: "200px", // ✅ triggers early
-      threshold: 0,
-    });
-    if (loaderRef.current) observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [handleObserver]);
-
-  if (!loading && products.length === 0) {
-    return (
-      <div className="my-16 text-center">
-        <h1 className="text-2xl font-bold">No products in this collection</h1>
-        <p className="text-muted-foreground mt-2">Try browsing other collections.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="my-16">
-      {/* Collection Header */}
-      <div className="flex flex-col items-center gap-2 mb-12">
-        <h1 className="text-4xl font-serif font-bold text-black text-center">
-          {products.length > 0 ? products[0]?.title || handle : "Loading..."}
-        </h1>
-        <div className="mt-3 w-24 h-[2px] bg-gold rounded-full"></div>
-      </div>
-
-      {/* Products */}
-      <motion.div
-        className="flex flex-wrap justify-center gap-8 w-[80%] mx-auto"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ staggerChildren: 0.05 }}
-      >
-        {products.map((product, index) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
-            className="w-[350px]"
-          >
-            <ProductCard product={product} />
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Infinite Scroll Loader */}
-      {pageInfo.hasNextPage && (
-        <motion.div
-          ref={loaderRef}
-          className="flex justify-center my-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Skeleton className="h-[400px] w-[350px] animate-pulse" />
-        </motion.div>
-      )}
-
-      {/* Initial loading */}
-      {loading && products.length === 0 && (
-        <div className="flex flex-wrap justify-center gap-8">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} className="h-[400px] w-[350px] animate-pulse" />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+// ---------------- Type Definitions ----------------
+type Product = {
+  id: string;
+  title: string;
+  handle: string;
+  featuredImageUrl?: string;
+  featuredImageAlt?: string;
+  minPriceAmount: number;
+  maxPriceAmount: number;
+  priceCurrency: string;
+  tags: string[];
 };
 
-export default CollectionPage;
+type Collection = {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  products: Product[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+// ---------------- Collection Page ----------------
+export default function CollectionPage() {
+  const params = useParams();
+  const handle = Array.isArray(params.handle) ? params.handle[0] : params.handle;
+
+  const [collection, setCollection] = useState<Collection | null>(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const PAGE_LIMIT = 8;
+
+  // ---------------- Fetch collection page ----------------
+  const fetchCollection = async (pageNum: number) => {
+    if (!handle) return;
+    setLoading(true);
+    try {
+      const res = await collectionsAPI.getByHandle(handle, { page: pageNum, limit: PAGE_LIMIT });
+      setCollection(res.data);
+      setPage(pageNum);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load collection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCollection(1);
+  }, [handle]);
+
+  // ---------------- Pagination Handlers ----------------
+  const handlePrev = () => {
+    if (page > 1) fetchCollection(page - 1);
+  };
+
+  const handleNext = () => {
+    if (collection && page < collection.pagination.totalPages) fetchCollection(page + 1);
+  };
+
+  // ---------------- Render ----------------
+  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+
+  if (!collection)
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-gray-600">
+        <svg
+          className="w-12 h-12 animate-spin mb-4 text-gray-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+        <p className="text-lg">Loading collection...</p>
+      </div>
+    );
+
+  return (
+    <div className="container mx-auto px-4 py-10">
+      {/* Collection Header */}
+      <div className="mb-8 text-center">
+        {collection.imageUrl && (
+          <Image
+            src={collection.imageUrl}
+            alt={collection.imageAlt || collection.title}
+            width={800}
+            height={300}
+            quality={50}
+            className="mx-auto rounded-lg object-cover"
+          />
+        )}
+        <h1 className="text-3xl font-bold mt-4">{collection.title}</h1>
+        {collection.description && (
+          <p className="mt-2 text-gray-600">{collection.description}</p>
+        )}
+      </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {collection.products.map((product) => (
+          <div
+            key={product.id}
+            className="border rounded-lg p-4 hover:shadow-lg transition-shadow duration-200"
+          >
+            {product.featuredImageUrl ? (
+              <Image
+                src={product.featuredImageUrl}
+                alt={product.featuredImageAlt || product.title}
+                width={400}
+                height={400}
+                quality={50}
+                className="rounded-md object-cover w-full h-64"
+              />
+            ) : (
+              <div className="bg-gray-200 w-full h-64 rounded-md flex items-center justify-center">
+                <span className="text-gray-500">No Image</span>
+              </div>
+            )}
+            <Link href={`/products/${product.handle}`} className="mt-3 font-semibold text-lg">{product.title}</Link>
+            <p className="mt-1 text-gray-700">
+              {product.minPriceAmount === product.maxPriceAmount
+                ? `${product.minPriceAmount} ${product.priceCurrency}`
+                : `${product.minPriceAmount} - ${product.maxPriceAmount} ${product.priceCurrency}`}
+            </p>
+            {product.tags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {product.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs bg-gray-200 rounded-full px-2 py-1"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-8 gap-4">
+        <button
+          onClick={handlePrev}
+          disabled={page === 1 || loading}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2">{`Page ${page} of ${collection.pagination.totalPages}`}</span>
+        <button
+          onClick={handleNext}
+          disabled={page === collection.pagination.totalPages || loading}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}

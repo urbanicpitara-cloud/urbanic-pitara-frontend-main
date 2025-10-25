@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
@@ -17,9 +18,12 @@ export const authAPI = {
   changePassword: (data: Record<string, any>) => api.put('/auth/change-password', data),
 };
 
+
+
+
 // ----------------- Products API -----------------
 export const productsAPI = {
-  getAll: (params?: Record<string, any>) => api.get('/products', { params }),
+  getAll: (params?: Record<string,any> ) => api.get('/products', { params }),
   getByHandle: (handle: string) => api.get(`/products/${handle}`),
   getRelated: (handle: string, limit: number = 4) => api.get(`/products/${handle}/related`, { params: { limit } }),
   create: (data: Record<string, any>) => api.post('/products', data),
@@ -29,9 +33,13 @@ export const productsAPI = {
 
 // ----------------- Collections API -----------------
 export const collectionsAPI = {
-  getAll: () => api.get('/collections'),
-  getByHandle: (handle: string) => api.get(`/collections/${handle}`),
-  create: (data: Record<string, any>) => api.post('/collections', data),
+  getAll: () => api.get("/collections"),
+
+  // Accept optional pagination params
+  getByHandle: (handle: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/collections/${handle}`, { params }),
+
+  create: (data: Record<string, any>) => api.post("/collections", data),
   update: (id: string, data: Record<string, any>) => api.put(`/collections/${id}`, data),
   delete: (id: string) => api.delete(`/collections/${id}`),
 };

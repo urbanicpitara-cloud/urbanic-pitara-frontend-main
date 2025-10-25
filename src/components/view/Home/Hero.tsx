@@ -56,13 +56,13 @@ const Hero: React.FC<HeroProps> = ({
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
-            href="/collections/bridal"
+            href="/search?q=bridal"
             className="bg-white text-black px-10 py-4 font-semibold rounded-lg shadow-lg hover:bg-gray-200 transition transform hover:scale-105"
           >
             Explore Bridal Collection
           </Link>
           <Link
-            href="/collections/all"
+            href="/products"
             className="border border-white text-white px-10 py-4 font-semibold rounded-lg hover:bg-white hover:text-black transition transform hover:scale-105"
           >
             View All Collections
