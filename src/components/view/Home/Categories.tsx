@@ -14,13 +14,17 @@ const categories = [
 
 const Categories = () => {
   return (
-    <section className="py-16 px-4 md:px-8">
-      <h2 className="text-3xl md:text-4xl font-serif font-bold mb-12 text-center">
+    <section className="py-10 px-4 md:px-8">
+      {/* <h2 className="text-3xl md:text-4xl font-serif font-bold mb-12 text-center">
         Shop By Category
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      </h2> */}
+      <div className="flex flex-wrap -mx-4 justify-center">
         {categories.map((cat) => (
-          <Link key={cat.name} href={cat.href} className="group relative rounded-lg overflow-hidden">
+          <Link
+            key={cat.name}
+            href={cat.href}
+            className="group relative m-4 flex-shrink-0 w-full sm:w-[45%] lg:w-[22%] rounded-lg overflow-hidden"
+          >
             <Image
               src={cat.image}
               alt={cat.name}

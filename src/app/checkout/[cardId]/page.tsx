@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { cartAPI, ordersAPI, addressesAPI } from "@/lib/api";
+import { cartAPI, ordersAPI, addressesAPI, discountsAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
+import { useCart } from "@/lib/atoms/cart";
 
 // ------------------ Types ------------------
 interface CartItem {
@@ -45,11 +47,18 @@ interface Address {
   isDefault: boolean;
 }
 
+interface Discount {
+  code: string;
+  type: "PERCENTAGE" | "FIXED";
+  value: number;
+}
+
 // ------------------ Component ------------------
 export default function CheckoutPage() {
   const { cartId } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { clearCart } = useCart();
 
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,6 +67,12 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [newAddress, setNewAddress] = useState<Omit<Address, "id" | "isDefault"> | null>(null);
   const [placingOrder, setPlacingOrder] = useState(false);
+
+  // Discount states
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [validatingDiscount, setValidatingDiscount] = useState(false);
 
   // ------------------ Helpers ------------------
   const mapCartResponse = (apiData: any): Cart => {
@@ -87,26 +102,30 @@ export default function CheckoutPage() {
     };
   };
 
+  const getFinalTotal = (subtotal: number, discount?: Discount | null): number => {
+    if (!discount) return subtotal;
+    const value = Number(discount.value);
+    if (discount.type === "PERCENTAGE") return subtotal - (subtotal * value) / 100;
+    if (discount.type === "FIXED") return Math.max(subtotal - value, 0);
+    return subtotal;
+  };
+
   // ------------------ Fetch Data ------------------
   const fetchCartAndAddresses = async () => {
     setLoading(true);
     setError("");
 
     try {
-      // Cart
       const cartRes = await cartAPI.get();
       setCart(mapCartResponse(cartRes.data));
 
-      // Addresses
       const addrRes = await addressesAPI.getAll();
       const allAddrs = addrRes.data.items || [];
       setAddresses(allAddrs);
 
-      // Default address
       const defaultAddr = allAddrs.find((a: Address) => a.isDefault);
       if (defaultAddr) setSelectedAddressId(defaultAddr.id);
 
-      // If no addresses → show new address form
       if (!allAddrs.length) {
         setNewAddress({
           firstName: "",
@@ -131,7 +150,45 @@ export default function CheckoutPage() {
     fetchCartAndAddresses();
   }, [cartId]);
 
-  // ------------------ Handlers ------------------
+  // Update total when discount changes
+  useEffect(() => {
+    if (cart) {
+      const updatedTotal = getFinalTotal(cart.subtotalAmount, appliedDiscount);
+      const discountValue = cart.subtotalAmount - updatedTotal;
+      setDiscountAmount(discountValue);
+      setCart((prev) => (prev ? { ...prev, totalAmount: updatedTotal } : prev));
+    }
+  }, [appliedDiscount, cart?.subtotalAmount]);
+
+  // ------------------ Discount ------------------
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim() || !cart) return;
+    setValidatingDiscount(true);
+
+    try {
+      const res = await discountsAPI.validate(discountCode.trim());
+      const data = res.data.discount || res.data;
+
+      if (!data || !data.code) throw new Error("Invalid discount code");
+
+      const discount: Discount = {
+        code: data.code,
+        type: data.type,
+        value: Number(data.value),
+      };
+
+      setAppliedDiscount(discount);
+      toast.success(`Discount "${discount.code}" applied successfully!`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Invalid or expired code");
+      setAppliedDiscount(null);
+      setDiscountAmount(0);
+    } finally {
+      setValidatingDiscount(false);
+    }
+  };
+
+  // ------------------ Address + Order ------------------
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!newAddress) return;
     setNewAddress((prev) => ({ ...prev!, [e.target.name]: e.target.value }));
@@ -139,59 +196,50 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!cart || !user) return;
-
     setPlacingOrder(true);
 
     try {
       let shippingAddress: Address | null = null;
 
-      // If user selected existing address
       if (selectedAddressId) {
         shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
       }
 
-      // If adding a new address
       if (!shippingAddress && newAddress) {
         const duplicate = addresses.find(
           (a) =>
             a.firstName === newAddress.firstName &&
             a.lastName === newAddress.lastName &&
             a.address1 === newAddress.address1 &&
-            a.address2 === newAddress.address2 &&
             a.city === newAddress.city &&
-            a.province === newAddress.province &&
-            a.zip === newAddress.zip &&
-            a.country === newAddress.country &&
-            a.phone === newAddress.phone
+            a.country === newAddress.country
         );
 
         if (duplicate) {
           shippingAddress = duplicate;
           setSelectedAddressId(duplicate.id);
         } else {
-          // Create new address
           const res = await addressesAPI.create({ ...newAddress, isDefault: false });
           shippingAddress = res.data as Address;
-
-          // Update addresses state safely
-          setAddresses((prev: Address[]) => [...prev, shippingAddress!]);
+          setAddresses((prev) => [...prev, shippingAddress!]);
           setSelectedAddressId(shippingAddress!.id);
         }
       }
 
       if (!shippingAddress) throw new Error("No shipping address selected");
 
-      // Create order
       await ordersAPI.create({
         cartId: cart.id,
         shippingAddressId: shippingAddress.id,
+        discountCode: appliedDiscount ? appliedDiscount.code : null,
       });
 
-      alert("Order placed successfully!");
+      toast.success("Order placed successfully!");
+      clearCart();
       router.push(`/orders`);
     } catch (err) {
       console.error(err);
-      alert("Failed to place order");
+      toast.error("Failed to place order");
     } finally {
       setPlacingOrder(false);
     }
@@ -233,8 +281,9 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        {/* ------------------ Address + Order Section ------------------ */}
+        {/* ------------------ Address + Summary ------------------ */}
         <div className="lg:col-span-4 space-y-4">
+          {/* Address selection */}
           <div className="p-4 border rounded-lg space-y-3">
             <h2 className="text-lg font-semibold">Shipping Address</h2>
 
@@ -296,7 +345,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* New address form */}
             {newAddress && (
               <div className="space-y-2 mt-3 border-t pt-3">
                 {[
@@ -324,18 +372,57 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* ------------------ Order Summary ------------------ */}
+          {/* Discount */}
+          <div className="p-4 border rounded-lg space-y-3">
+            <h2 className="text-lg font-semibold">Discount Code</h2>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter code"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                className="flex-1 border px-3 py-2 rounded text-sm"
+                disabled={!!appliedDiscount}
+              />
+              <Button
+                onClick={handleApplyDiscount}
+                disabled={validatingDiscount || !!appliedDiscount}
+              >
+                {validatingDiscount ? "Checking..." : appliedDiscount ? "Applied" : "Apply"}
+              </Button>
+            </div>
+
+            {appliedDiscount && (
+              <p className="text-green-600 text-sm">
+                ✅ {appliedDiscount.code} applied (
+                {appliedDiscount.type === "PERCENTAGE"
+                  ? `${appliedDiscount.value}%`
+                  : `₹${appliedDiscount.value.toFixed(2)}`}
+                )
+              </p>
+            )}
+          </div>
+
+          {/* Summary */}
           <div className="p-4 border rounded-lg space-y-2">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>
-                {cart.subtotalAmount} {cart.currency}
+                ₹{cart.subtotalAmount.toFixed(2)} {cart.currency}
               </span>
             </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Discount</span>
+                <span>
+                  -₹{discountAmount.toFixed(2)} {cart.currency}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between font-semibold">
               <span>Total</span>
               <span>
-                {cart.totalAmount} {cart.currency}
+                ₹{cart.totalAmount.toFixed(2)} {cart.currency}
               </span>
             </div>
             <Button

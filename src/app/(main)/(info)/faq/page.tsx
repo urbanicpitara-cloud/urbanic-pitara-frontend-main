@@ -17,10 +17,10 @@ const faqs = [
     q: "Can I edit my personal information?",
     a: `Yes — after logging in, visit the ‘Profile’ page to update your details.`,
   },
-  {
-    q: "I forgot my password, how do I reset it?",
-    a: `Click ‘Forgot Password’ on the login page and follow the secure link we send to your email to reset your password.`,
-  },
+  // {
+  //   q: "I forgot my password, how do I reset it?",
+  //   a: `Click ‘Forgot Password’ on the login page and follow the secure link we send to your email to reset your password.`,
+  // },
   {
     q: "How can I contact your support team?",
     a: `Email us at support@urbanicpitara.com or whatsApp/call: +91-9639798848 between 10:00 AM–7:00 PM (Mon–Sat). We usually respond within 24 hours on business days.`,
@@ -33,10 +33,10 @@ const faqs = [
     q: "How long will my order take to arrive?",
     a: `Orders are typically delivered within 3–7 business days depending on your location.`,
   },
-  {
-    q: "Can I change my shipping address after placing the order?",
-    a: `You can update the shipping address before the order is shipped. Contact our support team as soon as possible to request a change.`,
-  },
+  // {
+  //   q: "Can I change my shipping address after placing the order?",
+  //   a: `You can update the shipping address before the order is shipped. Contact our support team as soon as possible to request a change.`,
+  // },
   {
     q: "Is there a limit to how many items I can order?",
     a: `No — there is no limit on the number of items you can order.`,
@@ -53,14 +53,14 @@ const faqs = [
     q: "What is your return policy?",
     a: `Returns are accepted within 7 days of delivery for items that are unused, unwashed and with original tags and packaging. Some exclusions apply (e.g., accessories, jewelry, discounted items).`,
   },
-  {
-    q: "How do I request a return or exchange?",
-    a: `Go to ‘My Orders’, select the order and choose ‘Return/Exchange’, or contact support and we’ll assist you with the process.`,
-  },
-  {
-    q: "Do you provide reverse pick-up?",
-    a: `Yes — we provide free reverse pick-up for most pin codes in India for eligible returns.`,
-  },
+  // {
+  //   q: "How do I request a return or exchange?",
+  //   a: `Go to ‘My Orders’, select the order and choose ‘Return/Exchange’, or contact support and we’ll assist you with the process.`,
+  // },
+  // {
+  //   q: "Do you provide reverse pick-up?",
+  //   a: `Yes — we provide free reverse pick-up for most pin codes in India for eligible returns.`,
+  // },
   {
     q: "How long will it take to get my refund?",
     a: `Refunds are processed within 5–7 working days after we receive and inspect the returned item.`,
@@ -69,10 +69,10 @@ const faqs = [
     q: "What payment methods do you accept?",
     a: `We accept major debit/credit cards, UPI, net banking and popular wallets.`,
   },
-  {
-    q: "Do you offer Cash on Delivery (COD)?",
-    a: `COD is available for select pin codes in India. Enter your PIN at checkout to confirm eligibility.`,
-  },
+  // {
+  //   q: "Do you offer Cash on Delivery (COD)?",
+  //   a: `COD is available for select pin codes in India. Enter your PIN at checkout to confirm eligibility.`,
+  // },
   {
     q: "Is shopping on your website safe?",
     a: `Yes — payments are processed securely with encrypted gateways and we do not store card details on our servers.`,

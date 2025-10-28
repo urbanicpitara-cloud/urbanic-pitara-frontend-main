@@ -55,7 +55,7 @@ export default function RootLayout({
           <ThemeProvider>
             <CartProvider>
               {children}
-              <Toaster />
+              <Toaster position="bottom-right" />
             </CartProvider>
           </ThemeProvider>
         </body>

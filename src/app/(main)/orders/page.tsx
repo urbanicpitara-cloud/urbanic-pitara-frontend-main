@@ -2,6 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { ordersAPI } from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  // DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 // -------------------- TYPES -------------------- //
 type ProductImage = { url: string; altText?: string };
@@ -43,6 +54,8 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -57,12 +70,23 @@ export default function OrdersPage() {
     }
   };
 
-  const cancelOrder = async (orderId: string) => {
-    const reason = prompt("Please provide a reason for cancelling this order:", "Changed my mind");
-    if (!reason) return;
+  const openCancelModal = (orderId: string) => {
+    setCancelOrderId(orderId);
+    setCancelReason("Changed my mind");
+  };
+
+  const closeCancelModal = () => {
+    setCancelOrderId(null);
+    setCancelReason("");
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancelOrderId || !cancelReason) return;
     try {
-      await ordersAPI.cancel(orderId, reason);
+      await ordersAPI.cancel(cancelOrderId, cancelReason);
+      closeCancelModal();
       fetchOrders();
+      toast.success("Order Cancelled Successfully")
     } catch (err: any) {
       console.error(err);
       alert(err?.message || "Failed to cancel order");
@@ -109,12 +133,9 @@ export default function OrdersPage() {
                   {order.status.toUpperCase()}
                 </span>
                 {["pending", "processing"].includes(order.status) && (
-                  <button
-                    onClick={() => cancelOrder(order.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-md shadow"
-                  >
+                  <Button variant="destructive" onClick={() => openCancelModal(order.id)}>
                     Cancel
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -135,12 +156,12 @@ export default function OrdersPage() {
                       <p className="font-medium text-gray-800">{item.product.title}</p>
                       {item.variant && (
                         <p className="text-sm text-gray-500">
-                          Variant: {JSON.stringify(item.variant.selectedOptions)}
+                          <strong>Size</strong> : {JSON.stringify(item.variant.selectedOptions.size)}
                         </p>
                       )}
                       <p className="text-sm text-gray-600">
-                        Quantity: {item.quantity} | Price: {item.price.amount} {item.price.currencyCode} | Subtotal:{" "}
-                        {item.subtotal.amount} {item.subtotal.currencyCode}
+                        <strong>Quantity</strong> : {item.quantity} | Price: {item.price.amount}{" "}
+                        {item.price.currencyCode} | Subtotal: {item.subtotal.amount} {item.subtotal.currencyCode}
                       </p>
                     </div>
                   </div>
@@ -151,12 +172,12 @@ export default function OrdersPage() {
             <div className="border-t mt-4 pt-4 flex flex-col md:flex-row justify-between text-sm text-gray-700">
               <div className="space-y-1">
                 <p>
-                  <span className="font-semibold">Shipping:</span>{" "}
-                  {order.shippingAddress?.address1 || "N/A"}, {order.shippingAddress?.city || "N/A"}
+                  <span className="font-semibold">Shipping:</span> {order.shippingAddress?.address1 || "N/A"},{" "}
+                  {order.shippingAddress?.city || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Billing:</span>{" "}
-                  {order.billingAddress?.address1 || "N/A"}, {order.billingAddress?.city || "N/A"}
+                  <span className="font-semibold">Billing:</span> {order.billingAddress?.address1 || "N/A"},{" "}
+                  {order.billingAddress?.city || "N/A"}
                 </p>
                 {order.cancelReason && (
                   <p className="text-red-600">
@@ -171,6 +192,31 @@ export default function OrdersPage() {
           </div>
         ))}
       </div>
+
+      {/* -------------------- CANCEL MODAL -------------------- */}
+      <Dialog open={!!cancelOrderId} onOpenChange={closeCancelModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Order</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>Please provide a reason for cancelling this order:</p>
+            <Input
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Reason for cancellation"
+            />
+          </div>
+          <DialogFooter className="mt-4 flex justify-end space-x-2">
+            <Button variant="outline" onClick={closeCancelModal}>
+              Close
+            </Button>
+            <Button variant="destructive" onClick={handleCancelOrder}>
+              Cancel Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

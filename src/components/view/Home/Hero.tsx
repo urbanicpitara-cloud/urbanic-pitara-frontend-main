@@ -3,6 +3,11 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import localFont from "next/font/local"
+
+const myCustomFont = localFont({
+  src : "./fonts/samakaran-normal.ttf",
+})
 
 interface HeroProps {
   images?: {
@@ -48,7 +53,7 @@ const Hero: React.FC<HeroProps> = ({
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/50 flex flex-col items-center justify-center text-center px-6">
         <div className="w-24 h-1 bg-gold mb-6 rounded-full"></div>
-        <h1 className="text-white text-5xl md:text-7xl font-serif font-extrabold mb-4 leading-tight uppercase tracking-wide">
+        <h1 className={`text-white text-5xl md:text-7xl font-serif font-medium mb-4 leading-tight uppercase tracking-wide ${myCustomFont.className}`}>
           Urbanic Pitara
         </h1>
         <p className="text-white text-lg md:text-2xl mb-8 max-w-xl">

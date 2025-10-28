@@ -1,4 +1,5 @@
 // app/about/page.tsx
+import { url } from "inspector";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,10 +15,24 @@ export default function AboutPage() {
           fill
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center px-6">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white text-center leading-tight">
-            Where Style Meets Story
-          </h1>
+        <div style={{
+          backgroundImage: 'url("/shoot2.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+          className="absolute inset-0 bg-black/60 flex items-center justify-center px-6">
+          <div className="relative px-10 pt-2 pb-5">
+      {/* Dark and Blurred Overlay */}
+{/* <div className="absolute inset-0 bg-black/20 backdrop-blur-sm 
+               shadow-[0_0_30px_10px_rgba(0,0,0,0.3)] 
+               z-10"></div> */}
+
+      {/* Foreground Text Layer */}
+      <h1 className="relative text-5xl md:text-8xl font-extrabold text-white text-center leading-tight z-20 top-60 md:top-[6rem]">
+        Where Style Meets Story
+      </h1>
+    </div>
+
         </div>
       </section>
 
@@ -25,10 +40,10 @@ export default function AboutPage() {
       <section className="max-w-4xl mx-auto px-6 py-24 text-center">
         <h2 className="text-4xl md:text-5xl font-bold mb-8">Our Story</h2>
         <p className="text-xl md:text-2xl text-gray-700 leading-relaxed">
-          Urbanic Pitara was born from a vision to celebrate curated fashion 
-          that marries contemporary elegance with timeless style. We handpick 
-          the finest designer pieces and artisan creations to bring them 
-          directly to your wardrobe. Every item tells a story — and we ensure 
+          Urbanic Pitara was born from a vision to celebrate curated fashion
+          that marries contemporary elegance with timeless style. We handpick
+          the finest designer pieces and artisan creations to bring them
+          directly to your wardrobe. Every item tells a story and we ensure
           that each story is worth wearing.
         </p>
       </section>
@@ -38,9 +53,9 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-8">Our Vision</h2>
           <p className="text-xl md:text-2xl text-jet leading-relaxed">
-            Our vision is to empower individuals to express themselves through 
-            fashion while honoring craftsmanship, heritage, and sustainability. 
-            We believe fashion is not just clothing — it is a statement of identity.
+            Our vision is to empower individuals to express themselves through
+            fashion while honoring craftsmanship, heritage, and sustainability.
+            We believe fashion is not just clothing it is a statement of identity.
           </p>
         </div>
       </section>

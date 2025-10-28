@@ -16,6 +16,10 @@ export const authAPI = {
   getProfile: () => api.get('/auth/me'),
   updateProfile: (data: Record<string, any>) => api.put('/auth/me', data),
   changePassword: (data: Record<string, any>) => api.put('/auth/change-password', data),
+   // 🆕 Forgot / Reset Password
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (data: { token: string; newPassword: string }) =>
+    api.post('/auth/reset-password', data),
 };
 
 
@@ -91,4 +95,23 @@ export const addressesAPI = {
 
   // Delete an address by ID
   remove: (id: string) => api.delete(`/addresses/${id}`),
+};
+
+
+// ----------------- Discounts API -----------------
+export const discountsAPI = {
+  // Validate a discount code
+  validate: (code: string) => api.post('/discounts/validate', { code }),
+
+  // Get all discounts (admin use)
+  getAll: () => api.get('/discounts'),
+
+  // Create a new discount (admin)
+  create: (data: Record<string, any>) => api.post('/discounts', data),
+
+  // Update discount (admin)
+  update: (id: string, data: Record<string, any>) => api.put(`/discounts/${id}`, data),
+
+  // Delete a discount (admin)
+  delete: (id: string) => api.delete(`/discounts/${id}`),
 };
