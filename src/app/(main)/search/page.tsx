@@ -195,9 +195,9 @@ export default function SearchPage() {
                 {productResults.products?.length > 0 ? (
                   <>
                     <motion.div
-                      className="flex flex-wrap gap-4 justify-center sm:justify-start"
+                      className="flex flex-wrap gap-2 justify-center sm:justify-start"
                       layout
-                      initial={{ opacity: 0 }}
+                      initial={{ opacity: 0 }} 
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >

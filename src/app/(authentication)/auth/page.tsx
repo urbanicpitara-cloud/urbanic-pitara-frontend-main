@@ -18,10 +18,11 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect user based on role if already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      const targetRoute = user.isAdmin ? "/admin" : "/";
+      router.replace(targetRoute);
     }
   }, [user, loading, router]);
 
@@ -31,13 +32,23 @@ export default function AuthPage() {
     setFormLoading(true);
 
     try {
+      let loggedInUser;
       if (isLogin) {
-        await login(email, password);
+        loggedInUser = await login(email, password);
       } else {
-        await register({ email, password, firstName, lastName });
+        loggedInUser = await register({
+          email,
+          password,
+          firstName,
+          lastName,
+        });
       }
-      router.push("/");
+
+      const targetRoute =
+        loggedInUser?.isAdmin ? "/admin" : "/";
+      router.push(targetRoute);
     } catch (err: any) {
+      console.error("Auth error:", err);
       setError(err.response?.data?.error || "Authentication failed");
     } finally {
       setFormLoading(false);
@@ -162,7 +173,7 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                <div>
+                {/* <div>
                   <label htmlFor="phone" className="sr-only">
                     Phone Number
                   </label>
@@ -175,7 +186,7 @@ export default function AuthPage() {
                     placeholder="Phone Number (optional)"
                     className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
-                </div>
+                </div> */}
               </>
             )}
           </div>

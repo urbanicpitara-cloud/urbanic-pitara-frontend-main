@@ -1,5 +1,5 @@
 "use client";
-
+import { motion, easeOut } from "motion/react";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -59,14 +59,16 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500 ${
-        visible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className={`fixed top-0 w-full z-50 border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500 ${visible ? "translate-y-0" : "-translate-y-full"
+        }`}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <div className="relative w-[140px] md:w-[200px] h-[60px] md:h-[70px]">
+          <motion.div initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: easeOut }}
+            className="relative w-[180px] md:w-[200px] h-[60px] md:h-[70px]">
             <Image
               src="/new_logo.png"
               alt="Urbanic Pitara"
@@ -74,7 +76,7 @@ const Navbar = () => {
               className="object-contain"
               priority
             />
-          </div>
+          </motion.div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -237,7 +239,7 @@ const Navbar = () => {
                   <Link href="/search?q=jeans">Jeans</Link>
                 </DropdownMenuItem> */}
                 <DropdownMenuItem asChild>
-                  
+
                   <Link href={`/search?q=${encodeURIComponent("men")}`}>All</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -251,18 +253,18 @@ const Navbar = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[200px] shadow-md">
-             <DropdownMenuItem asChild>
-                <Link href="/search?q=lehenga">Lehenga</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/search?q=kurti">Kurti</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/search?q=traditional">Tradionals</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/search?q=plazzo">Plazzo</Link>
-              </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/search?q=lehenga">Lehenga</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/search?q=kurti">Kurti</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/search?q=traditional">Tradionals</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/search?q=plazzo">Plazzo</Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 

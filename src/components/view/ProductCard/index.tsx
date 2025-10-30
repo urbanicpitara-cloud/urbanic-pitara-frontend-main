@@ -107,7 +107,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <div className="border rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow bg-white flex flex-col h-full">
         {/* Image wrapper */}
-        <div className="relative w-full h-[22rem] bg-gray-100 overflow-hidden">
+        <div className="relative w-full h-[16rem] md:h-[19rem] lg:h-[22rem]  bg-gray-100 overflow-hidden">
           <Image
             src={firstImage}
             alt={product.featuredImageAlt || product.title}

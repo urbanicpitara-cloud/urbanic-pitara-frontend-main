@@ -20,6 +20,7 @@ export const authAPI = {
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (data: { token: string; newPassword: string }) =>
     api.post('/auth/reset-password', data),
+  getAllUsers:()=> api.get('/auth/admin/all/users'),
 };
 
 
@@ -62,24 +63,23 @@ export const ordersAPI = {
   getById: (id: string) => api.get(`/orders/${id}`),
   create: (data: Record<string, any>) => api.post('/orders', data),
   cancel: (id: string, reason: string) => api.post(`/orders/${id}/cancel`, { reason }),
+  
+    // ⚙️ Admin Endpoints
+  getAllAdmin: (params?: { page?: number; limit?: number; status?: string; all?: boolean; }) =>
+    api.get('/orders/admin/all', { params }), // Get all orders (admin view, paginated)
+
+  updateStatusAdmin: (
+    id: string,
+    data: {
+      status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'canceled' | 'refunded';
+      trackingNumber?: string;
+      trackingCompany?: string;
+      notes?: string;
+    }
+  ) => api.put(`/orders/admin/${id}/status`, data), // Update order status
 };
 
-// ----------------- Search API -----------------
-export const searchAPI = {
-  searchProducts: (params: { query: string; page?: number; limit?: number; sort?: string }) =>
-    api.get('/search/products', { params }),
-  searchCollections: (params: { query: string; page?: number; limit?: number }) =>
-    api.get('/search/collections', { params }),
-  getAutocomplete: (query: string, limit: number = 5) =>
-    api.get('/search/autocomplete', { params: { query, limit } }),
-};
 
-// ----------------- Menu API -----------------
-export const menuAPI = {
-  getByHandle: (handle: string) => api.get(`/menu/${handle}`),
-};
-
-export default api;
 
 
 // ----------------- Addresses API -----------------
@@ -114,4 +114,26 @@ export const discountsAPI = {
 
   // Delete a discount (admin)
   delete: (id: string) => api.delete(`/discounts/${id}`),
+};
+
+
+// ----------------- Tags API -----------------
+export const tagsAPI = {
+  // List tags (optional pagination)
+  list: (params?: { page?: number; limit?: number }) =>
+    api.get('/tags', { params }),
+
+  // Get single tag
+  get: (id: string) => api.get(`/tags/${id}`),
+
+  // Create tag (admin)
+  create: (data: { name: string; description?: string; handle?: string }) =>
+    api.post('/tags', data),
+
+  // Update tag (admin)
+  update: (id: string, data: { name?: string; description?: string; handle?: string }) =>
+    api.put(`/tags/${id}`, data),
+
+  // Delete tag (admin)
+  remove: (id: string) => api.delete(`/tags/${id}`),
 };

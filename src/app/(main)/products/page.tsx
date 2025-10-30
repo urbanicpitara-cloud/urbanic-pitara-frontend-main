@@ -153,7 +153,7 @@ export default function ProductsPage() {
           <motion.div
             key={product.id}
             className="rounded overflow-hidden bg-white"
-            whileHover={{ scale: 1.05, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
+            whileHover={{ scale: 1.01, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
             layout
           >
             <ProductCard product={product} />

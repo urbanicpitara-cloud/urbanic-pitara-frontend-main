@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth";
+// import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/atoms/cart"; 
 import { Product, ProductVariant } from "@/types/products";
 import useEmblaCarousel, { EmblaViewportRefType } from "embla-carousel-react";
@@ -19,7 +19,7 @@ interface ProductClientProps {
 }
 
 export default function ProductClient({ product, relatedProducts }: ProductClientProps) {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const { addItem } = useCart();
 
   const normalizeOptionValue = (val: string | { id: string; name?: string }): string =>
@@ -132,7 +132,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto px-4 py-8"
+      className="container mx-auto px-4 py-8 pt-12"
     >
       {/* Breadcrumb */}
       <div className="mb-4">

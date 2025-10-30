@@ -25,7 +25,7 @@ export default function ContactPage() {
             Email: <strong>support@urbanicpitara.com</strong>
           </p>
           <p className="text-gray-700 mb-2">
-            WhatsApp / Call: <strong>+91-9639798848</strong>
+            WhatsApp / Call: <strong>+91-9927775655</strong>
           </p>
           <p className="text-gray-600 text-sm">
             Mon – Sat, 10:00 AM – 7:00 PM (IST). We usually respond within 24 hours on business days.
