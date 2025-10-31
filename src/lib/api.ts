@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { headers } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
@@ -34,6 +35,10 @@ export const productsAPI = {
   create: (data: Record<string, any>) => api.post('/products', data),
   update: (id: string, data: Record<string, any>) => api.put(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
+  deleteMany: (ids: string[]) => api.delete('/products/bulk-delete', { data: { ids } }),
+    // 🧩 Bulk Update (new)
+ updateMany: (ids: string[], updates: Record<string, any>) =>
+    api.put('/products/bulk-update', { ids, updates }),
 };
 
 // ----------------- Collections API -----------------
@@ -47,7 +52,20 @@ export const collectionsAPI = {
   create: (data: Record<string, any>) => api.post("/collections", data),
   update: (id: string, data: Record<string, any>) => api.put(`/collections/${id}`, data),
   delete: (id: string) => api.delete(`/collections/${id}`),
+
+  // Admin: Add products manually
+  addProducts: (id: string, productIds: string[]) =>
+    api.post(`/collections/${id}/products`, { productIds }),
+
+  // Admin: Remove products manually
+  removeProducts: (id: string, productIds: string[]) =>
+    api.delete(`/collections/${id}/products`, { data: { productIds } }),
+
+  // Admin: Add products by rule
+  addProductsByRule: (id: string, rule: { titleContains?: string; priceMin?: number; priceMax?: number; tags?: string[] }) =>
+    api.post(`/collections/${id}/products/by-rule`, rule),
 };
+
 
 // ----------------- Cart API -----------------
 export const cartAPI = {

@@ -6,6 +6,8 @@ import {
   LayoutDashboard,
   Package,
   Tag,
+  Shirt,
+  BadgeIndianRupee,
   ShoppingBag,
   Users,
   Settings,
@@ -16,10 +18,11 @@ import { useAuth } from "@/lib/auth";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/categories", label: "Categories", icon: Tag },
+  { href: "/admin/collections", label: "Collections", icon: Shirt },
   { href: "/admin/tags", label: "Tags", icon: Tag },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/discounts", label: "Discounts", icon: BadgeIndianRupee },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
