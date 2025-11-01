@@ -77,24 +77,46 @@ export const cartAPI = {
 
 // ----------------- Orders API -----------------
 export const ordersAPI = {
+  // 🛒 User Endpoints
   getAll: () => api.get('/orders'),
   getById: (id: string) => api.get(`/orders/${id}`),
   create: (data: Record<string, any>) => api.post('/orders', data),
   cancel: (id: string, reason: string) => api.post(`/orders/${id}/cancel`, { reason }),
-  
-    // ⚙️ Admin Endpoints
-  getAllAdmin: (params?: { page?: number; limit?: number; status?: string; all?: boolean; }) =>
+
+  // ⚙️ Admin Endpoints
+  getAllAdmin: (params?: { page?: number; limit?: number; status?: string; all?: boolean }) =>
     api.get('/orders/admin/all', { params }), // Get all orders (admin view, paginated)
 
   updateStatusAdmin: (
     id: string,
     data: {
-      status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'canceled' | 'refunded';
+      status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELED' | 'REFUNDED';
       trackingNumber?: string;
       trackingCompany?: string;
       notes?: string;
     }
   ) => api.put(`/orders/admin/${id}/status`, data), // Update order status
+
+  // 📝 New Admin Controllers
+  updateOrderAdmin: (
+    id: string,
+    data: {
+      status?: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELED' | 'REFUNDED';
+      trackingNumber?: string | null;
+      trackingCompany?: string | null;
+      adminNotes?: string | null;
+      shippingAddressId?: string;
+      billingAddressId?: string;
+    }
+  ) => api.put(`/orders/admin/${id}`, data), // Update single order (new endpoint)
+
+  bulkUpdateOrdersAdmin: (
+    data: {
+      orderIds: string[];
+      status?: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELED' | 'REFUNDED';
+      adminNotes?: string | null;
+    }
+  ) => api.put('/orders/admin/bulk-update', data), // Bulk update orders (new endpoint)
 };
 
 
@@ -119,16 +141,20 @@ export const addressesAPI = {
 // ----------------- Discounts API -----------------
 export const discountsAPI = {
   // Validate a discount code
-  validate: (code: string) => api.post('/discounts/validate', { code }),
+  validate: (code: string, orderAmount?: number) =>
+    api.post('/discounts/validate', { code, orderAmount }),
 
   // Get all discounts (admin use)
-  getAll: () => api.get('/discounts'),
+  getAll: () => api.get('/discounts/all'),
+
+  // Get single discount by ID (admin use)
+  getById: (id: string) => api.get(`/discounts/${id}`),
 
   // Create a new discount (admin)
-  create: (data: Record<string, any>) => api.post('/discounts', data),
+  create: (data: Record<string, any>) => api.post('/discounts/create', data),
 
   // Update discount (admin)
-  update: (id: string, data: Record<string, any>) => api.put(`/discounts/${id}`, data),
+  update: (id: string, data: Record<string, any>) => api.patch(`/discounts/${id}`, data),
 
   // Delete a discount (admin)
   delete: (id: string) => api.delete(`/discounts/${id}`),

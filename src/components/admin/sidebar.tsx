@@ -23,7 +23,7 @@ const navItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/discounts", label: "Discounts", icon: BadgeIndianRupee },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  // { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Sidebar() {

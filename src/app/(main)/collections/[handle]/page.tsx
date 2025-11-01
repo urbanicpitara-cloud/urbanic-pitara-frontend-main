@@ -5,19 +5,41 @@ import { useParams } from "next/navigation";
 import { collectionsAPI } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
+import ProductCard from "@/components/view/ProductCard";
 
 // ---------------- Type Definitions ----------------
-type Product = {
+
+
+interface ProductImage {
+  url: string;
+  altText?: string;
+}
+
+
+interface ProductVariant {
+  id: string;
+  selectedOptions: { optionId: string; value: string | { id: string; name?: string } }[];
+}
+
+interface Product {
   id: string;
   title: string;
   handle: string;
-  featuredImageUrl?: string;
+  description: string;
+  featuredImageUrl: string;
   featuredImageAlt?: string;
-  minPriceAmount: number;
-  maxPriceAmount: number;
-  priceCurrency: string;
-  tags: string[];
-};
+  images?: ProductImage[];
+  tags: (string | { id?: string; name?: string })[];
+  variants: ProductVariant[];
+  minPriceAmount?: string;
+  minPriceCurrency?: string;
+  maxPriceAmount?: string;
+  maxPriceCurrency?: string;
+  compareMinAmount?: string;
+  compareMinCurrency?: string;
+  compareMaxAmount?: string;
+  compareMaxCurrency?: string;
+}
 
 type Collection = {
   id: string;
@@ -128,43 +150,7 @@ export default function CollectionPage() {
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {collection.products.map((product) => (
-          <div
-            key={product.id}
-            className="border rounded-lg p-4 hover:shadow-lg transition-shadow duration-200"
-          >
-            {product.featuredImageUrl ? (
-              <Image
-                src={product.featuredImageUrl}
-                alt={product.featuredImageAlt || product.title}
-                width={400}
-                height={400}
-                quality={50}
-                className="rounded-md object-cover w-full h-64"
-              />
-            ) : (
-              <div className="bg-gray-200 w-full h-64 rounded-md flex items-center justify-center">
-                <span className="text-gray-500">No Image</span>
-              </div>
-            )}
-            <Link href={`/products/${product.handle}`} className="mt-3 font-semibold text-lg">{product.title}</Link>
-            <p className="mt-1 text-gray-700">
-              {product.minPriceAmount === product.maxPriceAmount
-                ? `${product.minPriceAmount} ${product.priceCurrency}`
-                : `${product.minPriceAmount} - ${product.maxPriceAmount} ${product.priceCurrency}`}
-            </p>
-            {product.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {product.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs bg-gray-200 rounded-full px-2 py-1"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
 
