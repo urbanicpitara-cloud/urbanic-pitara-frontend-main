@@ -105,7 +105,7 @@ export default function ProductsToolbar({
           )}
 
         <Link href="products/add">
-          <Button className="bg-black text-white hover:bg-gray-800">
+          <Button className="bg-blue-600 text-white hover:bg-blue-800">
             <Plus className="w-4 h-4 mr-1" />
             Add Product
           </Button>

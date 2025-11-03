@@ -1,7 +1,8 @@
 // types/product.ts
+
 export interface ProductVariantOption {
-  optionId: string;
-  value: string;
+  optionId: string; // matches ProductOption.id
+  value: string; // always a string
 }
 
 export interface ProductVariant {
@@ -12,7 +13,8 @@ export interface ProductVariant {
   compareAmount?: number | null;
   priceCurrency: string;
   inventoryQuantity: number;
-  selectedOptions: ProductVariantOption[];
+  // Change: map optionId -> value for easier access
+  selectedOptions: Record<string, string>; 
 }
 
 export interface ProductOption {
@@ -47,12 +49,12 @@ export interface Product {
   variants: ProductVariant[];
   tags: string[];
   collection?: ProductCollection | null;
-    minPriceAmount?: string;
-    minPriceCurrency?: string;
-    maxPriceAmount?: string;
-    maxPriceCurrency?: string;
-    compareMinAmount?: string;
-    compareMinCurrency?: string;
-    compareMaxAmount?: string;
-    compareMaxCurrency?: string;
+  minPriceAmount?: string;
+  minPriceCurrency?: string;
+  maxPriceAmount?: string;
+  maxPriceCurrency?: string;
+  compareMinAmount?: string;
+  compareMinCurrency?: string;
+  compareMaxAmount?: string;
+  compareMaxCurrency?: string;
 }

@@ -119,6 +119,29 @@ export const ordersAPI = {
   ) => api.put('/orders/admin/bulk-update', data), // Bulk update orders (new endpoint)
 };
 
+export const usersAPI = {
+  // Get all users (admin)
+  getAll: () => api.get('/users'),
+
+  // Get single user by ID
+  getById: (id: string) => api.get(`/users/${id}`),
+
+  // Update user (admin)
+  update: (id: string, data: Record<string, any>) =>
+    api.put(`/users/${id}`, data),
+
+  // Delete single user (admin)
+  remove: (id: string) => api.delete(`/users/${id}`),
+
+  // Delete multiple users (admin)
+  removeMany: (ids: string[]) =>
+    api.delete('/users', { data: { ids } }),
+
+  // Reset user password (admin)
+  resetPassword: (id: string) => api.put(`/users/${id}/reset-password`),
+};
+
+
 
 
 
@@ -178,6 +201,10 @@ export const tagsAPI = {
   update: (id: string, data: { name?: string; description?: string; handle?: string }) =>
     api.put(`/tags/${id}`, data),
 
-  // Delete tag (admin)
+  // Delete single tag (admin)
   remove: (id: string) => api.delete(`/tags/${id}`),
+
+  // Delete multiple tags (admin)
+  removeMany: (ids: string[]) =>
+    api.delete('/tags', { data: { ids } }), // `data` contains array of IDs
 };

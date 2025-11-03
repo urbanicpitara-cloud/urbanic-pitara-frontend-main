@@ -178,7 +178,7 @@ const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile/orders">
+                  <Link href="/orders">
                     <ShoppingBag className="mr-2 h-4 w-4" /> Orders
                   </Link>
                 </DropdownMenuItem>

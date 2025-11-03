@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 // import { useAuth } from "@/lib/auth";
-import { useCart } from "@/lib/atoms/cart"; 
+import { useCart } from "@/lib/atoms/cart";
 import { Product, ProductVariant } from "@/types/products";
 import useEmblaCarousel, { EmblaViewportRefType } from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -27,11 +27,22 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaults: Record<string, string> = {};
-    product.options.forEach(opt => {
-      if (opt.values.length > 0) {
-        defaults[opt.id] = normalizeOptionValue(opt.values[0]);
-      }
-    });
+    
+    // Initialize with the first available variant's options
+    const defaultVariant = product.variants[0];
+    if (defaultVariant) {
+      const variantOptions = defaultVariant.selectedOptions;
+      product.options.forEach(opt => {
+        const optionName = opt.name.toLowerCase();
+        if (variantOptions[optionName]) {
+          defaults[opt.id] = variantOptions[optionName];
+        } else if (opt.values.length > 0) {
+          // Fallback to first available value if no variant option found
+          defaults[opt.id] = normalizeOptionValue(opt.values[0]);
+        }
+      });
+    }
+    
     return defaults;
   });
 
@@ -96,13 +107,19 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   // Update selected variant whenever options change
   useEffect(() => {
     const match = product.variants.find(variant => {
-      if (!Array.isArray(variant.selectedOptions)) return false;
-      return variant.selectedOptions.every(
-        o => selectedOptions[o.optionId] === normalizeOptionValue(o.value)
-      );
+      const variantOptions = variant.selectedOptions;
+      
+      // Match all selected options with variant options
+      return product.options.every(opt => {
+        const optionName = opt.name.toLowerCase();
+        const selectedValue = selectedOptions[opt.id]?.toLowerCase();
+        const variantValue = variantOptions[optionName]?.toLowerCase();
+        return selectedValue === variantValue;
+      });
     });
+
     setSelectedVariant(match ?? product.variants[0] ?? null);
-  }, [selectedOptions, product.variants]);
+  }, [selectedOptions, product.variants, product.options]);
 
   const handleOptionChange = (optionId: string, value: string) => {
     setSelectedOptions(prev => ({ ...prev, [optionId]: value }));
@@ -286,16 +303,26 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
               <div className="flex flex-wrap gap-2">
                 {opt.values.map(val => {
                   const displayValue = normalizeOptionValue(val);
+                  const isSelected = selectedOptions[opt.id] === displayValue;
+                  
+                  // Find if there's a variant available with this option
+                  const hasVariantWithOption = product.variants.some(variant => {
+                    const variantOptions = variant.selectedOptions;
+                    return variantOptions[opt.name.toLowerCase()] === displayValue.toLowerCase();
+                  });
+
                   return (
                     <button
                       key={`${opt.id}-${displayValue}`}
                       className={cn(
                         "px-3 py-1 border rounded-md",
-                        selectedOptions[opt.id] === displayValue
+                        isSelected
                           ? "border-indigo-600 bg-indigo-50 text-indigo-600"
-                          : "border-gray-300 text-gray-700 hover:border-gray-400"
+                          : "border-gray-300 text-gray-700 hover:border-gray-400",
+                        !hasVariantWithOption && "opacity-50 cursor-not-allowed"
                       )}
                       onClick={() => handleOptionChange(opt.id, displayValue)}
+                      disabled={!hasVariantWithOption}
                     >
                       {displayValue}
                     </button>
@@ -348,7 +375,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
           <h2 className="text-2xl font-bold mb-6">You may also like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {relatedProducts.map(related => (
-              <Link key={`related-${related.id}-${related.handle}`} href={`/product/${related.handle}`} className="group">
+              <Link key={`related-${related.id}-${related.handle}`} href={`/products/${related.handle}`} className="group">
                 <div className="relative h-64 rounded-lg overflow-hidden mb-3">
                   {related.featuredImageUrl ? (
                     <Image

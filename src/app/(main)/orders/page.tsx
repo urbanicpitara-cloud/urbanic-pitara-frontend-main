@@ -2,22 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { ordersAPI } from "@/lib/api";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  // DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import Link from "next/link";
+import Image from "next/image";
 
 // -------------------- TYPES -------------------- //
 type ProductImage = { url: string; altText?: string };
 type Product = { id: string; title: string; handle: string; featuredImage?: ProductImage | null };
-type Variant = { id: string; selectedOptions: any };
+type Variant = { id: string; selectedOptions: Record<string, string> };
 type OrderItem = {
   id: string;
   quantity: number;
@@ -30,12 +25,10 @@ type Address = {
   firstName?: string;
   lastName?: string;
   address1?: string | null;
-  address2?: string | null;
   city?: string | null;
   province?: string | null;
   zip?: string | null;
   country?: string | null;
-  phone?: string | null;
 };
 type Order = {
   id: string;
@@ -45,7 +38,6 @@ type Order = {
   totalCurrency: string;
   cancelReason?: string;
   shippingAddress?: Address | null;
-  billingAddress?: Address | null;
   items: OrderItem[];
 };
 
@@ -56,6 +48,7 @@ export default function OrdersPage() {
   const [error, setError] = useState("");
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [canceling, setCanceling] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -70,6 +63,10 @@ export default function OrdersPage() {
     }
   };
 
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
   const openCancelModal = (orderId: string) => {
     setCancelOrderId(orderId);
     setCancelReason("Changed my mind");
@@ -78,122 +75,196 @@ export default function OrdersPage() {
   const closeCancelModal = () => {
     setCancelOrderId(null);
     setCancelReason("");
+    setCanceling(false);
   };
 
   const handleCancelOrder = async () => {
     if (!cancelOrderId || !cancelReason) return;
+    setCanceling(true);
     try {
       await ordersAPI.cancel(cancelOrderId, cancelReason);
+      toast.success("Order cancelled successfully");
       closeCancelModal();
       fetchOrders();
-      toast.success("Order Cancelled Successfully")
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || "Failed to cancel order");
+      toast.error(err?.message || "Failed to cancel order");
+      setCanceling(false);
     }
   };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
 
   if (loading) return <p className="text-center mt-10 text-gray-600">Loading orders...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
   if (orders.length === 0) return <p className="text-center mt-10 text-gray-600">No orders found.</p>;
 
   const statusColors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    processing: "bg-blue-100 text-blue-800",
-    shipped: "bg-purple-100 text-purple-800",
-    delivered: "bg-green-100 text-green-800",
-    canceled: "bg-red-100 text-red-800",
-    refunded: "bg-gray-100 text-gray-800",
+    PENDING: "bg-amber-50 text-amber-700 border border-amber-200",
+    PROCESSING: "bg-blue-50 text-blue-700 border border-blue-200",
+    SHIPPED: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+    DELIVERED: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    CANCELED: "bg-rose-50 text-rose-700 border border-rose-200",
+    REFUNDED: "bg-gray-100 text-gray-800 border border-gray-300",
   };
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold mb-8 text-gray-800">My Orders</h1>
-      <div className="space-y-8">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className="border rounded-xl shadow-md p-6 bg-white hover:shadow-lg transition-shadow duration-200"
-          >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-              <div className="mb-2 md:mb-0">
-                <p className="font-semibold text-lg text-gray-700">Order #: {order.id}</p>
-                <p className="text-sm text-gray-500">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    statusColors[order.status] || "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {order.status.toUpperCase()}
-                </span>
-                {["pending", "processing"].includes(order.status) && (
-                  <Button variant="destructive" onClick={() => openCancelModal(order.id)}>
-                    Cancel
-                  </Button>
-                )}
-              </div>
-            </div>
+      <h1 className="text-3xl font-bold mb-10 text-gray-900 tracking-tight">My Orders</h1>
 
-            <div className="border-t pt-4">
-              <h2 className="font-semibold mb-3 text-gray-700">Items</h2>
-              <div className="space-y-4">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4">
-                    {item.product.featuredImage?.url && (
-                      <img
-                        src={item.product.featuredImage.url}
-                        alt={item.product.featuredImage.altText || ""}
-                        className="w-20 h-20 object-cover rounded-lg border"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800">{item.product.title}</p>
-                      {item.variant && (
-                        <p className="text-sm text-gray-500">
-                          <strong>Size</strong> : {JSON.stringify(item.variant.selectedOptions.size)}
-                        </p>
+      {/* Desktop version */}
+      <div className="hidden md:block">
+        <div className="overflow-hidden rounded-xl shadow-sm border border-gray-200 bg-white">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr className="text-sm text-gray-600">
+                <th className="px-6 py-3 text-left font-semibold">Order ID</th>
+                <th className="px-6 py-3 text-left font-semibold">Date</th>
+                <th className="px-6 py-3 text-left font-semibold">Items</th>
+                <th className="px-6 py-3 text-left font-semibold">Status</th>
+                <th className="px-6 py-3 text-left font-semibold">Total</th>
+                <th className="px-6 py-3 text-center font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {orders.map((order) => {
+                const status = order.status.toUpperCase();
+                return (
+                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-800">{order.id}</td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex -space-x-2">
+                        {order.items.slice(0, 4).map((item) =>
+                          item.product.featuredImage?.url ? (
+                            <Image
+                              key={item.id}
+                              src={item.product.featuredImage.url}
+                              alt={item.product.featuredImage.altText || item.product.title}
+                              width={36}
+                              height={36}
+                              className="rounded-full border-2 border-white object-cover shadow-sm"
+                            />
+                          ) : (
+                            <div
+                              key={item.id}
+                              className="w-9 h-9 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs text-gray-500"
+                            >
+                              ?
+                            </div>
+                          )
+                        )}
+                        {order.items.length > 4 && (
+                          <span className="w-9 h-9 flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-600 rounded-full border-2 border-white">
+                            +{order.items.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${statusColors[status]}`}
+                      >
+                        {status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-gray-800">
+                      {order.totalAmount} {order.totalCurrency}
+                    </td>
+                    <td className="px-6 py-4 text-center space-x-2">
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="inline-flex items-center px-3 py-1 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                      >
+                        View
+                      </Link>
+                      {["PENDING", "PROCESSING"].includes(status) && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="px-3 py-1 text-xs"
+                          onClick={() => openCancelModal(order.id)}
+                        >
+                          Cancel
+                        </Button>
                       )}
-                      <p className="text-sm text-gray-600">
-                        <strong>Quantity</strong> : {item.quantity} | Price: {item.price.amount}{" "}
-                        {item.price.currencyCode} | Subtotal: {item.subtotal.amount} {item.subtotal.currencyCode}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t mt-4 pt-4 flex flex-col md:flex-row justify-between text-sm text-gray-700">
-              <div className="space-y-1">
-                <p>
-                  <span className="font-semibold">Shipping:</span> {order.shippingAddress?.address1 || "N/A"},{" "}
-                  {order.shippingAddress?.city || "N/A"}
-                </p>
-                <p>
-                  <span className="font-semibold">Billing:</span> {order.billingAddress?.address1 || "N/A"},{" "}
-                  {order.billingAddress?.city || "N/A"}
-                </p>
-                {order.cancelReason && (
-                  <p className="text-red-600">
-                    <span className="font-semibold">Cancel Reason:</span> {order.cancelReason}
-                  </p>
-                )}
-              </div>
-              <div className="mt-2 md:mt-0 font-bold text-lg text-gray-800">
-                Total: {order.totalAmount} {order.totalCurrency}
-              </div>
-            </div>
-          </div>
-        ))}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* -------------------- CANCEL MODAL -------------------- */}
+      {/* Mobile view */}
+      <div className="space-y-6 md:hidden">
+        {orders.map((order) => {
+          const status = order.status.toUpperCase();
+          return (
+            <div
+              key={order.id}
+              className="rounded-lg border border-gray-200 shadow-sm p-4 bg-white hover:shadow-md transition"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <p className="font-semibold text-gray-800 text-sm">Order #{order.id}</p>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}
+                >
+                  {status}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Placed on {new Date(order.createdAt).toLocaleDateString()}
+              </p>
+
+              <div className="flex items-center -space-x-2 mb-4">
+                {order.items.slice(0, 3).map((item) =>
+                  item.product.featuredImage?.url ? (
+                    <Image
+                      key={item.id}
+                      src={item.product.featuredImage.url}
+                      alt={item.product.featuredImage.altText || item.product.title}
+                      width={40}
+                      height={40}
+                      className="rounded-full border-2 border-white object-cover shadow-sm"
+                    />
+                  ) : null
+                )}
+                {order.items.length > 3 && (
+                  <span className="w-8 h-8 flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-700 rounded-full border-2 border-white">
+                    +{order.items.length - 3}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center">
+                <p className="font-semibold text-gray-800 text-sm">
+                  Total: {order.totalAmount} {order.totalCurrency}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/orders/${order.id}`}
+                    className="text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded-md text-xs font-medium"
+                  >
+                    View
+                  </Link>
+                  {["PENDING", "PROCESSING"].includes(status) && (
+                    <button
+                      onClick={() => openCancelModal(order.id)}
+                      className="text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-md text-xs font-medium"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Cancel Modal */}
       <Dialog open={!!cancelOrderId} onOpenChange={closeCancelModal}>
         <DialogContent>
           <DialogHeader>
@@ -207,12 +278,12 @@ export default function OrdersPage() {
               placeholder="Reason for cancellation"
             />
           </div>
-          <DialogFooter className="mt-4 flex justify-end space-x-2">
-            <Button variant="outline" onClick={closeCancelModal}>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={closeCancelModal} disabled={canceling}>
               Close
             </Button>
-            <Button variant="destructive" onClick={handleCancelOrder}>
-              Cancel Order
+            <Button variant="destructive" onClick={handleCancelOrder} disabled={canceling}>
+              {canceling ? "Cancelling..." : "Cancel Order"}
             </Button>
           </DialogFooter>
         </DialogContent>
