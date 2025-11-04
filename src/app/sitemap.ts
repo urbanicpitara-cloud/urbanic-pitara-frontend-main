@@ -1,67 +1,97 @@
-import { MetadataRoute } from 'next'
-import { fetchGraphQL } from "@/shopify/client"
-import { GET_ALL_PRODUCTS, GET_ALL_COLLECTIONS } from "@/graphql/products"
+import { MetadataRoute } from 'next';
+import { productsAPI, collectionsAPI } from '@/lib/api';
 
-interface ProductNode {
-  node: {
-    handle: string;
-    updatedAt: string;
-  }
+interface Product {
+  handle: string;
+  updatedAt: string;
 }
 
-interface CollectionNode {
-  node: {
-    handle: string;
-    updatedAt: string;
-  }
-}
-
-interface ShopifyResponse {
-  products?: {
-    edges: ProductNode[];
-  };
-  collections?: {
-    edges: CollectionNode[];
-  };
+interface Collection {
+  handle: string;
+  updatedAt: string;
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Get all products and collections
-  const productData = await fetchGraphQL<ShopifyResponse>(GET_ALL_PRODUCTS)
-  const collectionData = await fetchGraphQL<ShopifyResponse>(GET_ALL_COLLECTIONS)
+  try {
+    // Get all products and collections
+    const [products, collections] = await Promise.all([
+      productsAPI.getAll(),
+      collectionsAPI.getAll()
+    ]);
 
-  // Static routes
-  const routes = [
-    '',
-    '/about',
-    '/faq',
-    '/contact',
-    '/privacy',
-    '/returns',
-    '/shipping',
-    '/terms'
-  ].map(route => ({
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}${route}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: route === '' ? 1 : 0.8,
-  }))
+    // Static routes
+    const routes = [
+      '',
+      '/about',
+      '/faq',
+      '/contact',
+      '/privacy',
+      '/returns',
+      '/shipping',
+      '/terms',
+      '/cart',
+      '/profile',
+      '/checkout'
+    ].map(route => ({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}${route}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: route === '' ? 1 : 0.8,
+    }));
 
-  // Product routes
-  const productUrls = productData?.products?.edges?.map(({ node }: ProductNode) => ({
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/product/${node.handle}`,
-    lastModified: new Date(node.updatedAt),
-    changeFrequency: 'daily' as const,
-    priority: 0.9
-  })) || []
+    // Product routes
+    const productUrls = (products.data || []).map((product: Product) => ({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/products/${product.handle}`,
+      lastModified: new Date(product.updatedAt),
+      changeFrequency: 'daily' as const,
+      priority: 0.9
+    }));
 
-  // Collection routes
-  const collectionUrls = collectionData?.collections?.edges?.map(({ node }: CollectionNode) => ({
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/collections/${node.handle}`,
-    lastModified: new Date(node.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7
-  })) || []
+    // Collection routes
+    const collectionUrls = (collections.data || []).map((collection: Collection) => ({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/collections/${collection.handle}`,
+      lastModified: new Date(collection.updatedAt),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7
+    }));
 
-  return [...routes, ...productUrls, ...collectionUrls]
+    // Auth routes
+    const authRoutes = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/forgot-password'
+    ].map(route => ({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}${route}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    }));
+
+    // Admin routes
+    const adminRoutes = [
+      '/admin',
+      '/admin/products',
+      '/admin/collections',
+      '/admin/orders',
+      '/admin/users'
+    ].map(route => ({
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}${route}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.6,
+    }));
+
+    return [...routes, ...productUrls, ...collectionUrls, ...authRoutes, ...adminRoutes];
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    // Return at least the static routes if API calls fail
+    return [
+      {
+        url: process.env.NEXT_PUBLIC_SITE_URL!,
+        lastModified: new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 1,
+      }
+    ];
+  }
 }

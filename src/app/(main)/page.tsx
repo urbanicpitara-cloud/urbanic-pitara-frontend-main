@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, easeOut, useTransform, useViewportScroll } from "motion/react";
+import { motion, easeOut } from "motion/react";
 import Hero from "@/components/view/Home/Hero";
 import Categories from "@/components/view/Home/Categories";
 import BridalSpotlight from "@/components/view/Home/BridalSpotlight";
@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({ subsets: ["latin"], weight: ["400", "500", "700"]
 
 const fadeUpTransition = { duration: 0.6, ease: easeOut };
 
-// ✅ AnimatedText Component (fixed TypeScript + centered layout)
+// ✅ AnimatedText Component (simple text animation only)
 const AnimatedText = ({
   text,
   className = "",
@@ -29,7 +29,6 @@ const AnimatedText = ({
     visible: {
       opacity: 1,
       transition: {
-        // staggerChildren: 0.03,
         delayChildren: 0.05,
       },
     },
@@ -66,14 +65,10 @@ const AnimatedText = ({
 };
 
 export default function HomePage() {
-  const { scrollY } = useViewportScroll();
-
-  const pinkParallax = useTransform(scrollY, [0, 500], [0, -50]);
-  const yellowParallax = useTransform(scrollY, [0, 500], [0, 50]);
-
   return (
-    <div className={`overflow-x-hidden scrollbar-hide relative bg-white ${geistMono.className}`}>
-
+    <div
+      className={`overflow-x-hidden scrollbar-hide relative bg-white ${geistMono.className}`}
+    >
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -84,17 +79,8 @@ export default function HomePage() {
         <Hero />
       </motion.div>
 
-      {/* Decorative Split Section */}
-      <section className="relative py-20 bg-gradient-to-r from-pink-50 via-white to-yellow-50 flex flex-col items-center text-center overflow-hidden">
-        <motion.div
-          style={{ y: pinkParallax }}
-          className="absolute top-0 left-0 w-40 h-40 bg-pink-100 rounded-full opacity-10 -z-10"
-        />
-        <motion.div
-          style={{ y: yellowParallax }}
-          className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-100 rounded-full opacity-10 -z-10"
-        />
-
+      {/* Section 1 */}
+      <section className="relative py-20 flex flex-col items-center text-center bg-white">
         <AnimatedText
           text="Discover Our Signature Collections"
           className="text-4xl md:text-5xl font-bold text-gray-700 mb-4"
@@ -110,36 +96,18 @@ export default function HomePage() {
         </motion.p>
       </section>
 
-      {/* Categories Section */}
+      {/* Categories */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ ...fadeUpTransition, delay: 0.1 }}
         viewport={{ once: true }}
-        className="relative"
       >
-        <motion.div
-          style={{ y: pinkParallax }}
-          className="absolute top-0 left-0 w-64 h-64 bg-pink-100 rounded-full opacity-20 -z-10"
-        />
-        <motion.div
-          style={{ y: yellowParallax }}
-          className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-100 rounded-full opacity-20 -z-10"
-        />
         <Categories />
       </motion.div>
 
-      {/* Decorative Section */}
-      <section className="relative py-10 bg-gradient-to-r from-yellow-50 via-white to-pink-50 flex flex-col items-center text-center overflow-hidden">
-        <motion.div
-          style={{ y: pinkParallax }}
-          className="absolute top-0 left-0 w-48 h-48 bg-pink-100 rounded-full opacity-10 -z-10"
-        />
-        <motion.div
-          style={{ y: yellowParallax }}
-          className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-100 rounded-full opacity-10 -z-10"
-        />
-
+      {/* Section 2 */}
+      <section className="relative py-10 flex flex-col items-center text-center bg-white">
         <AnimatedText
           text="Experience Luxury Like Never Before"
           className="text-3xl md:text-5xl font-semibold text-gray-700 mb-4"
@@ -161,22 +129,13 @@ export default function HomePage() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ ...fadeUpTransition, delay: 0.2 }}
         viewport={{ once: true }}
-        className="relative bg-gradient-to-tr from-pink-50 via-white to-pink-50"
+        className="relative bg-white"
       >
         <FeaturedProducts />
-        <motion.div
-          style={{ y: pinkParallax }}
-          className="absolute top-10 right-10 w-32 h-32 bg-pink-100 rounded-full opacity-20 -z-10"
-        />
-        <motion.div
-          style={{ y: yellowParallax }}
-          className="absolute bottom-10 left-10 w-40 h-40 bg-yellow-100 rounded-full opacity-20 -z-10"
-        />
       </motion.div>
 
-      {/* Angled Editorial Section */}
-      <section className="relative py-10 bg-gray-50 flex flex-col items-center text-center overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-32 bg-pink-50 -skew-y-3 -z-10"></div>
+      {/* Bridal Spotlight Intro */}
+      <section className="relative py-10 flex flex-col items-center text-center">
         <AnimatedText
           text="Bridal Spotlight"
           className="text-4xl md:text-5xl font-semibold text-gray-700 mb-4"
@@ -192,7 +151,7 @@ export default function HomePage() {
         </motion.p>
       </section>
 
-      {/* Bridal Spotlight Section */}
+      {/* Bridal Spotlight */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -203,15 +162,7 @@ export default function HomePage() {
       </motion.div>
 
       {/* Quote Banner */}
-      <section className="relative py-20 bg-gradient-to-r from-pink-50 via-white to-yellow-50 flex flex-col items-center text-center overflow-hidden">
-        <motion.div
-          style={{ y: pinkParallax }}
-          className="absolute top-10 left-1/4 w-40 h-40 bg-pink-100 rounded-full opacity-10 -z-10"
-        />
-        <motion.div
-          style={{ y: yellowParallax }}
-          className="absolute bottom-0 right-1/4 w-48 h-48 bg-yellow-100 rounded-full opacity-10 -z-10"
-        />
+      <section className="relative py-20 flex flex-col items-center text-center bg-white">
         <motion.h3
           className="text-3xl md:text-6xl italic text-gray-700 max-w-6xl mx-auto font-sans"
           initial={{ opacity: 0, y: 20 }}
@@ -232,10 +183,6 @@ export default function HomePage() {
         className="relative"
       >
         <NewArrivals />
-        <motion.div
-          style={{ y: yellowParallax }}
-          className="absolute top-0 right-1/4 w-32 h-32 bg-yellow-100 rounded-full opacity-20 -z-10"
-        />
       </motion.div>
 
       {/* Testimonials */}
@@ -244,13 +191,9 @@ export default function HomePage() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ ...fadeUpTransition, delay: 0.5 }}
         viewport={{ once: true }}
-        className="relative py-20 bg-gradient-to-t from-white via-pink-50 to-white"
+        className="relative py-20 bg-white"
       >
         <Testimonials />
-        <motion.div
-          style={{ y: pinkParallax }}
-          className="absolute bottom-0 left-1/4 w-40 h-40 bg-pink-100 rounded-full opacity-20 -z-10"
-        />
       </motion.div>
     </div>
   );
