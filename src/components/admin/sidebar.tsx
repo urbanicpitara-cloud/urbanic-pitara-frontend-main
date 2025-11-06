@@ -10,7 +10,7 @@ import {
   BadgeIndianRupee,
   ShoppingBag,
   Users,
-  Settings,
+  // Settings,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";

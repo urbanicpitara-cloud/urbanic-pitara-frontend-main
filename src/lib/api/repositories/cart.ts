@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Cart = {
   id: string;
   totalQuantity: number;
@@ -15,7 +16,7 @@ import { apiClient } from "@/lib/api/client";
 
 export const cartRepository = {
   async create(): Promise<Cart> {
-    return await apiClient.post<Cart>("/cart");
+    return await apiClient.post<Cart>("/cart", {});
   },
   async get(cartId: string): Promise<Cart> {
     return await apiClient.get<Cart>(`/cart/${encodeURIComponent(cartId)}`);

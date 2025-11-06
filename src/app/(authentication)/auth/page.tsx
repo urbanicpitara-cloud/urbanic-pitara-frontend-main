@@ -47,9 +47,9 @@ export default function AuthPage() {
       const targetRoute =
         loggedInUser?.isAdmin ? "/admin" : "/";
       router.push(targetRoute);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Auth error:", err);
-      setError(err.response?.data?.error || "Authentication failed");
+      setError("Authentication failed");
     } finally {
       setFormLoading(false);
     }

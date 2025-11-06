@@ -4,42 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { collectionsAPI } from "@/lib/api";
 import Image from "next/image";
-import Link from "next/link";
+// import Link from "next/link";
 import ProductCard from "@/components/view/ProductCard";
 
-// ---------------- Type Definitions ----------------
-
-
-interface ProductImage {
-  url: string;
-  altText?: string;
-}
-
-
-interface ProductVariant {
-  id: string;
-  selectedOptions: { optionId: string; value: string | { id: string; name?: string } }[];
-}
-
-interface Product {
-  id: string;
-  title: string;
-  handle: string;
-  description: string;
-  featuredImageUrl: string;
-  featuredImageAlt?: string;
-  images?: ProductImage[];
-  tags: (string | { id?: string; name?: string })[];
-  variants: ProductVariant[];
-  minPriceAmount?: string;
-  minPriceCurrency?: string;
-  maxPriceAmount?: string;
-  maxPriceCurrency?: string;
-  compareMinAmount?: string;
-  compareMinCurrency?: string;
-  compareMaxAmount?: string;
-  compareMaxCurrency?: string;
-}
+import { Product } from '@/types/products';
 
 type Collection = {
   id: string;

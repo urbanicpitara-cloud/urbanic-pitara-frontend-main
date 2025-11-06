@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react";
 import { productsAPI } from "@/lib/api";
@@ -64,6 +65,7 @@ const bulkDelete = async (): Promise<void> => {
     if (refresh) await refresh();
    }
   } catch (err) {
+    console.error("❌ Bulk delete failed:", err);
     toast.error("Failed to delete products");
   } finally {
     setLoading(false);

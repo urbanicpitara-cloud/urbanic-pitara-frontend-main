@@ -16,8 +16,9 @@ export default function ForgotPasswordPage() {
     try {
       const res = await authAPI.forgotPassword(email);
       setMessage(res.data.message || "Check your email for reset instructions");
-    } catch (err: any) {
-      setMessage(err.response?.data?.error || "Something went wrong");
+    } catch (err) {
+      console.error(err);
+      setMessage("Something went wrong");
     } finally {
       setLoading(false);
     }

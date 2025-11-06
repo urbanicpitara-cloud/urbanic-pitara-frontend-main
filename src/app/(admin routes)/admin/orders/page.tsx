@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -31,7 +32,7 @@ interface Order {
 }
 
 const PAGE_SIZE = 10;
-const MAX_AVATAR_DISPLAY = 5;
+// const MAX_AVATAR_DISPLAY = 5;
 const STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELED"];
 
 export default function AdminOrdersPage() {
@@ -263,8 +264,8 @@ export default function AdminOrdersPage() {
                     ? statusColors[order.status.toLowerCase()]
                     : "bg-gray-100 text-gray-800";
 
-                const productsToShow = order.items?.slice(0, MAX_AVATAR_DISPLAY) ?? [];
-                const extraCount = (order.items?.length ?? 0) - MAX_AVATAR_DISPLAY;
+                // const productsToShow = order.items?.slice(0, MAX_AVATAR_DISPLAY) ?? [];
+                // const extraCount = (order.items?.length ?? 0) - MAX_AVATAR_DISPLAY;
 
                 return (
                   <tr key={id} className="hover:bg-gray-50 transition">

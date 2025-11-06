@@ -1,4 +1,4 @@
-import type { User } from './auth';
+// import type { User } from './auth';
 import type { Address } from './profile';
 
 export interface PaginatedResponse<T> {

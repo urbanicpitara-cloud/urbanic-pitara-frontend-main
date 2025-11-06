@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { tagsAPI, productsAPI } from "@/lib/api";
+import {  productsAPI } from "@/lib/api";
 import { Product } from "@/types/collections";
 import { toast } from "sonner";
 

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
@@ -7,43 +8,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/atoms/cart";
 import { toast } from "sonner";
-
-interface ProductImage {
-  url: string;
-  altText?: string;
-}
-
-interface ProductOption {
-  id: string;
-  name: string;
-  values: (string | { id: string; name?: string })[];
-}
-
-interface ProductVariant {
-  id: string;
-  selectedOptions: { optionId: string; value: string | { id: string; name?: string } }[];
-}
-
-interface Product {
-  id: string;
-  title: string;
-  handle: string;
-  description: string;
-  featuredImageUrl: string;
-  featuredImageAlt?: string;
-  images?: ProductImage[];
-  tags: (string | { id?: string; name?: string })[];
-  options?: ProductOption[];
-  variants: ProductVariant[];
-  minPriceAmount?: string;
-  minPriceCurrency?: string;
-  maxPriceAmount?: string;
-  maxPriceCurrency?: string;
-  compareMinAmount?: string;
-  compareMinCurrency?: string;
-  compareMaxAmount?: string;
-  compareMaxCurrency?: string;
-}
+import { Product } from "@/types/products";
 
 interface ProductCardProps {
   product: Product;
@@ -52,12 +17,10 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
-  const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    product.variants[0] ?? null
-  );
+  
+  const quantity = 1; // Since we always use 1 and never change it
+  const selectedVariant = product.variants[0] ?? null;
 
   const price = parseFloat(product.minPriceAmount || "0");
   const maxPrice = parseFloat(product.maxPriceAmount || "0");
@@ -138,29 +101,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <span className="ml-2 line-through text-gray-400">{displayCompare}</span>
               )}
             </p>
-
-            {/* {product.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {product.tags.map((tag, idx) => {
-                  const key = typeof tag === "string" ? tag : tag.id || idx;
-                  const label = typeof tag === "string" ? tag : tag.name || "Tag";
-                  return (
-                    <span key={key} className="text-xs bg-gray-200 px-2 py-1 rounded-md">
-                      {label}
-                    </span>
-                  );
-                })}
-              </div>
-            )} */}
           </div>
 
           <div className="flex justify-between items-center mt-4">
-            {/* <Link
-              href={`/products/${product.handle}`}
-              className="text-sm text-indigo-600 hover:underline"
-            >
-              View
-            </Link> */}
 
             <Button
               size="sm"

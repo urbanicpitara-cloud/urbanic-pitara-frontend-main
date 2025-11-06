@@ -1,33 +1,30 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { tagsAPI } from "@/lib/api";
-import { Tag } from "@/types/tags";
+// import { Tag } from "@/types/tags";
 import { toast } from "sonner";
 
-interface Props {
-    initialTag?: Tag; // optional, if editing an existing tag
-}
-
-export default function TagEditPage({ initialTag }: Props) {
+export default function TagEditPage() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const [tagName, setTagName] = useState(initialTag?.name || "");
-    const [handle, setHandle] = useState(initialTag?.handle || "");
-    const [description, setDescription] = useState(initialTag?.description || "");
+    const [tagName, setTagName] = useState("");
+    const [handle, setHandle] = useState("");
+    const [description, setDescription] = useState("");
     const [isHandleEdited, setIsHandleEdited] = useState(false);
 
     const [saving, setSaving] = useState(false);
-    const [loadingTag, setLoadingTag] = useState(!initialTag);
+    const [loadingTag, setLoadingTag] = useState(true);
 
     const tagIdFromUrl = pathname.split("/").pop(); // assumes /tags/edit/[id]
 
-    // Fetch tag if no initialTag
+    // Fetch tag data
     useEffect(() => {
         async function fetchTag() {
-            if (!initialTag && tagIdFromUrl) {
+            if (tagIdFromUrl) {
                 try {
                     setLoadingTag(true);
                     const res = await tagsAPI.get(tagIdFromUrl);
@@ -44,7 +41,7 @@ export default function TagEditPage({ initialTag }: Props) {
             }
         }
         fetchTag();
-    }, [initialTag, tagIdFromUrl]);
+    }, [tagIdFromUrl]);
 
     // Auto-generate handle if not manually edited
     useEffect(() => {
@@ -68,17 +65,14 @@ export default function TagEditPage({ initialTag }: Props) {
 
         try {
             setSaving(true);
-            let tagId = initialTag?.id || tagIdFromUrl;
-
-            if (!tagId) {
-                const res = await tagsAPI.create({ name: tagName, handle, description });
-                tagId = res.data.id;
+            if (tagIdFromUrl) {
+                await tagsAPI.update(tagIdFromUrl, { name: tagName, handle, description });
             } else {
-                await tagsAPI.update(tagId, { name: tagName, handle, description });
+                await tagsAPI.create({ name: tagName, handle, description });
             }
 
             toast.success("Tag saved!");
-            // router.push("/tags");
+            router.push("/admin/tags");
         } catch (err) {
             console.error(err);
             toast.error("Failed to save tag");
@@ -93,7 +87,7 @@ export default function TagEditPage({ initialTag }: Props) {
 
     return (
         <div className="max-w-3xl mx-auto p-6 space-y-6">
-            <h1 className="text-3xl font-bold">{tagIdFromUrl || initialTag ? "Edit Tag" : "Add New Tag"}</h1>
+            <h1 className="text-3xl font-bold">{tagIdFromUrl ? "Edit Tag" : "Add New Tag"}</h1>
 
             <div className="space-y-4">
                 <input

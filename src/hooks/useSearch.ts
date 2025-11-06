@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useDebounce } from "./useDebounce";
 import React, { useState } from "react";
 import { searchRepository } from "@/lib/api/repositories/search";

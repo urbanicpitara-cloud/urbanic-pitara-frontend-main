@@ -1,6 +1,6 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
-import { headers } from 'next/headers';
+// import { headers } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 

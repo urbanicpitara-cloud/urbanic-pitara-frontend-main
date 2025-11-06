@@ -44,8 +44,9 @@ export default function AddDiscountPage() {
         endsAt: form.endsAt || null,
       });
       router.push('/admin/discounts');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create discount.');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to create discount.');
     } finally {
       setLoading(false);
     }

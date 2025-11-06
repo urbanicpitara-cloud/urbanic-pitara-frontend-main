@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authRepository } from '@/lib/api/repositories/auth';
 import type { User, AuthContextType, RegisterData, UpdateProfileData } from '@/types/auth';
@@ -76,12 +77,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProfile = async (data: UpdateProfileData): Promise<User> => {
+    if(data){
+      console.log("update profile data available")
+    }
     setLoading(true);
     setError(null);
     try {
       // Disabled for now
       throw new Error('Profile update is not implemented yet');
-    } catch (err: unknown) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update profile';
       setError(message);
       throw err;

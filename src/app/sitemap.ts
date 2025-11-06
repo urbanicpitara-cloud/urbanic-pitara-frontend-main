@@ -1,15 +1,16 @@
 import { MetadataRoute } from 'next';
 import { productsAPI, collectionsAPI } from '@/lib/api';
+import { Product, ProductCollection } from '@/types/products';
 
-interface Product {
-  handle: string;
-  updatedAt: string;
-}
+// interface Product {
+//   handle: string;
+//   updatedAt: string;
+// }
 
-interface Collection {
-  handle: string;
-  updatedAt: string;
-}
+// interface Collection {
+//   handle: string;
+//   updatedAt: string;
+// }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
@@ -42,15 +43,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Product routes
     const productUrls = (products.data || []).map((product: Product) => ({
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/products/${product.handle}`,
-      lastModified: new Date(product.updatedAt),
+      lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.9
     }));
 
     // Collection routes
-    const collectionUrls = (collections.data || []).map((collection: Collection) => ({
+    const collectionUrls = (collections.data || []).map((collection: ProductCollection) => ({
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/collections/${collection.handle}`,
-      lastModified: new Date(collection.updatedAt),
+      lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7
     }));

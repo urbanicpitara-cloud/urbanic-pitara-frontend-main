@@ -157,7 +157,7 @@ useEffect(() => {
 
       {focused && !loading && results.length === 0 && query.length >= 2 && (
         <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg p-4 text-sm text-gray-500 text-center">
-          No products found for "{query}"
+          No products found for &ldquo;{query}&rdquo;
         </div>
       )}
     </div>

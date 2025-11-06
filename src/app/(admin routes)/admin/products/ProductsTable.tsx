@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";

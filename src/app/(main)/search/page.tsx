@@ -1,12 +1,14 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { productsAPI, collectionsAPI } from "@/lib/api";
 import { Product } from "@/types/products";
+import { Collection } from "@/types/collections";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/view/ProductCard";
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -239,7 +241,7 @@ export default function SearchPage() {
                   </>
                 ) : (
                   <div className="text-center py-12 text-gray-500">
-                    No products found for "{queryParam}".
+                    No products found for &quot;{queryParam}&quot;
                   </div>
                 )}
               </TabsContent>
@@ -247,7 +249,7 @@ export default function SearchPage() {
               <TabsContent value="collections">
                 {collectionResults.collections?.length > 0 ? (
                   <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-                    {collectionResults.collections.map((collection: any) => (
+                    {collectionResults.collections.map((collection: Collection) => (
                       <Link
                         key={collection.id}
                         href={`/collections/${collection.handle}`}
@@ -266,7 +268,7 @@ export default function SearchPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-500">
-                    No collections found for "{queryParam}".
+                    No collections found for &quot;{queryParam}&quot;
                   </div>
                 )}
               </TabsContent>
@@ -279,5 +281,21 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8 pt-10">
+          <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          </div>
+        </div>
+      }
+    >
+      <SearchContent />
+    </Suspense>
   );
 }

@@ -138,6 +138,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       toast.success(`${product.title} added to cart!`);
       setTimeout(() => setAddToCartSuccess(false), 3000);
     } catch (err) {
+      console.error(err);
       toast.error("Failed to add item to cart");
     } finally {
       setAddingToCart(false);

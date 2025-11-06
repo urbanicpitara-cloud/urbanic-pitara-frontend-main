@@ -21,7 +21,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   } catch (err) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-500">
-        Product not found
+        {err instanceof Error ? err.message : "Product not found"}
       </div>
     );
   }
