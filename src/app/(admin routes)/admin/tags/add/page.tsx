@@ -71,9 +71,14 @@ export default function TagAddPage() {
 
   // Handle submit: create tag & update selected products
   const handleSubmit = async () => {
-    if (!name.trim()) return alert("Name is required");
+    if (!name.trim()){ toast.info("Name is required");
+      return;
+    }
     if (selectedProducts.length === 0)
-      return alert("Please select at least one product");
+     {
+        toast.info("Please select at least one product");
+      return;
+     }
 
     try {
       setSaving(true);

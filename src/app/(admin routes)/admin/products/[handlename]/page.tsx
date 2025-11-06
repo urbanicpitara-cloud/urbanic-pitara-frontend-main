@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 export default function EditProductPage() {
   const params = useParams();
@@ -100,7 +101,7 @@ export default function EditProductPage() {
         }
       } catch (err) {
         console.error("Failed to load product", err);
-        alert("Failed to load product details");
+        toast.error("Failed to load product details");
       } finally {
         setLoading(false);
       }
@@ -120,7 +121,7 @@ export default function EditProductPage() {
       }
       setImages((prev) => [...prev, ...uploaded]);
     } catch {
-      alert("Image upload failed.");
+      toast.error("Image upload failed.");
     } finally {
       setUploading(false);
     }
@@ -146,11 +147,11 @@ export default function EditProductPage() {
   // ---------- Update ----------
   const handleUpdate = async () => {
     if (!title || !collectionId) {
-      alert("Title and Collection are required.");
+      toast.info("Title and Collection are required.");
       return;
     }
     if (!productId) {
-      alert("Product ID missing — cannot update.");
+      toast.info("Product ID missing — cannot update.");
       return;
     }
 
@@ -183,11 +184,11 @@ export default function EditProductPage() {
       };
 
       await productsAPI.update(productId, productData);
-      alert("✅ Product updated successfully!");
+      toast.success("✅ Product updated successfully!");
       router.push("/admin/products");
     } catch (err) {
       console.error(err);
-      alert("Failed to update product.");
+      toast.error("Failed to update product.");
     } finally {
       setSaving(false);
     }

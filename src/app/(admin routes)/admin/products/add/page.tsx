@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function AddProductPage() {
       setImages((prev) => [...prev, ...uploaded]);
     } catch (err) {
       console.error("Upload failed:", err);
-      alert("Image upload failed.");
+      toast.error("Image upload failed.");
     } finally {
       setUploading(false);
     }
@@ -123,7 +124,7 @@ export default function AddProductPage() {
   // Submit
   const handleSubmit = async () => {
     if (!title || !collectionId) {
-      alert("Title and Collection are required.");
+      toast.info("Title and Collection are required.");
       return;
     }
 
@@ -154,7 +155,7 @@ export default function AddProductPage() {
       };
 
       await productsAPI.create(productData);
-      alert("✅ Product created!");
+      toast.success("✅ Product created!");
       router.push("/admin/products");
     } catch (err) {
       console.error(err);
@@ -163,7 +164,7 @@ export default function AddProductPage() {
         (err as any)?.response?.data?.error ||
         (err as any)?.response?.data?.message ||
         "Failed to create product.";
-      alert(message);
+      toast.info(message);
     } finally {
       setSaving(false);
     }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { tagsAPI } from "@/lib/api";
 import { Tag } from "@/types/tags";
+import { toast } from "sonner";
 
 export default function AdminTagsPage() {
   const [tags, setTags] = useState<Tag[]>([]);
@@ -33,7 +34,7 @@ export default function AdminTagsPage() {
       setTags(paginatedTags);
     } catch (error) {
       console.error(error);
-      alert("Failed to fetch tags");
+      toast.error("Failed to fetch tags");
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ export default function AdminTagsPage() {
       });
     } catch (error) {
       console.error(error);
-      alert("Failed to delete tag");
+      toast.error("Failed to delete tag");
     } finally {
       setDeletingId(null);
     }
@@ -83,7 +84,7 @@ export default function AdminTagsPage() {
       setSelectedTags(new Set());
     } catch (err) {
       console.error(err);
-      alert("Failed to delete selected tags");
+      toast.error("Failed to delete selected tags");
     }
   };
 

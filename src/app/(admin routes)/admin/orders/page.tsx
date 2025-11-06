@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ordersAPI } from "@/lib/api";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -139,7 +140,7 @@ export default function AdminOrdersPage() {
       setBulkStatus("");
     } catch (err) {
       console.error(err);
-      alert("Failed to update orders.");
+      toast.error("Failed to update orders.");
     }
   };
 
@@ -149,7 +150,7 @@ export default function AdminOrdersPage() {
       await fetchOrders();
     } catch (err) {
       console.error(err);
-      alert("Failed to update order status.");
+      toast.error("Failed to update order status.");
     }
   };
 

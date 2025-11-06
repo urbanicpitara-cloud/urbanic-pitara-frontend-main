@@ -4,6 +4,7 @@ import { collectionsAPI, productsAPI } from "@/lib/api";
 import { Product, Collection } from "@/types/collections";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { useDebounce } from "@/hooks/useDebounce";
+import { toast } from "sonner";
 
 export default function CollectionAddPage() {
   const [title, setTitle] = useState("");
@@ -42,7 +43,7 @@ export default function CollectionAddPage() {
       setImageUrl(url);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload image");
+      toast.error("Failed to upload image");
     } finally {
       setImageUploading(false);
     }
@@ -51,7 +52,7 @@ export default function CollectionAddPage() {
   // Create collection
   const handleAddCollection = async () => {
     if (!title.trim()) {
-      alert("Title is required");
+      toast.info("Title is required");
       return;
     }
 
@@ -70,7 +71,7 @@ export default function CollectionAddPage() {
         await collectionsAPI.addProducts(collection.id, selectedProductIds);
       }
 
-      alert("✅ Collection created successfully!");
+      toast.success("✅ Collection created successfully!");
 
       // Reset form
       setTitle("");
@@ -80,7 +81,7 @@ export default function CollectionAddPage() {
       setSelectedProductIds([]);
     } catch (err) {
       console.error(err);
-      alert("❌ Failed to create collection.");
+      toast.error("❌ Failed to create collection.");
     } finally {
       setAddingCollection(false);
     }

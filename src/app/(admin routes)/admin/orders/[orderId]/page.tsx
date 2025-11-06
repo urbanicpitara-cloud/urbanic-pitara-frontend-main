@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ordersAPI } from "@/lib/api";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 type StatusType =
   | "PENDING"
@@ -72,7 +73,7 @@ export default function AdminOrderDetailPage() {
       await fetchOrder();
     } catch (err) {
       console.error("Status update failed:", err);
-      alert("Failed to update order status.");
+      toast.error("Failed to update order status.");
     } finally {
       setUpdating(false);
     }
