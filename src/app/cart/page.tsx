@@ -172,6 +172,7 @@ export default function CartPage() {
                   src={item.product.featuredImageUrl || "/placeholder.png"}
                   alt={item.product.featuredImageAlt || item.product.title}
                   fill
+                  sizes="100px"
                   className="object-cover rounded"
                 />
               </div>

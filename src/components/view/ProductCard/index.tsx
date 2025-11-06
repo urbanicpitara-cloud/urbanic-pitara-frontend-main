@@ -12,13 +12,13 @@ import { Product } from "@/types/products";
 
 interface ProductCardProps {
   product: Product;
-  idx? : number;
+  idx?: number;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
-  
+
   const quantity = 1; // Since we always use 1 and never change it
   const selectedVariant = product.variants[0] ?? null;
 
@@ -70,24 +70,26 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <div className="border rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow bg-white flex flex-col h-full">
         {/* Image wrapper */}
-        <div className="relative w-full h-[16rem] md:h-[19rem] lg:h-[22rem]  bg-gray-100 overflow-hidden">
-          <Image
-            src={firstImage}
-            alt={product.featuredImageAlt || product.title}
-            fill
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0"
-            sizes="(max-width: 768px) 100vw, 25vw"
-            priority
-          />
-          <Image
-            src={secondImage}
-            alt={product.featuredImageAlt || product.title}
-            fill
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100"
-            sizes="(max-width: 768px) 100vw, 25vw"
-          />
-        </div>
-
+        <Link
+          href={`/products/${product.handle}`}>
+          <div className="relative w-full h-[16rem] md:h-[19rem] lg:h-[22rem]  bg-gray-100 overflow-hidden">
+            <Image
+              src={firstImage}
+              alt={product.featuredImageAlt || product.title}
+              fill
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0"
+              sizes="(max-width: 768px) 100vw, 25vw"
+              priority
+            />
+            <Image
+              src={secondImage}
+              alt={product.featuredImageAlt || product.title}
+              fill
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100"
+              sizes="(max-width: 768px) 100vw, 25vw"
+            />
+          </div>
+        </Link>
         {/* Content */}
         <div className="p-4 flex flex-col justify-between flex-1">
           <div>

@@ -39,11 +39,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       setState((prev) => ({ ...prev, loading: true }));
       const response = await cartAPI.get();
-      const cartData = response.data?.data || response.data; // handle both cases
-      setState({ cart: cartData, loading: false, error: null });
+      setState({ cart: response.data, loading: false, error: null });
     } catch (err) {
       console.error("❌ Failed to fetch cart:", err);
-      setState({ cart: null, loading: false, error: "Failed to fetch cart" });
+      setState(prev => ({ ...prev, loading: false, error: "Failed to fetch cart" }));
     }
   }, []);
 
@@ -51,14 +50,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = useCallback(
     async (productId: string, quantity = 1, variantId?: string) => {
       try {
+        setState(prev => ({ ...prev, loading: true, error: null }));
         await cartAPI.addItem({ productId, quantity, variantId });
         await fetchCart();
       } catch (err) {
         console.error("❌ Failed to add item:", err);
         setState((prev) => ({
           ...prev,
+          loading: false,
           error: "Failed to add item to cart",
         }));
+        // Refresh cart to ensure consistent state
+        await fetchCart();
       }
     },
     [fetchCart]
@@ -68,6 +71,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const updateItem = useCallback(
     async (lineId: string, quantity: number) => {
       try {
+        setState(prev => ({ ...prev, loading: true, error: null }));
         await cartAPI.updateItem(lineId, { quantity });
         await fetchCart();
       } catch (err) {
@@ -85,6 +89,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const removeItem = useCallback(
     async (lineId: string) => {
       try {
+        setState(prev => ({ ...prev, loading: true, error: null }));
         await cartAPI.removeItem(lineId);
         await fetchCart();
       } catch (err) {

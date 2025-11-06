@@ -12,7 +12,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 const geist = Geist({ subsets: ["latin"], weight: ["400", "600", "700"] });
 const geistMono = Geist_Mono({ subsets: ["latin"], weight: ["400", "500", "700"] });
 
-const fadeUpTransition = { duration: 0.6, ease: easeOut };
+const fadeUpVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } },
+};
 
 // ✅ AnimatedText Component (simple text animation only)
 const AnimatedText = ({
@@ -28,9 +31,7 @@ const AnimatedText = ({
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        delayChildren: 0.05,
-      },
+      transition: { delayChildren: 0.05 },
     },
   };
 
@@ -48,15 +49,11 @@ const AnimatedText = ({
       variants={container}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.5 }}
+      viewport={{ once: true, amount: 0.4 }}
       className={`inline-block text-center leading-snug ${geist.className} ${className}`}
     >
       {letters.map((char, index) => (
-        <motion.span
-          key={index}
-          variants={child}
-          className="inline-block align-middle"
-        >
+        <motion.span key={index} variants={child} className="inline-block align-middle">
           {char === " " ? "\u00A0" : char}
         </motion.span>
       ))}
@@ -66,135 +63,138 @@ const AnimatedText = ({
 
 export default function HomePage() {
   return (
-    <div
-      className={`overflow-x-hidden scrollbar-hide relative bg-white ${geistMono.className}`}
+    <main
+      className={`relative bg-white overflow-x-hidden ${geistMono.className}`}
     >
-      {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={fadeUpTransition}
-        viewport={{ once: true }}
+      {/* ✅ Hero Section */}
+      <motion.section
+        variants={fadeUpVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        className="bg-white"
       >
-        <Hero />
-      </motion.div>
 
-      {/* Section 1 */}
+      <Hero />
+      </motion.section>
+
+      {/* ✅ Section 1 */}
       <section className="relative py-20 flex flex-col items-center text-center bg-white">
         <AnimatedText
           text="Discover Our Signature Collections"
           className="text-4xl md:text-5xl font-bold text-gray-700 mb-4"
         />
         <motion.p
-          className="text-gray-500 max-w-xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          variants={fadeUpVariants}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          className="text-gray-500 max-w-xl mx-auto"
         >
           Curated with passion and precision. Every piece tells a story of timeless elegance.
         </motion.p>
       </section>
 
-      {/* Categories */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ ...fadeUpTransition, delay: 0.1 }}
-        viewport={{ once: true }}
+      {/* ✅ Categories */}
+      <motion.section
+        variants={fadeUpVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        className="bg-white"
       >
         <Categories />
-      </motion.div>
+      </motion.section>
 
-      {/* Section 2 */}
+      {/* ✅ Section 2 */}
       <section className="relative py-10 flex flex-col items-center text-center bg-white">
         <AnimatedText
           text="Experience Luxury Like Never Before"
           className="text-3xl md:text-5xl font-semibold text-gray-700 mb-4"
         />
         <motion.p
-          className="text-gray-500 max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          variants={fadeUpVariants}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          className="text-gray-500 max-w-2xl mx-auto"
         >
           Every collection, every product, curated to perfection for those who desire elegance.
         </motion.p>
       </section>
 
-      {/* Featured Products */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ ...fadeUpTransition, delay: 0.2 }}
+      {/* ✅ Featured Products */}
+      <motion.section
+        variants={fadeUpVariants}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
         className="relative bg-white"
       >
         <FeaturedProducts />
-      </motion.div>
+      </motion.section>
 
-      {/* Bridal Spotlight Intro */}
+      {/* ✅ Bridal Spotlight Intro */}
       <section className="relative py-10 flex flex-col items-center text-center">
         <AnimatedText
           text="Bridal Spotlight"
           className="text-4xl md:text-5xl font-semibold text-gray-700 mb-4"
         />
         <motion.p
-          className="text-gray-500 max-w-2xl mx-auto mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
+          variants={fadeUpVariants}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          className="text-gray-500 max-w-2xl mx-auto mb-8"
         >
           Highlighting the most exquisite bridal designs for the modern bride.
         </motion.p>
       </section>
 
-      {/* Bridal Spotlight */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ ...fadeUpTransition, delay: 0.3 }}
+      {/* ✅ Bridal Spotlight */}
+      <motion.section
+        variants={fadeUpVariants}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
       >
         <BridalSpotlight />
-      </motion.div>
+      </motion.section>
 
-      {/* Quote Banner */}
+      {/* ✅ Quote Banner */}
       <section className="relative py-20 flex flex-col items-center text-center bg-white">
         <motion.h3
-          className="text-3xl md:text-6xl italic text-gray-700 max-w-6xl mx-auto font-sans"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
+          variants={fadeUpVariants}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          className="text-3xl md:text-6xl italic text-gray-700 max-w-6xl mx-auto font-sans"
         >
           Elegance is not about being noticed, it&apos;s about being remembered.
         </motion.h3>
       </section>
 
-      {/* New Arrivals */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ ...fadeUpTransition, delay: 0.4 }}
+      {/* ✅ New Arrivals */}
+      <motion.section
+        variants={fadeUpVariants}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
         className="relative"
       >
         <NewArrivals />
-      </motion.div>
+      </motion.section>
 
-      {/* Testimonials */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ ...fadeUpTransition, delay: 0.5 }}
+      {/* ✅ Testimonials */}
+      <motion.section
+        variants={fadeUpVariants}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
         className="relative py-20 bg-white"
       >
         <Testimonials />
-      </motion.div>
-    </div>
+      </motion.section>
+    </main>
   );
 }
