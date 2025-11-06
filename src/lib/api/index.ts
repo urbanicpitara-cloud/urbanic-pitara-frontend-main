@@ -30,14 +30,10 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     });
   }
 
-  // Prepare headers
-  // Get auth token if exists
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  
+  // Prepare headers with minimal configuration for cookie-based auth
   const defaultHeaders = {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...(headers || {})
+    ...headers
   } as HeadersInit;
 
   const response = await fetch(url.toString(), {

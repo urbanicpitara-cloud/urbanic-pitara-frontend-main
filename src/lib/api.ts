@@ -7,7 +7,53 @@ const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
+
+
+// Add response interceptor to handle errors
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+
+//     // If the error is a 401 and we haven't already retried
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+
+//       try {
+//         // Try to refresh the token
+//         await authAPI.getProfile();
+//         // Retry the original request
+//         return api(originalRequest);
+//       } catch (refreshError) {
+//         // If refresh fails, redirect to login
+//         if (typeof window !== 'undefined') {
+//           window.location.href = '/auth/login';
+//         }
+//         return Promise.reject(refreshError);
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// ✅ Interceptor: attach Bearer token if it exists
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // ----------------- Auth API -----------------
 export const authAPI = {
