@@ -8,7 +8,7 @@ import Image from "next/image";
 const categories = [
   { name: "Bridal", href: "/collections/bridal", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/7N2A1580.jpg?v=1758620242&width=823" },
   { name: "Indo-Western", href: "/collections/indo-western", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250829_154730_5f246d23-2040-4c2b-bf66-546229a90472.png?v=1758344651&width=400" },
-  { name: "Traditional", href: "/collections/traditional", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250902_171959.jpg?v=1757570040&width=823" },
+  { name: "Traditional", href: "/collections/traditionals", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/20250902_171959.jpg?v=1757570040&width=823" },
   { name: "T-Shirts", href: "/collections/t-shirts", image: "https://0dpp0x-v0.myshopify.com/cdn/shop/files/7N2A1321_-_frame_at_0m1s.jpg?v=1758610675&width=823" },
 ];
 
