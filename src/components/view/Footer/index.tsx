@@ -49,7 +49,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/collections/bridal" className="hover:text-caribbean-current">Bridal</Link></li>
             <li><Link href="/collections/indo-western" className="hover:text-caribbean-current">Indo-Western</Link></li>
-            <li><Link href="/collections/traditional" className="hover:text-caribbean-current">Traditional</Link></li>
+            <li><Link href="/collections/traditionals" className="hover:text-caribbean-current">Traditional</Link></li>
             <li><Link href="/collections/t-shirts" className="hover:text-caribbean-current">T-Shirts</Link></li>
           </ul>
         </div>
