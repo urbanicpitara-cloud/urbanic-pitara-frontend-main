@@ -3,8 +3,27 @@
 import Link from "next/link";
 import { Instagram, Facebook, Mail } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import { apiClient } from "@/lib/api/client";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<null | "idle" | "loading" | "success" | "error">(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!email) return;
+    setStatus("loading");
+    try {
+      await apiClient.post("/subscriptions", { email, source: "footer" });
+      setStatus("success");
+      setEmail("");
+    } catch (err) {
+      console.error("Subscription error:", err);
+      setStatus("error");
+    }
+  };
+
   return (
     <footer className="bg-jet text-platinum mt-16">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-5 gap-12">
@@ -28,11 +47,13 @@ export default function Footer() {
             match your unique lifestyle and occasions.
           </p>
           {/* Newsletter */}
-          <form className="flex items-center bg-white rounded-lg overflow-hidden w-full max-w-md">
+          <form onSubmit={handleSubmit} className="flex items-center bg-white rounded-lg overflow-hidden w-full max-w-md">
             <input
               type="email"
               placeholder="Enter your email"
               className="px-4 py-2 flex-grow text-black outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <button
               type="submit"
@@ -41,6 +62,12 @@ export default function Footer() {
               Subscribe
             </button>
           </form>
+          {status === "success" && (
+            <p className="text-sm text-green-400 mt-2">Thanks for subscribing!</p>
+          )}
+          {status === "error" && (
+            <p className="text-sm text-red-400 mt-2">Could not subscribe. Please try again.</p>
+          )}
         </div>
 
         {/* Shop Links */}

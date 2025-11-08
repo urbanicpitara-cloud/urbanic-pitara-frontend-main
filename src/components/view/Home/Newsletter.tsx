@@ -2,14 +2,23 @@
 "use client";
 
 import React, { useState } from "react";
+import { apiClient } from "@/lib/api/client";
 
 const Newsletter = () => {
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle the subscription logic here
-    console.log("Subscribed with email:", email);
+    if (!email) return;
+    try {
+      await apiClient.post("/subscriptions", { email, source: "home" });
+      setEmail("");
+      setMessage("Thanks for subscribing!");
+    } catch (err) {
+      console.error("Newsletter subscribe error", err);
+      setMessage("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -35,6 +44,7 @@ const Newsletter = () => {
             Subscribe
           </button>
         </form>
+        {message && <p className="mt-4 text-sm text-green-600">{message}</p>}
       </div>
     </section>
   );

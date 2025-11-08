@@ -10,6 +10,7 @@ import {
   BadgeIndianRupee,
   ShoppingBag,
   Users,
+  Mail,
   // Settings,
   LogOut,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/discounts", label: "Discounts", icon: BadgeIndianRupee },
+  { href: "/admin/subscribers", label: "Subscribers", icon: Mail },
   // { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
