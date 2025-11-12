@@ -163,7 +163,7 @@ export default function ProfilePage() {
   if (!user) return <div className="p-6">Please login to view your profile.</div>;
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto py-10 max-w-4xl pt-12">
       <h1 className="text-2xl font-semibold mb-6">Profile</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
