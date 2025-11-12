@@ -30,7 +30,7 @@ const NewArrivals = () => {
                 src={item.image}
                 alt={item.name}
                 fill
-                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                className="object-cover w-full h-full transition-transform duration-300"
               />
             </div>
             <div className="absolute bottom-0 inset-x-0 bg-black bg-opacity-50 text-white p-4 flex flex-col items-center">

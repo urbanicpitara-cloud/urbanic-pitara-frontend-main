@@ -383,7 +383,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                       src={related.featuredImageUrl}
                       alt={related.featuredImageAlt ?? related.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition duration-300"
+                      className="object-cover transition duration-300"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">

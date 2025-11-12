@@ -5,6 +5,7 @@ import Link from "next/link";
 import { tagsAPI } from "@/lib/api";
 import { Tag } from "@/types/tags";
 import { toast } from "sonner";
+import { PageLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function AdminTagsPage() {
   const [tags, setTags] = useState<Tag[]>([]);
@@ -90,7 +91,7 @@ export default function AdminTagsPage() {
 
   const totalPages = Math.ceil(totalTags / pageSize);
 
-  if (loading) return <div className="p-6">Loading tags...</div>;
+  if (loading) return <PageLoadingSkeleton />;
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">

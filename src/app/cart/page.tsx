@@ -5,7 +5,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+// import { Skeleton } from "@/components/ui/skeleton";
+import { CartPageLoading } from "@/components/ui/loading-states";
 import { cartAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -125,16 +126,7 @@ export default function CartPage() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-8">
-        <Skeleton className="h-8 w-48 mb-8" />
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
-        </div>
-      </div>
-    );
+    return <CartPageLoading />;
   }
 
   if (error) {

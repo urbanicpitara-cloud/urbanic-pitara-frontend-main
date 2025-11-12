@@ -24,7 +24,7 @@ const Lifestyle = () => {
               alt={`Lifestyle ${idx + 1}`}
               width={500}
               height={600}
-              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+              className="object-cover w-full h-full transition-transform duration-300"
             />
           </div>
         ))}

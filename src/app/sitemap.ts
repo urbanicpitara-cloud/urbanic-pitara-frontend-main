@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MetadataRoute } from 'next';
 import { productsAPI, collectionsAPI } from '@/lib/api';
 import { Product, ProductCollection } from '@/types/products';
@@ -41,7 +42,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     // Product routes
-    const productUrls = (products.data || []).map((product: Product) => ({
+    // productsAPI.getAll() returns an object like { products: Product[], pagination: ... }
+    // but some endpoints or older implementations may return different shapes. Normalize safely.
+    const productsArray: Product[] = Array.isArray(products)
+      ? products
+      : Array.isArray((products as any).products)
+      ? (products as any).products
+      : Array.isArray((products as any).data)
+      ? (products as any).data
+      : [];
+
+    const productUrls = productsArray.map((product: Product) => ({
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/products/${product.handle}`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
@@ -49,7 +60,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     // Collection routes
-    const collectionUrls = (collections.data || []).map((collection: ProductCollection) => ({
+    // collectionsAPI.getAll() typically returns an array, but normalize for safety
+    const collectionsArray: ProductCollection[] = Array.isArray(collections)
+      ? collections
+      : Array.isArray((collections as any).data)
+      ? (collections as any).data
+      : Array.isArray((collections as any).collections)
+      ? (collections as any).collections
+      : [];
+
+    const collectionUrls = collectionsArray.map((collection: ProductCollection) => ({
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/collections/${collection.handle}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,

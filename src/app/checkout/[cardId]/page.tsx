@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cartAPI, ordersAPI, addressesAPI, discountsAPI } from "@/lib/api";
+import { paymentRepository } from "@/lib/api/repositories/payment";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { useCart } from "@/lib/atoms/cart";
@@ -68,6 +69,7 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [newAddress, setNewAddress] = useState<Omit<Address, "id" | "isDefault"> | null>(null);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [payingWithPhonePe, setPayingWithPhonePe] = useState(false);
 
   // Discount states
   const [discountCode, setDiscountCode] = useState("");
@@ -233,6 +235,13 @@ export default function CheckoutPage() {
         cartId: cart.id,
         shippingAddressId: shippingAddress.id,
         discountCode: appliedDiscount ? appliedDiscount.code : null,
+        cartSnapshot: cart.items.map((it) => ({
+          productId: it.product.id,
+          variantId: it.variantId || null,
+          quantity: it.quantity,
+          priceAmount: it.priceAmount,
+          priceCurrency: it.currency,
+        })),
       });
 
       toast.success("Order placed successfully!");
@@ -243,6 +252,91 @@ export default function CheckoutPage() {
       toast.error("Failed to place order");
     } finally {
       setPlacingOrder(false);
+    }
+  };
+
+  // ------------------ Pay with PhonePe ------------------
+  const handlePayWithPhonePe = async () => {
+    if (!cart || !user) return;
+    setPayingWithPhonePe(true);
+
+    try {
+      let shippingAddress = null;
+
+      if (selectedAddressId) {
+        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
+      }
+
+      if (!shippingAddress && newAddress) {
+        const duplicate = addresses.find(
+          (a) =>
+            a.firstName === newAddress.firstName &&
+            a.lastName === newAddress.lastName &&
+            a.address1 === newAddress.address1 &&
+            a.city === newAddress.city &&
+            a.country === newAddress.country
+        );
+
+        if (duplicate) {
+          shippingAddress = duplicate;
+          setSelectedAddressId(duplicate.id);
+        } else {
+          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
+          shippingAddress = res.data as Address;
+          setAddresses((prev) => [...prev, shippingAddress!]);
+          setSelectedAddressId(shippingAddress!.id);
+        }
+      }
+
+      if (!shippingAddress) throw new Error("No shipping address selected");
+
+      // 1) Create order with paymentMethod PHONEPE — backend will create order and mark payment as INITIATED
+      const orderRes = await ordersAPI.create({
+        cartId: cart.id,
+        shippingAddressId: shippingAddress.id,
+        discountCode: appliedDiscount ? appliedDiscount.code : null,
+        paymentMethod: "PHONEPE",
+        cartSnapshot: cart.items.map((it) => ({
+          productId: it.product.id,
+          variantId: it.variantId || null,
+          quantity: it.quantity,
+          priceAmount: it.priceAmount,
+          priceCurrency: it.currency,
+        })),
+      });
+
+      const orderData = orderRes.data;
+      const orderId = orderData.id;
+      const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
+
+      // 2) Initiate PhonePe payment -> backend returns redirect URL + transactionId
+      const initRes = await paymentRepository.initiate({
+        amount,
+        orderId,
+        redirectUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/payment/status`,
+      });
+
+      if (!initRes || !initRes.success || !initRes.data) {
+        throw new Error(initRes?.error || "Failed to initiate payment");
+      }
+
+      // Store last transaction id so the status page can pick it up
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lastTransactionId', initRes.data.transactionId);
+        }
+      } catch (e) {
+        console.error(e);
+        // ignore localStorage errors
+      }
+
+      // Redirect user to PhonePe payment page
+      window.location.href = initRes.data.redirectUrl;
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.error || err.message || 'Payment failed');
+    } finally {
+      setPayingWithPhonePe(false);
     }
   };
 
@@ -432,6 +526,13 @@ export default function CheckoutPage() {
               disabled={placingOrder || (!selectedAddressId && !newAddress)}
             >
               {placingOrder ? "Placing Order..." : "Place Order"}
+            </Button>
+            <Button
+              onClick={handlePayWithPhonePe}
+              className="w-full mt-2 bg-green-600 hover:bg-green-700"
+              disabled={payingWithPhonePe || placingOrder || (!selectedAddressId && !newAddress)}
+            >
+              {payingWithPhonePe ? "Redirecting to PhonePe..." : "Pay with PhonePe"}
             </Button>
           </div>
         </div>

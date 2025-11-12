@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
+import { OrdersPageLoading } from "@/components/ui/loading-states";
 
 // -------------------- TYPES -------------------- //
 type ProductImage = { url: string; altText?: string };
@@ -31,6 +32,15 @@ type Address = {
   zip?: string | null;
   country?: string | null;
 };
+type PaymentInfo = {
+  id: string;
+  status: string;
+  method: string;
+  provider?: string;
+  amount: number;
+  currency: string;
+  createdAt: string;
+};
 type Order = {
   id: string;
   status: string;
@@ -40,6 +50,7 @@ type Order = {
   cancelReason?: string;
   shippingAddress?: Address | null;
   items: OrderItem[];
+  payment?: PaymentInfo | null;
 };
 
 // -------------------- COMPONENT -------------------- //
@@ -94,7 +105,7 @@ export default function OrdersPage() {
     }
   };
 
-  if (loading) return <p className="text-center mt-10 text-gray-600">Loading orders...</p>;
+  if (loading) return <div className="max-w-6xl mx-auto"><OrdersPageLoading/></div>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
   if (orders.length === 0) return <p className="text-center mt-10 text-gray-600">No orders found.</p>;
 
@@ -105,6 +116,14 @@ export default function OrdersPage() {
     DELIVERED: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     CANCELED: "bg-rose-50 text-rose-700 border border-rose-200",
     REFUNDED: "bg-gray-100 text-gray-800 border border-gray-300",
+  };
+
+  const paymentStatusColors: Record<string, string> = {
+    INITIATED: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    PAID: "bg-green-50 text-green-700 border border-green-200",
+    FAILED: "bg-red-50 text-red-700 border border-red-200",
+    REFUNDED: "bg-purple-50 text-purple-700 border border-purple-200",
+    NONE: "bg-gray-50 text-gray-700 border border-gray-200",
   };
 
   return (
@@ -121,6 +140,7 @@ export default function OrdersPage() {
                 <th className="px-6 py-3 text-left font-semibold">Date</th>
                 <th className="px-6 py-3 text-left font-semibold">Items</th>
                 <th className="px-6 py-3 text-left font-semibold">Status</th>
+                <th className="px-6 py-3 text-left font-semibold">Payment</th>
                 <th className="px-6 py-3 text-left font-semibold">Total</th>
                 <th className="px-6 py-3 text-center font-semibold">Actions</th>
               </tr>
@@ -169,6 +189,20 @@ export default function OrdersPage() {
                         {status}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      {order.payment ? (
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-medium rounded-full w-fit ${paymentStatusColors[order.payment.status]}`}
+                          >
+                            {order.payment.status}
+                          </span>
+                          <p className="text-xs text-gray-500">{order.payment.method}</p>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No payment</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 font-semibold text-gray-800">
                       {order.totalAmount} {order.totalCurrency}
                     </td>
@@ -215,9 +249,24 @@ export default function OrdersPage() {
                   {status}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-gray-500 mb-2">
                 Placed on {new Date(order.createdAt).toLocaleDateString()}
               </p>
+              {order.payment && (
+                <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                  <p className="text-xs text-gray-600 mb-1">
+                    <span className="font-semibold">Payment:</span>{" "}
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${paymentStatusColors[order.payment.status]}`}
+                    >
+                      {order.payment.status}
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    <span className="font-semibold">Method:</span> {order.payment.method}
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-center -space-x-2 mb-4">
                 {order.items.slice(0, 3).map((item) =>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ordersAPI } from "@/lib/api";
 import Image from "next/image";
 import { toast } from "sonner";
+import { OrdersPageLoading } from "@/components/ui/loading-states";
 
 interface Product {
   id: string;
@@ -30,6 +31,15 @@ interface Order {
   subtotal?: number;
   createdAt?: string;
   items?: OrderItem[];
+  payment?: {
+    id: string;
+    status: string;
+    method: string;
+    provider?: string;
+    amount: number;
+    currency: string;
+    createdAt: string;
+  } | null;
 }
 
 const PAGE_SIZE = 10;
@@ -106,6 +116,14 @@ export default function AdminOrdersPage() {
     canceled: "bg-red-100 text-red-800",
   };
 
+  const paymentStatusColors: Record<string, string> = {
+    INITIATED: "bg-yellow-100 text-yellow-800",
+    PAID: "bg-green-100 text-green-800",
+    FAILED: "bg-red-100 text-red-800",
+    REFUNDED: "bg-purple-100 text-purple-800",
+    NONE: "bg-gray-100 text-gray-800",
+  };
+
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
   const paginatedOrders = filteredOrders.slice(
     (currentPage - 1) * PAGE_SIZE,
@@ -155,11 +173,7 @@ export default function AdminOrdersPage() {
   };
 
   if (loading)
-    return (
-      <div className="flex justify-center items-center min-h-[60vh] text-gray-500">
-        Loading orders...
-      </div>
-    );
+    return <OrdersPageLoading />;
 
   if (error)
     return (
@@ -252,6 +266,7 @@ export default function AdminOrdersPage() {
                 <th className="px-4 py-3 text-left border">Products</th>
                 <th className="px-4 py-3 text-left border">Total (₹)</th>
                 <th className="px-4 py-3 text-left border">Status</th>
+                <th className="px-4 py-3 text-left border">Payment</th>
                 <th className="px-4 py-3 text-left border">Date</th>
                 <th className="px-4 py-3 text-left border">Actions</th>
               </tr>
@@ -321,6 +336,20 @@ export default function AdminOrdersPage() {
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-4 py-2 border">
+                      {order.payment ? (
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full ${paymentStatusColors[order.payment.status] || "bg-gray-100 text-gray-800"}`}
+                          >
+                            {order.payment.status}
+                          </span>
+                          <p className="text-xs text-gray-600">{order.payment.method}</p>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">No payment</span>
+                      )}
                     </td>
                     <td className="px-4 py-2 border">
                       {order.createdAt ? new Date(order.createdAt).toLocaleString() : "—"}

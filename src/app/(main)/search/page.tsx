@@ -208,7 +208,7 @@ function SearchContent() {
                           key={product.id}
                           className="w-[48%] sm:w-[45%] md:w-[30%] lg:w-[22%]"
                           whileHover={{
-                            scale: 1.05,
+                            // scale: 1.05,
                             boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
                           }}
                         >

@@ -14,6 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
+import { PageLoadingSkeleton } from "@/components/ui/loading-states";
 
 export default function EditProductPage() {
   const params = useParams();
@@ -195,8 +197,7 @@ export default function EditProductPage() {
   };
 
   // ---------- UI ----------
-  if (loading)
-    return <p className="p-10 text-center text-gray-500">Loading product...</p>;
+  if (loading) return <PageLoadingSkeleton />;
 
   return (
     <div className="max-w-6xl mx-auto py-10 space-y-6">
@@ -438,7 +439,7 @@ export default function EditProductPage() {
                     }}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <img src={img} alt="" className="object-cover w-full h-full" />
+                    <Image src={img} fill sizes="80px" alt="product-image" className="object-cover w-full h-full" />
                     <button
                       onClick={() => removeImage(idx)}
                       className="absolute top-1 right-1 bg-white p-1 rounded-full shadow hover:bg-red-500 hover:text-white"

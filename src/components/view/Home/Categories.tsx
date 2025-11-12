@@ -30,7 +30,7 @@ const Categories = () => {
               alt={cat.name}
               width={600}
               height={800}
-              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+              className="object-cover w-full h-full transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-black bg-opacity-25 flex items-center justify-center text-white text-2xl font-semibold">
               {cat.name}

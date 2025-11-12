@@ -30,7 +30,7 @@ const FeaturedProducts = () => {
                 src={product.image}
                 alt={product.name}
                 fill
-                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                className="object-cover w-full h-full transition-transform duration-300"
               />
             </div>
             <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-center justify-center text-white p-4">
