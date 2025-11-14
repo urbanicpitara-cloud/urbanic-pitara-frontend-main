@@ -10,6 +10,9 @@ import { paymentRepository } from "@/lib/api/repositories/payment";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { useCart } from "@/lib/atoms/cart";
+import { PaymentMethod, calculatePrice, getCODSurcharge } from "@/lib/paymentMethods";
+import { CreditCard, Truck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // ------------------ Types ------------------
 interface CartItem {
@@ -77,6 +80,9 @@ export default function CheckoutPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [validatingDiscount, setValidatingDiscount] = useState(false);
 
+  // Payment method state
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("PHONEPE");
+
   // ------------------ Helpers ------------------
   const mapCartResponse = (apiData: any): Cart => {
     const items: CartItem[] = apiData.lines.map((line: any) => ({
@@ -105,12 +111,22 @@ export default function CheckoutPage() {
     };
   };
 
-  const getFinalTotal = (subtotal: number, discount?: Discount | null): number => {
-    if (!discount) return subtotal;
-    const value = Number(discount.value);
-    if (discount.type === "PERCENTAGE") return subtotal - (subtotal * value) / 100;
-    if (discount.type === "FIXED") return Math.max(subtotal - value, 0);
-    return subtotal;
+  const getFinalTotal = (subtotal: number, discount?: Discount | null, paymentMethod: PaymentMethod = "PHONEPE"): number => {
+    let total = subtotal;
+    
+    // Apply discount first
+    if (discount) {
+      const value = Number(discount.value);
+      if (discount.type === "PERCENTAGE") total = subtotal - (subtotal * value) / 100;
+      else if (discount.type === "FIXED") total = Math.max(subtotal - value, 0);
+    }
+    
+    // Add COD surcharge if applicable
+    if (paymentMethod === "COD") {
+      total += getCODSurcharge();
+    }
+    
+    return total;
   };
 
   // ------------------ Fetch Data ------------------
@@ -153,15 +169,15 @@ export default function CheckoutPage() {
     fetchCartAndAddresses();
   }, [cartId]);
 
-  // Update total when discount changes
+  // Update total when discount or payment method changes
   useEffect(() => {
     if (cart) {
-      const updatedTotal = getFinalTotal(cart.subtotalAmount, appliedDiscount);
-      const discountValue = cart.subtotalAmount - updatedTotal;
+      const updatedTotal = getFinalTotal(cart.subtotalAmount, appliedDiscount, selectedPaymentMethod);
+      const discountValue = cart.subtotalAmount - updatedTotal + (selectedPaymentMethod === "COD" ? getCODSurcharge() : 0);
       setDiscountAmount(discountValue);
       setCart((prev) => (prev ? { ...prev, totalAmount: updatedTotal } : prev));
     }
-  }, [appliedDiscount, cart?.subtotalAmount]);
+  }, [appliedDiscount, cart?.subtotalAmount, selectedPaymentMethod]);
 
   // ------------------ Discount ------------------
   const handleApplyDiscount = async () => {
@@ -498,6 +514,54 @@ export default function CheckoutPage() {
             )}
           </div>
 
+          {/* Payment Method Selection */}
+          <div className="p-4 border rounded-lg space-y-3">
+            <h2 className="text-lg font-semibold">Payment Method</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Online Payment Option */}
+              <button
+                onClick={() => setSelectedPaymentMethod("PHONEPE")}
+                className={cn(
+                  "relative p-4 border-2 rounded-lg transition-all duration-200",
+                  selectedPaymentMethod === "PHONEPE"
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 bg-white hover:border-green-300"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-sm">Pay Online</span>
+                </div>
+                <p className="text-lg font-bold text-green-600">
+                  ₹{calculatePrice(cart.subtotalAmount, "PHONEPE").toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">PhonePe</p>
+              </button>
+
+              {/* COD Option */}
+              <button
+                onClick={() => setSelectedPaymentMethod("COD")}
+                className={cn(
+                  "relative p-4 border-2 rounded-lg transition-all duration-200",
+                  selectedPaymentMethod === "COD"
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200 bg-white hover:border-orange-300"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Truck className="h-4 w-4 text-orange-600" />
+                  <span className="font-medium text-sm">Pay on Delivery</span>
+                </div>
+                <p className="text-lg font-bold text-orange-600">
+                  ₹{calculatePrice(cart.subtotalAmount, "COD").toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  +₹{getCODSurcharge().toFixed(2)} fee
+                </p>
+              </button>
+            </div>
+          </div>
+
           {/* Summary */}
           <div className="p-4 border rounded-lg space-y-2">
             <div className="flex justify-between">
@@ -506,6 +570,12 @@ export default function CheckoutPage() {
                 ₹{cart.subtotalAmount.toFixed(2)} {cart.currency}
               </span>
             </div>
+            {selectedPaymentMethod === "COD" && (
+              <div className="flex justify-between text-orange-600">
+                <span>COD Surcharge</span>
+                <span>+₹{getCODSurcharge().toFixed(2)} {cart.currency}</span>
+              </div>
+            )}
             {discountAmount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Discount</span>
@@ -514,26 +584,30 @@ export default function CheckoutPage() {
                 </span>
               </div>
             )}
-            <div className="flex justify-between font-semibold">
+            <div className="flex justify-between font-semibold text-lg border-t pt-2">
               <span>Total</span>
               <span>
                 ₹{cart.totalAmount.toFixed(2)} {cart.currency}
               </span>
             </div>
-            <Button
-              onClick={handlePlaceOrder}
-              className="w-full mt-4"
-              disabled={placingOrder || (!selectedAddressId && !newAddress)}
-            >
-              {placingOrder ? "Placing Order..." : "Place Order"}
-            </Button>
-            <Button
-              onClick={handlePayWithPhonePe}
-              className="w-full mt-2 bg-green-600 hover:bg-green-700"
-              disabled={payingWithPhonePe || placingOrder || (!selectedAddressId && !newAddress)}
-            >
-              {payingWithPhonePe ? "Redirecting to PhonePe..." : "Pay with PhonePe"}
-            </Button>
+            
+            {selectedPaymentMethod === "PHONEPE" ? (
+              <Button
+                onClick={handlePayWithPhonePe}
+                className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                disabled={payingWithPhonePe || placingOrder || (!selectedAddressId && !newAddress)}
+              >
+                {payingWithPhonePe ? "Redirecting to PhonePe..." : "Pay with PhonePe"}
+              </Button>
+            ) : (
+              <Button
+                onClick={handlePlaceOrder}
+                className="w-full mt-4 bg-orange-600 hover:bg-orange-700"
+                disabled={placingOrder || (!selectedAddressId && !newAddress)}
+              >
+                {placingOrder ? "Placing Order..." : "Place Order (COD)"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

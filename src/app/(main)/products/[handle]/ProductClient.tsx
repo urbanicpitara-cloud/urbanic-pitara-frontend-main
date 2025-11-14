@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+// import { useRouter } from "next/navigation";
 // import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/atoms/cart";
 import { Product, ProductVariant } from "@/types/products";
@@ -12,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import PaymentMethodButtons from "@/components/PaymentMethodButtons";
+import { PaymentMethod } from "@/lib/paymentMethods";
 
 interface ProductClientProps {
   product: Product;
@@ -21,6 +24,7 @@ interface ProductClientProps {
 export default function ProductClient({ product, relatedProducts }: ProductClientProps) {
   // const { user } = useAuth();
   const { addItem } = useCart();
+  // const router = useRouter();
 
   const normalizeOptionValue = (val: string | { id: string; name?: string }): string =>
     typeof val === "string" ? val : val.name ?? val.id;
@@ -49,7 +53,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(product.variants[0] ?? null);
   const [quantity, setQuantity] = useState<number>(1);
   const [addingToCart, setAddingToCart] = useState<boolean>(false);
-  const [addToCartSuccess, setAddToCartSuccess] = useState<boolean>(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("PHONEPE");
 
   // Read more / Read less
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -129,14 +133,28 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
     setQuantity(Number(e.target.value));
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (method: PaymentMethod) => {
     if (!selectedVariant || addingToCart) return; // prevent rapid clicks
     try {
       setAddingToCart(true);
       await addItem(product.id, quantity, selectedVariant.id);
-      setAddToCartSuccess(true);
+      
+      // Store payment method preference and redirect to checkout
+      try {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('selectedPaymentMethod', method);
+        }
+      } catch (e) {
+        console.error('Failed to store payment method:', e);
+      }
+      
+      // setAddToCartSuccess(true);
       toast.success(`${product.title} added to cart!`);
-      setTimeout(() => setAddToCartSuccess(false), 3000);
+      
+      // // Redirect to checkout after brief delay
+      // setTimeout(() => {
+      //   router.push("/cart");
+      // }, 500);
     } catch (err) {
       console.error(err);
       toast.error("Failed to add item to cart");
@@ -350,14 +368,20 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             </select>
           </div>
 
-          {/* Add to Cart */}
-          <button
-            onClick={handleAddToCart}
-            disabled={!selectedVariant || quantity > (selectedVariant.inventoryQuantity ?? 0) || addingToCart}
-            className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {addingToCart ? "Adding..." : addToCartSuccess ? "Added!" : "Add to Cart"}
-          </button>
+          {/* Payment Method Buttons */}
+          {selectedVariant && (
+            <PaymentMethodButtons
+              basePrice={Number(selectedVariant.priceAmount)}
+              selectedMethod={selectedPaymentMethod}
+              onMethodChange={setSelectedPaymentMethod}
+              onAddToCart={handleAddToCart}
+              loading={addingToCart}
+              disabled={
+                !selectedVariant ||
+                quantity > (selectedVariant.inventoryQuantity ?? 0)
+              }
+            />
+          )}
 
           {selectedVariant && selectedVariant.inventoryQuantity! < 5 && selectedVariant.inventoryQuantity! > 0 && (
             <p className="text-orange-600 text-sm mt-2">
