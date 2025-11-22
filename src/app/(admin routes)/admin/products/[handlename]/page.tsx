@@ -185,6 +185,18 @@ export default function EditProductPage() {
         metaDescription,
       };
 
+      // 🛠️ Construct options from variants (specifically for Size)
+      const uniqueSizes = Array.from(new Set(variants.map((v) => v.size).filter(Boolean)));
+      if (uniqueSizes.length > 0) {
+        // @ts-ignore
+        productData.options = [
+          {
+            name: "Size",
+            values: uniqueSizes.map((s) => ({ name: s })),
+          },
+        ];
+      }
+
       await productsAPI.update(productId, productData);
       toast.success("✅ Product updated successfully!");
       router.push("/admin/products");

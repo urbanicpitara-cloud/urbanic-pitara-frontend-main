@@ -28,13 +28,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   const currency = product.minPriceCurrency || "₹";
 
   const displayPrice =
-    price && maxPrice && price !== maxPrice
-      ? `${currency} ${price.toFixed(2)} - ${currency} ${maxPrice.toFixed(2)}`
+    selectedVariant?.priceAmount
+      ? `${currency} ${parseFloat(selectedVariant.priceAmount.toString()).toFixed(2)}`
       : `${currency} ${price.toFixed(2)}`;
 
   const displayCompare =
-    comparePrice && comparePrice > maxPrice
-      ? `${currency} ${comparePrice.toFixed(2)}`
+    selectedVariant?.compareAmount && parseFloat(selectedVariant.compareAmount.toString()) > parseFloat(selectedVariant.priceAmount.toString())
+      ? `${currency} ${parseFloat(selectedVariant.compareAmount.toString()).toFixed(2)}`
       : null;
 
   const firstImage =
