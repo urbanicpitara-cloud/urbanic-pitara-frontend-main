@@ -23,8 +23,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const selectedVariant = product.variants[0] ?? null;
 
   const price = parseFloat(product.minPriceAmount || "0");
-  const maxPrice = parseFloat(product.maxPriceAmount || "0");
-  const comparePrice = parseFloat(product.compareMaxAmount || "0");
+  // const maxPrice = parseFloat(product.maxPriceAmount || "0");
+  // const comparePrice = parseFloat(product.compareMaxAmount || "0");
   const currency = product.minPriceCurrency || "₹";
 
   const displayPrice =

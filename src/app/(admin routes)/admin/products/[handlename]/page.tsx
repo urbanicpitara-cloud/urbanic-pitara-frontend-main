@@ -188,7 +188,7 @@ export default function EditProductPage() {
       // 🛠️ Construct options from variants (specifically for Size)
       const uniqueSizes = Array.from(new Set(variants.map((v) => v.size).filter(Boolean)));
       if (uniqueSizes.length > 0) {
-        // @ts-ignore
+        // @ts-expect-error options field is not in the type but is required by the API
         productData.options = [
           {
             name: "Size",
