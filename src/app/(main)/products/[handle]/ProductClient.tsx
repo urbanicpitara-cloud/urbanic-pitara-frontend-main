@@ -31,7 +31,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaults: Record<string, string> = {};
-    
+
     // Initialize with the first available variant's options
     const defaultVariant = product.variants[0];
     if (defaultVariant) {
@@ -46,7 +46,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
         }
       });
     }
-    
+
     return defaults;
   });
 
@@ -112,7 +112,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   useEffect(() => {
     const match = product.variants.find(variant => {
       const variantOptions = variant.selectedOptions;
-      
+
       // Match all selected options with variant options
       return product.options.every(opt => {
         const optionName = opt.name.toLowerCase();
@@ -138,7 +138,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
     try {
       setAddingToCart(true);
       await addItem(product.id, quantity, selectedVariant.id);
-      
+
       // Store payment method preference and redirect to checkout
       try {
         if (typeof window !== 'undefined') {
@@ -147,10 +147,10 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       } catch (e) {
         console.error('Failed to store payment method:', e);
       }
-      
+
       // setAddToCartSuccess(true);
       toast.success(`${product.title} added to cart!`);
-      
+
       // // Redirect to checkout after brief delay
       // setTimeout(() => {
       //   router.push("/cart");
@@ -323,7 +323,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                 {opt.values.map(val => {
                   const displayValue = normalizeOptionValue(val);
                   const isSelected = selectedOptions[opt.id] === displayValue;
-                  
+
                   // Find if there's a variant available with this option
                   const hasVariantWithOption = product.variants.some(variant => {
                     const variantOptions = variant.selectedOptions;

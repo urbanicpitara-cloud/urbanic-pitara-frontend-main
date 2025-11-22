@@ -13,6 +13,7 @@ import {
   X,
   ShoppingBag,
   Search,
+  LayoutDashboard,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,15 +90,9 @@ const Navbar = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-[200px] shadow-lg">
-              {/* <DropdownMenuItem asChild>
-                <Link href="/search?q=shirts">Shirts</Link>
-              </DropdownMenuItem> */}
               <DropdownMenuItem asChild>
                 <Link href="/search?q=t-shirt">T-Shirts</Link>
               </DropdownMenuItem>
-              {/* <DropdownMenuItem asChild>
-                <Link href="/search?q=jeans">Jeans</Link>
-              </DropdownMenuItem> */}
               <DropdownMenuItem asChild>
                 <Link href="/search?q=men">All</Link>
               </DropdownMenuItem>
@@ -133,6 +128,16 @@ const Navbar = () => {
           >
             Catalog
           </Link>
+
+          {user?.isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
 
           {/* Search */}
           <Button
@@ -229,17 +234,10 @@ const Navbar = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[200px] shadow-md">
-                {/* <DropdownMenuItem asChild>
-                  <Link href="/search?q=shirts">Shirts</Link>
-                </DropdownMenuItem> */}
                 <DropdownMenuItem asChild>
                   <Link href={`/search?q=${encodeURIComponent("t-shirt")}`}>T-Shirts</Link>
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem asChild>
-                  <Link href="/search?q=jeans">Jeans</Link>
-                </DropdownMenuItem> */}
                 <DropdownMenuItem asChild>
-
                   <Link href={`/search?q=${encodeURIComponent("men")}`}>All</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -274,6 +272,15 @@ const Navbar = () => {
             >
               Catalog <ChevronDown className="h-4 w-4" />
             </Link>
+
+            {user?.isAdmin && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition font-medium"
+              >
+                <LayoutDashboard className="h-5 w-5" /> Admin
+              </Link>
+            )}
 
             <Link
               href="/cart"
