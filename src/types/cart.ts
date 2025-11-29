@@ -33,23 +33,44 @@ export interface Product {
 
 export interface CartLine {
   id: string;
-  cartId: string;
-  productId: string;
-  product: Product;
-  variantId?: string | null;
-  variant?: ProductVariant | null;
   quantity: number;
-  priceAmount: string;
-  priceCurrency: string;
+  product: {
+    id: string;
+    title: string;
+    handle: string;
+    featuredImage: {
+      url: string;
+      altText: string;
+    } | null;
+  };
+  variant: {
+    id: string;
+    selectedOptions: Record<string, string>;
+  } | null;
+  customProduct: {
+    id: string;
+    color: string;
+    size: string;
+    previewUrl: string;
+  } | null;
+  price: {
+    amount: string;
+    currencyCode: string;
+  };
+  subtotal: {
+    amount: string;
+    currencyCode: string;
+  };
 }
 
 export interface Cart {
   id: string;
-  userId?: string | null;
   totalQuantity: number;
+  subtotal: {
+    amount: string;
+    currencyCode: string;
+  };
   lines: CartLine[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 // Input when adding an item

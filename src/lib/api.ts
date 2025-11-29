@@ -254,3 +254,33 @@ export const tagsAPI = {
   removeMany: (ids: string[]) =>
     api.delete('/tags', { data: { ids } }), // `data` contains array of IDs
 };
+
+// ----------------- Customizer API -----------------
+export const customiserAPI = {
+  // Upload design file
+  upload: (formData: FormData) =>
+    api.post('/customizer/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Get hoodie templates
+  getTemplates: (params?: { color?: string; side?: string }) =>
+    api.get('/customizer/templates', { params }),
+
+  // Create custom product with design
+  createDesign: (data: Record<string, any>) =>
+    api.post('/customizer/design/create', data),
+
+  // Export/generate final design
+  exportDesign: (data: { customProductId: string; exportUrl: string }) =>
+    api.post('/customizer/design/export', data),
+
+  // Get user's custom products
+  getMyProducts: () => api.get('/customizer/my-products'),
+
+  // Get single custom product
+  getProduct: (id: string) => api.get(`/customizer/product/${id}`),
+
+  // Delete custom product
+  deleteProduct: (id: string) => api.delete(`/customizer/product/${id}`),
+};

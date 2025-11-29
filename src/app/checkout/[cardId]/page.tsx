@@ -87,14 +87,21 @@ export default function CheckoutPage() {
   const mapCartResponse = (apiData: any): Cart => {
     const items: CartItem[] = apiData.lines.map((line: any) => ({
       id: line.id,
-      product: {
+      product: line.product ? {
         id: line.product.id,
         title: line.product.title,
-        featuredImageUrl: line.featuredImage?.url,
-        featuredImageAlt: line.featuredImage?.altText,
+        featuredImageUrl: line.product.featuredImage?.url,
+        featuredImageAlt: line.product.featuredImage?.altText || line.product.title,
+      } : {
+        id: line.customProductId,
+        title: line.customProduct?.title || `Custom ${line.customProduct?.color}`,
+        featuredImageUrl: line.customProduct?.previewUrl,
+        featuredImageAlt: line.customProduct?.title || 'Custom Product',
       },
       variantId: line.variant?.id,
-      title: line.variant?.selectedOptions?.size || "",
+      title: line.customProduct
+        ? `Custom ${line.customProduct.color} - Size: ${line.customProduct.size || 'L'}`
+        : (line.variant?.selectedOptions?.size ? `Size: ${line.variant.selectedOptions.size}` : ""),
       quantity: line.quantity,
       priceAmount: parseFloat(line.price.amount),
       currency: line.price.currencyCode,
@@ -378,6 +385,15 @@ export default function CheckoutPage() {
         <div className="lg:col-span-8 space-y-4">
           {cart.items.map((item) => (
             <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
+              {item.product.featuredImageUrl && (
+                <div className="relative h-24 w-24 flex-shrink-0">
+                  <img
+                    src={item.product.featuredImageUrl}
+                    alt={item.product.featuredImageAlt || item.product.title}
+                    className="h-full w-full object-cover rounded"
+                  />
+                </div>
+              )}
               <div className="flex-1">
                 <h3 className="font-medium">{item.product.title}</h3>
                 {item.title && <p className="text-sm text-gray-500">{item.title}</p>}

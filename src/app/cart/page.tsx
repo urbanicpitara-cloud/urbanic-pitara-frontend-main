@@ -41,32 +41,52 @@ export default function CartPage() {
 
   // Map API response to Cart shape
   const mapCartResponse = (apiData: any): Cart => {
-    const items: CartItem[] = apiData.lines.map((line: any) => ({
-      id: line.id,
-      product: {
-        id: line.product.id,
-        title: line.product.title,
-        featuredImageUrl: line.product.featuredImage?.url,
-        featuredImageAlt: line.product.featuredImage?.altText,
-      },
-      variantId: line.variant.id,
-      title: line.variant.selectedOptions.size
-        ? `Size: ${line.variant.selectedOptions.size}`
-        : "",
-      quantity: line.quantity,
-      priceAmount: parseFloat(line.price.amount),
-      currency: line.price.currencyCode,
-    }));
+    try {
+      console.log('🔄 Mapping cart data, lines:', apiData.lines);
 
-    const subtotal = items.reduce((sum, item) => sum + item.priceAmount * item.quantity, 0);
+      const items: CartItem[] = apiData.lines.map((line: any, index: number) => {
+        console.log(`📝 Mapping line ${index}:`, {
+          hasVariant: !!line.variant,
+          hasCustomProduct: !!line.customProduct,
+          productTitle: line.product?.title || 'Custom Product',
+        });
 
-    return {
-      items,
-      subtotalAmount: subtotal,
-      totalAmount: subtotal, // adjust if API returns total differently
-      currency: apiData.subtotal.currencyCode,
-      checkoutUrl: `/checkout/${apiData.id}`,
-    };
+        return {
+          id: line.id,
+          product: line.product ? {
+            id: line.product.id,
+            title: line.product.title,
+            featuredImageUrl: line.product.featuredImage?.url,
+            featuredImageAlt: line.product.featuredImage?.altText || line.product.title,
+          } : {
+            id: line.customProductId,
+            title: line.customProduct?.title || `Custom ${line.customProduct?.color}`,
+            featuredImageUrl: line.customProduct?.previewUrl,
+            featuredImageAlt: line.customProduct?.title || 'Custom Product',
+          },
+          variantId: line.variant?.id || "",
+          title: line.customProduct
+            ? `Custom ${line.customProduct.color} - Size: ${line.customProduct.size || 'L'}`
+            : (line.variant?.selectedOptions?.size ? `Size: ${line.variant.selectedOptions.size}` : ""),
+          quantity: line.quantity,
+          priceAmount: parseFloat(line.price.amount),
+          currency: line.price.currencyCode,
+        };
+      });
+
+      const subtotal = items.reduce((sum, item) => sum + item.priceAmount * item.quantity, 0);
+
+      return {
+        items,
+        subtotalAmount: subtotal,
+        totalAmount: subtotal,
+        currency: apiData.subtotal.currencyCode,
+        checkoutUrl: `/checkout/${apiData.id}`,
+      };
+    } catch (error) {
+      console.error('❌ Error mapping cart:', error);
+      throw error;
+    }
   };
 
   const fetchCart = async () => {
@@ -74,8 +94,12 @@ export default function CartPage() {
     setError("");
     try {
       const res = await cartAPI.get();
-      setCart(mapCartResponse(res.data));
+      console.log('📦 Raw cart API response:', res.data);
+      const mappedCart = mapCartResponse(res.data);
+      console.log('📦 Mapped cart:', mappedCart);
+      setCart(mappedCart);
     } catch (err: unknown) {
+      console.error('❌ Cart fetch error:', err);
       setError(err instanceof Error ? err.message : "Failed to load cart");
     } finally {
       setLoading(false);

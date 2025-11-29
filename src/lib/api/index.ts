@@ -65,76 +65,76 @@ export const productsAPI = {
     published?: boolean;
   }) => request<PaginatedResponse<Product>>('/products', { params }),
 
-  getByHandle: (handle: string) => 
+  getByHandle: (handle: string) =>
     request<Product>(`/products/${handle}`),
 
-  getRelated: (handle: string, limit = 4) => 
+  getRelated: (handle: string, limit = 4) =>
     request<Product[]>(`/products/${handle}/related`, { params: { limit } }),
 
-  create: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => 
+  create: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) =>
     request<Product>('/products', { method: 'POST', body: data }),
 
-  update: (id: string, data: Partial<Product>) => 
+  update: (id: string, data: Partial<Product>) =>
     request<Product>(`/products/${id}`, { method: 'PUT', body: data }),
 
-  delete: (id: string) => 
+  delete: (id: string) =>
     request(`/products/${id}`, { method: 'DELETE' })
 };
 
 export const collectionsAPI = {
   getAll: () => request<Collection[]>('/collections'),
 
-  getByHandle: (handle: string) => 
+  getByHandle: (handle: string) =>
     request<Collection>(`/collections/${handle}`),
 
-  create: (data: Omit<Collection, 'id' | 'products' | 'createdAt' | 'updatedAt'>) => 
+  create: (data: Omit<Collection, 'id' | 'products' | 'createdAt' | 'updatedAt'>) =>
     request<Collection>('/collections', { method: 'POST', body: data }),
 
-  update: (id: string, data: Partial<Collection>) => 
+  update: (id: string, data: Partial<Collection>) =>
     request<Collection>(`/collections/${id}`, { method: 'PUT', body: data }),
 
-  delete: (id: string) => 
+  delete: (id: string) =>
     request(`/collections/${id}`, { method: 'DELETE' })
 };
 
 export const cartAPI = {
-  get: (cartId: string) => 
-    request<Cart>(`/cart/${cartId}`),
+  get: () =>
+    request<Cart>(`/cart`),
 
-  create: () => 
+  create: () =>
     request<Cart>('/cart', { method: 'POST' }),
 
-  addLine: (cartId: string, data: { productId: string; variantId?: string; quantity: number }) => 
-    request<Cart>(`/cart/${cartId}/lines`, { method: 'POST', body: data }),
+  addItem: (data: { productId: string; variantId?: string; quantity: number; customProductId?: string }) =>
+    request<Cart>(`/cart/lines`, { method: 'POST', body: data }),
 
-  updateLine: (cartId: string, lineId: string, quantity: number) => 
-    request<Cart>(`/cart/${cartId}/lines/${lineId}`, { method: 'PUT', body: { quantity } }),
+  updateItem: (lineId: string, data: { quantity: number }) =>
+    request<Cart>(`/cart/lines/${lineId}`, { method: 'PUT', body: data }),
 
-  removeLine: (cartId: string, lineId: string) => 
-    request<Cart>(`/cart/${cartId}/lines/${lineId}`, { method: 'DELETE' })
+  removeItem: (lineId: string) =>
+    request<Cart>(`/cart/lines/${lineId}`, { method: 'DELETE' })
 };
 
 export const ordersAPI = {
-  getAll: () => 
+  getAll: () =>
     request<PaginatedResponse<Order>>('/orders'),
 
-  getById: (id: string) => 
+  getById: (id: string) =>
     request<Order>(`/orders/${id}`),
 
-  create: (data: { cartId: string; shippingAddressId?: string }) => 
+  create: (data: { cartId: string; shippingAddressId?: string }) =>
     request<Order>('/orders', { method: 'POST', body: data })
 };
 
 export const menuAPI = {
-  getByHandle: (handle: string) => 
+  getByHandle: (handle: string) =>
     request<Menu>(`/menu/${handle}`)
 };
 
 export const searchAPI = {
-  products: (params: { 
-    query: string; 
-    page?: number; 
-    limit?: number; 
+  products: (params: {
+    query: string;
+    page?: number;
+    limit?: number;
     sort?: string;
     collection?: string;
     tag?: string;
@@ -142,12 +142,12 @@ export const searchAPI = {
     maxPrice?: number;
   }) => request<PaginatedResponse<Product>>('/search/products', { params }),
 
-  collections: (params: { 
-    query: string; 
-    page?: number; 
+  collections: (params: {
+    query: string;
+    page?: number;
     limit?: number;
   }) => request<PaginatedResponse<Collection>>('/search/collections', { params }),
 
-  autocomplete: (query: string) => 
+  autocomplete: (query: string) =>
     request<{ products: Product[]; collections: Collection[] }>('/search/autocomplete', { params: { query } })
 };

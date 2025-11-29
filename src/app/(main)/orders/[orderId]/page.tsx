@@ -22,11 +22,13 @@ import { CreditCard, Clock, ArrowLeft, CheckCircle, XCircle } from 'lucide-react
 type ProductImage = { url: string; altText?: string };
 type Product = { id: string; title: string; handle: string; featuredImage?: ProductImage | null };
 type Variant = { id: string; selectedOptions: Record<string, string> };
+type CustomProduct = { id: string; title: string; color: string; size: string; previewUrl: string };
 type OrderItem = {
   id: string;
   quantity: number;
-  product: Product;
+  product?: Product | null;
   variant?: Variant | null;
+  customProduct?: CustomProduct | null;
   price: { amount: string | number; currencyCode: string };
   subtotal: { amount: string; currencyCode: string };
 };
@@ -170,7 +172,7 @@ export default function OrderDetailsPage() {
 
         <div className="flex items-center space-x-4">
           <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusColors[status] || 'bg-gray-50 text-gray-800'}`}>
-            {status === 'DELIVERED' ? <CheckCircle size={16}/> : status === 'CANCELED' ? <XCircle size={16}/> : <Clock size={16}/>}
+            {status === 'DELIVERED' ? <CheckCircle size={16} /> : status === 'CANCELED' ? <XCircle size={16} /> : <Clock size={16} />}
             {status}
           </span>
           {['PENDING', 'PROCESSING'].includes(status) && (
@@ -186,14 +188,21 @@ export default function OrderDetailsPage() {
             <h2 className="text-lg font-semibold mb-4">Items ({order.items.length})</h2>
             <div className="space-y-4">
               {order.items.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center p-3 border rounded-lg">
-                  <img src={item.product.featuredImage?.url || '/placeholder-product.png'} alt={item.product.title} className="w-24 h-24 object-cover rounded-md border bg-gray-50"/>
+                <div key={item.id} className="flex gap-4 items-start p-3 border rounded-lg">
+                  <img src={item.customProduct?.previewUrl || item.product?.featuredImage?.url || '/placeholder-product.png'} alt={item.customProduct?.title || item.product?.title} className="w-24 h-24 object-cover rounded-md border bg-gray-50" />
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-800">{item.product.title}</p>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{item.customProduct?.title || item.product?.title}</p>
+                        {item.customProduct && (
+                          <div className="text-sm text-gray-600 mt-1 space-y-1">
+                            <p>🎨 <strong>Custom Design</strong></p>
+                            <p>Color: <strong>{item.customProduct.color}</strong></p>
+                            <p>Size: <strong>{item.customProduct.size}</strong></p>
+                          </div>
+                        )}
                         {item.variant && (
-                          <p className="text-sm text-gray-500">{Object.entries(item.variant.selectedOptions).map(([k,v])=> `${k}: ${v}`).join(' • ')}</p>
+                          <p className="text-sm text-gray-500">{Object.entries(item.variant.selectedOptions).map(([k, v]) => `${k}: ${v}`).join(' • ')}</p>
                         )}
                         <p className="text-sm text-gray-600 mt-1">Qty: <strong>{item.quantity}</strong></p>
                       </div>
@@ -212,14 +221,14 @@ export default function OrderDetailsPage() {
             <h2 className="text-lg font-semibold mb-4">Order activity</h2>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="mt-1"><Clock size={18} className="text-gray-400"/></div>
+                <div className="mt-1"><Clock size={18} className="text-gray-400" /></div>
                 <div>
                   <p className="text-sm text-gray-700">Placed on <strong>{new Date(order.createdAt).toLocaleString()}</strong></p>
                 </div>
               </div>
               {order.payment && (
                 <div className="flex items-start gap-3">
-                  <div className="mt-1"><CreditCard size={18} className="text-gray-400"/></div>
+                  <div className="mt-1"><CreditCard size={18} className="text-gray-400" /></div>
                   <div>
                     <p className="text-sm text-gray-700">Payment status: <strong>{order.payment.status}</strong> — {order.payment.method}</p>
                     {order.payment.createdAt && <p className="text-xs text-gray-500">{new Date(order.payment.createdAt).toLocaleString()}</p>}
@@ -228,7 +237,7 @@ export default function OrderDetailsPage() {
               )}
               {order.cancelReason && (
                 <div className="flex items-start gap-3">
-                  <div className="mt-1"><XCircle size={18} className="text-gray-400"/></div>
+                  <div className="mt-1"><XCircle size={18} className="text-gray-400" /></div>
                   <div>
                     <p className="text-sm text-red-600">Order cancelled: <strong>{order.cancelReason}</strong></p>
                   </div>

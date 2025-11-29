@@ -51,8 +51,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (productId: string, quantity = 1, variantId?: string) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        await cartAPI.addItem({ productId, quantity, variantId });
-        await fetchCart();
+        const result = await cartAPI.addItem({ productId, quantity, variantId });
+        setState({ cart: result.data, loading: false, error: null });
       } catch (err) {
         console.error("❌ Failed to add item:", err);
         setState((prev) => ({
@@ -72,17 +72,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (lineId: string, quantity: number) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        await cartAPI.updateItem(lineId, { quantity });
-        await fetchCart();
+        const result = await cartAPI.updateItem(lineId, { quantity });
+        console.log('✅ Item updated, response:', result.data);
+        setState({ cart: result.data, loading: false, error: null });
       } catch (err) {
         console.error("❌ Failed to update item:", err);
         setState((prev) => ({
           ...prev,
+          loading: false,
           error: "Failed to update item in cart",
         }));
       }
     },
-    [fetchCart]
+    []
   );
 
   /** ❌ Remove item */
@@ -90,17 +92,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (lineId: string) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        await cartAPI.removeItem(lineId);
-        await fetchCart();
+        const result = await cartAPI.removeItem(lineId);
+        console.log('✅ Item removed, response:', result.data);
+        setState({ cart: result.data, loading: false, error: null });
       } catch (err) {
         console.error("❌ Failed to remove item:", err);
         setState((prev) => ({
           ...prev,
+          loading: false,
           error: "Failed to remove item from cart",
         }));
       }
     },
-    [fetchCart]
+    []
   );
 
   /** 🧹 Clear local cart state */
