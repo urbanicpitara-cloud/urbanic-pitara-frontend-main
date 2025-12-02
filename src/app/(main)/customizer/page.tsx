@@ -261,6 +261,23 @@ export default function CustomizerPage() {
   const [customImageUploading, setCustomImageUploading] = useState(false);
   const [size, setSize] = useState<string>("M");
   const [calculatedPrice, setCalculatedPrice] = useState<number>(899);
+  const [scale, setScale] = useState(1);
+
+  // Handle responsive scaling
+  useEffect(() => {
+    const handleResize = () => {
+      const containerWidth = window.innerWidth;
+      // On mobile/tablet, we want the canvas to fit the screen width minus padding
+      // 500 is the base canvas size
+      // We subtract 48px for padding (32px container padding + some safety margin)
+      const newScale = Math.min(1, (containerWidth - 48) / 500);
+      setScale(newScale);
+    };
+
+    handleResize(); // Initial calculation
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Calculate price whenever elements or size changes
   useEffect(() => {
@@ -333,7 +350,7 @@ export default function CustomizerPage() {
       // Don't delete if user is typing in an input field
       const target = e.target as HTMLElement;
       const isInputFocused = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.contentEditable === "true";
-      
+
       if ((e.key === "Delete" || e.key === "Backspace") && selectedId && !isInputFocused) {
         deleteElement(selectedId);
       }
@@ -529,9 +546,9 @@ export default function CustomizerPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-gray-50">
+    <div className="flex flex-col-reverse md:flex-row h-[calc(100vh-64px)] bg-gray-50">
       {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-100">
           <h1 className="text-xl font-bold text-gray-900">Customizer</h1>
         </div>
@@ -968,11 +985,12 @@ export default function CustomizerPage() {
       </div>
 
       {/* Canvas Area */}
-      <div className="flex-1 bg-gray-100 flex items-center justify-center p-8 overflow-hidden">
+      <div className="w-full md:flex-1 bg-gray-100 flex items-center justify-center p-4 md:p-8 overflow-hidden min-h-[300px] md:min-h-0">
         <div className="bg-white shadow-lg rounded-xl overflow-hidden">
           <Stage
-            width={500}
-            height={500}
+            width={500 * scale}
+            height={500 * scale}
+            scale={{ x: scale, y: scale }}
             ref={stageRef}
             onMouseDown={checkDeselect}
             onTouchStart={checkDeselect}
