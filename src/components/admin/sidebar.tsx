@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   Users,
   Mail,
+  Palette,
   // Settings,
   LogOut,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/admin/collections", label: "Collections", icon: Shirt },
   { href: "/admin/tags", label: "Tags", icon: Tag },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/customizer", label: "Customizer", icon: Palette },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/discounts", label: "Discounts", icon: BadgeIndianRupee },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },
@@ -41,11 +43,10 @@ export default function Sidebar() {
           <Link
             key={href}
             href={href}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${
-              pathname === href
+            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium ${pathname === href
                 ? "bg-indigo-100 text-indigo-700"
                 : "text-gray-700 hover:bg-gray-100"
-            }`}
+              }`}
           >
             <Icon size={18} />
             {label}

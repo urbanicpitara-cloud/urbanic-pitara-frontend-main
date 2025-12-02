@@ -18,7 +18,12 @@ interface Product {
 interface OrderItem {
   id: string;
   quantity: number;
-  product: Product;
+  product: Product | null;
+  customProduct?: {
+    id: string;
+    title: string;
+    previewUrl?: string;
+  } | null;
 }
 
 interface Order {
@@ -162,6 +167,26 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedOrders.length === 0) return;
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedOrders.length} order(s)? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      await ordersAPI.bulkDeleteAdmin(selectedOrders);
+      toast.success(`${selectedOrders.length} order(s) deleted successfully`);
+      await fetchOrders();
+      setSelectedOrders([]);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete orders.");
+    }
+  };
+
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
       await ordersAPI.updateStatusAdmin(orderId, { status: newStatus as any });
@@ -241,6 +266,12 @@ export default function AdminOrdersPage() {
           >
             Update Selected ({selectedOrders.length})
           </button>
+          <button
+            onClick={handleBulkDelete}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Delete Selected ({selectedOrders.length})
+          </button>
         </div>
       )}
 
@@ -300,20 +331,24 @@ export default function AdminOrdersPage() {
                     <td className="px-2 py-2 border">
                       <div className="flex items-center justify-center">
                         <div className="flex -space-x-2">
-                          {order.items?.slice(0, 4).map((item) =>
-                            item.product.featuredImage?.url ? (
+                          {order.items?.slice(0, 4).map((item) => {
+                            const imageUrl = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
+                            const title = item.customProduct?.title || item.product?.title || "Product";
+                            const altText = item.product?.featuredImage?.altText || title;
+
+                            return imageUrl ? (
                               <Image
                                 key={item.id}
-                                src={item.product.featuredImage.url}
-                                alt={item.product.featuredImage.altText || item.product.title}
+                                src={imageUrl}
+                                alt={altText}
                                 width={25}
                                 height={25}
                                 sizes="80px"
                                 className="rounded-full object-cover border-2 border-white hover:scale-110 transition"
-                                title={item.product.title}
+                                title={title}
                               />
-                            ) : null
-                          )}
+                            ) : null;
+                          })}
                           {(order.items?.length ?? 0) > 4 && (
                             <span className="w-8 h-8 flex items-center justify-center text-xs font-medium bg-gray-200 text-gray-700 rounded-full border-2 border-white">
                               +{(order.items?.length ?? 0) - 4}
@@ -385,8 +420,9 @@ export default function AdminOrdersPage() {
               Next
             </button>
           </div>
-        </div>
-      )}
-    </div>
+        </div >
+      )
+      }
+    </div >
   );
 }

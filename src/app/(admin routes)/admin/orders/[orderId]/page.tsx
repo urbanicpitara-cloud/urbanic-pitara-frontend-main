@@ -22,6 +22,7 @@ interface CustomProduct {
     color: string;
     size: string;
     previewUrl: string;
+    snapshots?: Record<string, string> | null;
 }
 
 interface OrderItem {
@@ -312,7 +313,7 @@ export default function AdminOrderDetailPage() {
                                 const imgUrl = isCustom ? item.customProduct?.previewUrl : (item.product?.featuredImage?.url ?? "");
                                 const alt = isCustom ? item.customProduct?.title : (item.product?.featuredImage?.altText ?? item.product?.title ?? "product");
                                 const title = isCustom ? item.customProduct?.title : item.product?.title;
-                                
+
                                 return (
                                     <li key={item._id ?? item.id ?? idx} className="flex items-start gap-4 p-4 rounded-md hover:bg-gray-50 transition border">
                                         {imgUrl ? (
@@ -330,15 +331,36 @@ export default function AdminOrderDetailPage() {
                                                         <p className="font-medium text-gray-800">{title ?? "Unknown product"}</p>
                                                         {isCustom && <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">Custom Design</span>}
                                                     </div>
-                                                    
+
                                                     {isCustom && item.customProduct && (
                                                         <div className="mt-2 text-sm text-gray-600 space-y-1">
                                                             <p>🎨 <strong>Color:</strong> {item.customProduct.color}</p>
                                                             <p>📏 <strong>Size:</strong> {item.customProduct.size}</p>
                                                             <p className="text-xs text-gray-500 mt-1">Custom product ID: {item.customProduct.id}</p>
+
+                                                            {item.customProduct.snapshots && (
+                                                                <div className="mt-3 pt-2 border-t border-gray-100">
+                                                                    <p className="font-medium mb-2 text-xs text-gray-500 uppercase">Design Views</p>
+                                                                    <div className="flex gap-2 flex-wrap">
+                                                                        {Object.entries(item.customProduct.snapshots).map(([side, url]) => (
+                                                                            <div key={side} className="flex flex-col items-center group">
+                                                                                <div className="w-20 h-20 relative border rounded bg-gray-50 overflow-hidden">
+                                                                                    <Image
+                                                                                        src={url}
+                                                                                        alt={side}
+                                                                                        fill
+                                                                                        className="object-contain group-hover:scale-110 transition-transform duration-300"
+                                                                                    />
+                                                                                </div>
+                                                                                <span className="text-[10px] capitalize mt-1 text-gray-500">{side}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
-                                                    
+
                                                     {!isCustom && item.variant?.selectedOptions && (
                                                         <p className="text-xs text-gray-500 mt-1">
                                                             {Object.entries(item.variant.selectedOptions)

@@ -14,11 +14,13 @@ import { OrdersPageLoading } from "@/components/ui/loading-states";
 // -------------------- TYPES -------------------- //
 type ProductImage = { url: string; altText?: string };
 type Product = { id: string; title: string; handle: string; featuredImage?: ProductImage | null };
+type CustomProduct = { id: string; title: string; color: string; size: string; previewUrl: string };
 type Variant = { id: string; selectedOptions: Record<string, string> };
 type OrderItem = {
   id: string;
   quantity: number;
-  product: Product;
+  product?: Product | null;
+  customProduct?: CustomProduct | null;
   variant?: Variant | null;
   price: { amount: string | number; currencyCode: string };
   subtotal: { amount: string; currencyCode: string };
@@ -156,12 +158,14 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex -space-x-2">
-                        {order.items.slice(0, 4).map((item) =>
-                          item.product.featuredImage?.url ? (
+                        {order.items.slice(0, 4).map((item) => {
+                          const imgSrc = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
+                          const imgAlt = item.customProduct?.title || item.product?.featuredImage?.altText || item.product?.title || "item";
+                          return imgSrc ? (
                             <Image
                               key={item.id}
-                              src={item.product.featuredImage.url}
-                              alt={item.product.featuredImage.altText || item.product.title}
+                              src={imgSrc}
+                              alt={imgAlt}
                               width={36}
                               height={36}
                               className="rounded-full border-2 border-white object-cover shadow-sm"
@@ -173,8 +177,8 @@ export default function OrdersPage() {
                             >
                               ?
                             </div>
-                          )
-                        )}
+                          );
+                        })}
                         {order.items.length > 4 && (
                           <span className="w-9 h-9 flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-600 rounded-full border-2 border-white">
                             +{order.items.length - 4}
@@ -269,18 +273,20 @@ export default function OrdersPage() {
               )}
 
               <div className="flex items-center -space-x-2 mb-4">
-                {order.items.slice(0, 3).map((item) =>
-                  item.product.featuredImage?.url ? (
+                {order.items.slice(0, 3).map((item) => {
+                  const imgSrc = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
+                  const imgAlt = item.customProduct?.title || item.product?.featuredImage?.altText || item.product?.title || "item";
+                  return imgSrc ? (
                     <Image
                       key={item.id}
-                      src={item.product.featuredImage.url}
-                      alt={item.product.featuredImage.altText || item.product.title}
+                      src={imgSrc}
+                      alt={imgAlt}
                       width={40}
                       height={40}
                       className="rounded-full border-2 border-white object-cover shadow-sm"
                     />
-                  ) : null
-                )}
+                  ) : null;
+                })}
                 {order.items.length > 3 && (
                   <span className="w-8 h-8 flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-700 rounded-full border-2 border-white">
                     +{order.items.length - 3}

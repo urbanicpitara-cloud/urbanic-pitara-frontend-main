@@ -4,7 +4,7 @@ import { Stage, Layer, Rect, Text, Image as KonvaImage, Transformer } from "reac
 import useImage from "use-image";
 import { useRouter } from "next/navigation";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
-import { Loader2, Upload, ShoppingCart, Type, Palette, RotateCcw, Image as ImageIcon, Sticker, Bold, Italic, Trash2, Ruler } from "lucide-react";
+import { Loader2, Upload, ShoppingCart, Type, Palette, RotateCcw, Image as ImageIcon, Sticker, Bold, Italic, Trash2, Ruler, Shirt } from "lucide-react";
 import { toast } from "sonner";
 
 // Types
@@ -41,9 +41,12 @@ interface TemplateData {
 }
 
 // Hardcoded fallbacks
-const STATIC_HOODIE_COLORS = ["black", "white", "red"] as const;
-const STATIC_HOODIE_SIDES = ["front", "back", "left", "right"] as const;
-const ART_ASSETS = ["/art/gym/gym1.svg", "/art/quotes/quote1.svg"];
+
+const STATIC_HOODIE_COLORS = ["black"] as const;
+const STATIC_HOODIE_SIDES = ["front", "back"] as const;
+
+// Fallback assets if DB is empty
+const STATIC_ART_ASSETS = ["/art/gym/gym1.svg", "/art/quotes/quote1.svg"];
 const FONT_FAMILIES = [
   "Arial",
   "Verdana",
@@ -73,7 +76,29 @@ const BASE_HOODIE_PRODUCT_ID = "cmiit63lc0000wadchgo1ydck"; // Base product ID f
 // ---------------- Hoodie Image ----------------
 const HoodieImage = ({ src, width, height }: { src: string; width: number; height: number }) => {
   const [image] = useImage(src, "anonymous");
-  return <KonvaImage image={image} width={width} height={height} listening={false} />;
+
+  if (!image) return null;
+
+  // Calculate aspect ratio to fit within bounds while preserving original ratio
+  const imgRatio = image.width / image.height;
+  const containerRatio = width / height;
+
+  let renderWidth = width;
+  let renderHeight = height;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (imgRatio > containerRatio) {
+    // Image is wider than container
+    renderHeight = width / imgRatio;
+    offsetY = (height - renderHeight) / 2;
+  } else {
+    // Image is taller than container
+    renderWidth = height * imgRatio;
+    offsetX = (width - renderWidth) / 2;
+  }
+
+  return <KonvaImage image={image} x={offsetX} y={offsetY} width={renderWidth} height={renderHeight} listening={false} />;
 };
 
 // ---------------- Draggable Image ----------------
@@ -241,12 +266,37 @@ export default function CustomizerPage() {
   const router = useRouter();
   const stageRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewRefs = useRef<{ [key: string]: any }>({});
 
   const [templates, setTemplates] = useState<TemplateData>({});
   const [loadingTemplates, setLoadingTemplates] = useState(true);
+
+  // ... (state definitions)
+
+  // Helper to get template URL
+  const getTemplateUrl = (c: string, s: string) => {
+    if (selectedProduct) {
+      const variant = selectedProduct.variants.find((v: any) => v.colorName === c);
+      if (variant) {
+        const view = variant.views.find((v: any) => v.side === s);
+        if (view) return view.imageUrl;
+      }
+    }
+    if (templates[c] && templates[c][s]) {
+      return templates[c][s];
+    }
+    return `/hoodies/${c}/${s}.png`;
+  };
+
+  // Dynamic Config State
+  const [products, setProducts] = useState<any[]>([]);
+  const [artCategories, setArtCategories] = useState<any[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedArtCategory, setSelectedArtCategory] = useState<string | null>(null);
+
   const [color, setColor] = useState<string>("black");
   const [side, setSide] = useState<HoodieSide>("front");
-  const [activeTab, setActiveTab] = useState<"Color" | "Size" | "Side" | "Upload" | "Art" | "Text" | "Order">("Color");
+  const [activeTab, setActiveTab] = useState<"Product" | "Color" | "Size" | "Side" | "Upload" | "Art" | "Text" | "Order">("Product");
 
   const [elementsBySide, setElementsBySide] = useState<Record<HoodieSide, CanvasElement[]>>({
     front: [],
@@ -320,10 +370,33 @@ export default function CustomizerPage() {
     setCalculatedPrice(price);
   }, [size, elementsBySide]);
 
-  // Fetch templates on mount
+  // Fetch configuration on mount
   useEffect(() => {
-    const fetchTemplates = async () => {
+    const fetchConfig = async () => {
       try {
+        let hasProducts = false;
+
+        // 1. Fetch Dynamic Config (Products & Arts)
+        const configRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/customizer/config`);
+        if (configRes.ok) {
+          const config = await configRes.json();
+          setProducts(config.products || []);
+          setArtCategories(config.artCategories || []);
+
+          if (config.products && config.products.length > 0) {
+            hasProducts = true;
+            // Select first product by default
+            const firstProd = config.products[0];
+            setSelectedProduct(firstProd);
+
+            // Select first variant color
+            if (firstProd.variants && firstProd.variants.length > 0) {
+              setColor(firstProd.variants[0].colorName); // Use color name as key
+            }
+          }
+        }
+
+        // 2. Fetch Legacy Templates (Fallback)
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/customizer/templates`);
         if (!res.ok) throw new Error("Failed to fetch templates");
         const data = await res.json();
@@ -331,7 +404,10 @@ export default function CustomizerPage() {
         // If backend returns empty object, we'll rely on static fallbacks
         if (Object.keys(data).length > 0) {
           setTemplates(data);
-          setColor(Object.keys(data)[0]);
+          // Only set color from legacy templates if no dynamic product was found
+          if (!hasProducts) {
+            setColor(Object.keys(data)[0]);
+          }
         }
       } catch (error) {
         console.error(error);
@@ -341,7 +417,7 @@ export default function CustomizerPage() {
       }
     };
 
-    fetchTemplates();
+    fetchConfig();
   }, []);
 
   // Handle Delete Key
@@ -475,14 +551,23 @@ export default function CustomizerPage() {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-      const dataUrl = stageRef.current.toDataURL({ pixelRatio: 2 });
+      const snapshots: Record<string, string> = {};
 
-      // Upload the design preview to Cloudinary
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
-      const file = new File([blob], "design-preview.png", { type: "image/png" });
+      // Capture all sides from hidden stages
+      for (const [s, stage] of Object.entries(previewRefs.current)) {
+        if (!stage) continue;
+        const dataUrl = stage.toDataURL({ pixelRatio: 2 });
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], `preview-${s}.png`, { type: "image/png" });
+        const url = await uploadToCloudinary(file);
+        snapshots[s] = url;
+      }
 
-      const thumbnailUrl = await uploadToCloudinary(file);
+      // Use current side as main thumbnail, or fallback to first available
+      const thumbnailUrl = snapshots[side] || Object.values(snapshots)[0];
+
+      if (!thumbnailUrl) throw new Error("Failed to generate preview");
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/customizer/design/create`, {
         method: "POST",
@@ -490,8 +575,10 @@ export default function CustomizerPage() {
         body: JSON.stringify({
           json: JSON.stringify(elementsBySide),
           thumbnailUrl,
+          snapshots,
           color,
           size,
+          title: selectedProduct?.name ? `${selectedProduct.name} - Custom` : "Custom Hoodie",
         }),
       });
 
@@ -526,16 +613,54 @@ export default function CustomizerPage() {
   };
 
   // Determine which template URL to use
-  // Priority: Dynamic template -> Static fallback
+  // Priority: Dynamic Product -> Legacy Dynamic Template -> Static Fallback
   let currentTemplateUrl = null;
-  if (templates[color] && templates[color][side]) {
-    currentTemplateUrl = templates[color][side];
-  } else {
-    // Fallback logic
-    currentTemplateUrl = `/hoodies/${color}/${side}.png`;
+  let availableColors: string[] = [];
+
+  if (selectedProduct) {
+    // 1. Dynamic Product Logic
+    const variant = selectedProduct.variants.find((v: any) => v.colorName === color);
+    if (variant) {
+      const view = variant.views.find((v: any) => v.side === side);
+      if (view) currentTemplateUrl = view.imageUrl;
+    }
+    // Populate available colors from dynamic product
+    availableColors = selectedProduct.variants.map((v: any) => v.colorName);
   }
 
-  const availableColors = Object.keys(templates).length > 0 ? Object.keys(templates) : STATIC_HOODIE_COLORS;
+  if (!currentTemplateUrl) {
+    // 2. Legacy/Fallback Logic
+    if (templates[color] && templates[color][side]) {
+      currentTemplateUrl = templates[color][side];
+      availableColors = Object.keys(templates);
+    } else {
+      // 3. Static Fallback
+      currentTemplateUrl = `/hoodies/${color}/${side}.png`;
+      availableColors = STATIC_HOODIE_COLORS as any;
+    }
+  }
+
+  // Determine available arts
+  // If we have categories from DB, use them. Otherwise fallback.
+  // For simplicity in this UI version, we'll flatten all assets if categories exist, 
+  // or use static assets.
+  let displayArts = STATIC_ART_ASSETS;
+  if (artCategories.length > 0) {
+    displayArts = artCategories.flatMap(c => c.assets.map((a: any) => a.url));
+  }
+
+  // Determine available sides
+  let availableSides: string[] = [];
+  if (selectedProduct) {
+    const variant = selectedProduct.variants.find((v: any) => v.colorName === color);
+    if (variant) {
+      availableSides = variant.views.map((v: any) => v.side);
+    }
+  } else if (templates[color]) {
+    availableSides = Object.keys(templates[color]);
+  } else {
+    availableSides = STATIC_HOODIE_SIDES as any;
+  }
 
   if (loadingTemplates) {
     return (
@@ -553,9 +678,9 @@ export default function CustomizerPage() {
           <h1 className="text-xl font-bold text-gray-900">Customizer</h1>
         </div>
 
-        {/* Tabs */}
         <div className="flex border-b border-gray-100 overflow-x-auto">
           {[
+            { id: "Product", icon: Shirt },
             { id: "Color", icon: Palette },
             { id: "Size", icon: Ruler },
             { id: "Side", icon: RotateCcw },
@@ -579,6 +704,32 @@ export default function CustomizerPage() {
 
         {/* Tab Content */}
         <div className="flex-1 p-4 overflow-y-auto">
+          {activeTab === "Product" && (
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-900">Select Product</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {products.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setSelectedProduct(p);
+                      if (p.variants.length > 0) {
+                        setColor(p.variants[0].colorName);
+                      }
+                    }}
+                    className={`p-3 rounded-lg border text-left transition-all ${selectedProduct?.id === p.id
+                      ? "bg-black text-white border-black ring-2 ring-black ring-offset-2"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                      }`}
+                  >
+                    <div className="font-medium">{p.name}</div>
+                    <div className="text-xs opacity-80 mt-1">₹{p.basePrice}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeTab === "Color" && (
             <div className="space-y-4">
               <h3 className="font-medium text-gray-900">Select Color</h3>
@@ -589,7 +740,7 @@ export default function CustomizerPage() {
                     onClick={() => setColor(c)}
                     className={`w-10 h-10 rounded-full border-2 shadow-sm transition-transform hover:scale-110 ${color === c ? "border-black scale-110" : "border-gray-400"
                       }`}
-                    style={{ backgroundColor: c }}
+                    style={{ backgroundColor: selectedProduct ? selectedProduct.variants.find((v: any) => v.colorName === c)?.colorHex : c }}
                     title={c}
                   />
                 ))}
@@ -628,10 +779,10 @@ export default function CustomizerPage() {
             <div className="space-y-4">
               <h3 className="font-medium text-gray-900">Select View</h3>
               <div className="grid grid-cols-2 gap-2">
-                {STATIC_HOODIE_SIDES.map((s) => (
+                {availableSides.map((s) => (
                   <button
                     key={s}
-                    onClick={() => setSide(s)}
+                    onClick={() => setSide(s as HoodieSide)}
                     className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${side === s
                       ? "bg-black text-white border-black"
                       : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
@@ -686,16 +837,65 @@ export default function CustomizerPage() {
           {activeTab === "Art" && (
             <div className="space-y-4">
               <h3 className="font-medium text-gray-900">Stickers & Art</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {ART_ASSETS.map((a) => (
-                  <div
-                    key={a}
-                    className="aspect-square border rounded-lg p-2 cursor-pointer hover:border-black flex items-center justify-center bg-gray-50"
-                    onClick={() => addArt(a)}
-                  >
-                    <img src={a} alt="Art" className="w-full h-full object-contain" />
+
+              {/* Category Selection */}
+              {artCategories.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600">Categories</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedArtCategory(null)}
+                      className={`px-3 py-1 text-sm rounded-lg transition-colors ${selectedArtCategory === null
+                        ? "bg-black text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                    >
+                      All
+                    </button>
+                    {artCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedArtCategory(cat.id)}
+                        className={`px-3 py-1 text-sm rounded-lg transition-colors ${selectedArtCategory === cat.id
+                          ? "bg-black text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Assets Grid */}
+              <div className="grid grid-cols-3 gap-2">
+                {artCategories.length > 0 ? (
+                  // Show assets from selected category or all categories
+                  (selectedArtCategory === null
+                    ? artCategories.flatMap((cat) => cat.assets)
+                    : artCategories.find((cat) => cat.id === selectedArtCategory)?.assets || []
+                  ).map((asset: any) => (
+                    <div
+                      key={asset.id}
+                      className="aspect-square border rounded-lg p-2 cursor-pointer hover:border-black flex items-center justify-center bg-gray-50"
+                      onClick={() => addArt(asset.url)}
+                    >
+                      <img src={asset.url} alt={asset.name || "Art"} className="w-full h-full object-contain" />
+                    </div>
+                  ))
+                ) : (
+                  // Fallback to displayArts if no categories
+                  displayArts.map((a) => (
+                    <div
+                      key={a}
+                      className="aspect-square border rounded-lg p-2 cursor-pointer hover:border-black flex items-center justify-center bg-gray-50"
+                      onClick={() => addArt(a)}
+                    >
+                      <img src={a} alt="Art" className="w-full h-full object-contain" />
+                    </div>
+                  ))
+                )}
               </div>
 
               {selectedId && elements.find((el) => el.id === selectedId)?.type === "image" && (
@@ -985,11 +1185,17 @@ export default function CustomizerPage() {
       </div>
 
       {/* Canvas Area */}
-      <div className="w-full md:flex-1 bg-gray-100 flex items-center justify-center p-4 md:p-8 overflow-hidden min-h-[300px] md:min-h-0">
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+      <div
+        className="w-full md:flex-1 bg-gray-50 flex items-center justify-center p-4 md:p-8 overflow-hidden min-h-[300px] md:min-h-0"
+        style={{
+          backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}
+      >
+        <div className="bg-transparent overflow-hidden">
           <Stage
-            width={500 * scale}
-            height={500 * scale}
+            width={600 * scale}
+            height={600 * scale}
             scale={{ x: scale, y: scale }}
             ref={stageRef}
             onMouseDown={checkDeselect}
@@ -1036,6 +1242,36 @@ export default function CustomizerPage() {
             </Layer>
           </Stage>
         </div>
+      </div>
+
+      {/* Hidden Stages for Snapshot Capture */}
+      <div style={{ position: "absolute", top: -10000, left: -10000, visibility: "hidden" }}>
+        {Object.entries(elementsBySide).map(([s, els]) => {
+          if (els.length === 0) return null;
+          return (
+            <Stage
+              key={s}
+              ref={(node) => {
+                if (node) previewRefs.current[s] = node;
+                else delete previewRefs.current[s];
+              }}
+              width={500}
+              height={500}
+              scale={{ x: 1, y: 1 }}
+            >
+              <Layer>
+                <HoodieImage src={getTemplateUrl(color, s)} width={500} height={500} />
+                {els.map((el) => {
+                  if (el.type === "image") {
+                    return <URLImage key={el.id} image={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
+                  } else {
+                    return <URLText key={el.id} element={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
+                  }
+                })}
+              </Layer>
+            </Stage>
+          );
+        })}
       </div>
     </div>
   );

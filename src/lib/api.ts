@@ -163,6 +163,9 @@ export const ordersAPI = {
       adminNotes?: string | null;
     }
   ) => api.put('/orders/admin/bulk-update', data), // Bulk update orders (new endpoint)
+
+  bulkDeleteAdmin: (orderIds: string[]) =>
+    api.delete('/orders/admin/bulk-delete', { data: { orderIds } }), // Bulk delete orders
 };
 
 export const usersAPI = {
