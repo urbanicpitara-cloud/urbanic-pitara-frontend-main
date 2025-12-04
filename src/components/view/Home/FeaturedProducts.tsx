@@ -14,31 +14,42 @@ const featuredProducts = [
 
 const FeaturedProducts = () => {
   return (
-    <section className="py-16 px-4 md:px-8">
-      {/* <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center font-serif">
-        Featured Products
-      </h2> */}
-      <div className="flex flex-wrap -mx-4 justify-center">
-        {featuredProducts.map((product) => (
-          <Link
-            key={product.name}
-            href={product.href}
-            className="group relative overflow-hidden rounded-lg border border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300 m-4 flex-shrink-0 w-full sm:w-[45%] lg:w-[22%]"
-          >
-            <div className="relative w-full aspect-[3/4]">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className="object-cover w-full h-full transition-transform duration-300"
-              />
-            </div>
-            <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-center justify-center text-white p-4">
-              <h3 className="text-lg md:text-xl font-semibold text-center">{product.name}</h3>
-              <p className="mt-1 md:mt-2 text-md md:text-lg">{product.price}</p>
-            </div>
-          </Link>
-        ))}
+    <section className="py-10 px-4 md:px-8 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {featuredProducts.map((product) => (
+            <Link
+              key={product.name}
+              href={product.href}
+              className="group block"
+            >
+              <div className="relative overflow-hidden rounded-xl aspect-[3/4] mb-4 shadow-sm group-hover:shadow-xl transition-all duration-500">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+
+                {/* Overlay Button */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <span className="bg-white text-black px-8 py-3 rounded-full font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 shadow-lg hover:bg-[var(--gold)] hover:text-white">
+                    View Details
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-center px-2">
+                <h3 className="text-lg font-serif text-gray-900 mb-2 line-clamp-1 group-hover:text-[var(--gold)] transition-colors">
+                  {product.name}
+                </h3>
+                <p className="text-black font-semibold text-lg tracking-wide">
+                  {product.price}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

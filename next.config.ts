@@ -8,19 +8,23 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cdn.shopify.com",
       },
-         {
+      {
         protocol: "https",
         hostname: "0dpp0x-v0.myshopify.com",
       }
       ,
-         {
+      {
         protocol: "https",
         hostname: "via.placeholder.com",
       }
       ,
-         {
+      {
         protocol: "https",
         hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       }
     ],
   },
