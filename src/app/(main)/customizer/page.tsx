@@ -71,7 +71,7 @@ const FONT_FAMILIES = [
   "Cambria",
   "Monaco",
 ] as const;
-const BASE_HOODIE_PRODUCT_ID = "cmiit63lc0000wadchgo1ydck"; // Base product ID for custom orders
+// const BASE_HOODIE_PRODUCT_ID = "cmiit63lc0000wadchgo1ydck"; // Base product ID for custom orders
 
 // ---------------- Hoodie Image ----------------
 const HoodieImage = ({ src, width, height }: { src: string; width: number; height: number }) => {
@@ -227,7 +227,7 @@ const URLText = ({
         onTransformEnd={() => {
           const node = textRef.current;
           if (!node) return;
-          const scaleX = node.scaleX();
+          // const scaleX = node.scaleX();
           const scaleY = node.scaleY();
           node.scaleX(1);
           node.scaleY(1);

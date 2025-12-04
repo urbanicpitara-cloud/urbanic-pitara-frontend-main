@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Save, Loader2, Image as ImageIcon, Palette, Layers } from "lucide-react";
+import { Plus, Trash2, Loader2, Image as ImageIcon, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 
@@ -63,6 +63,7 @@ export default function AdminCustomizerPage() {
                 fetchProducts();
             }
         } catch (error) {
+            console.error(error)
             toast.error("Failed to create product");
         }
     };
@@ -98,6 +99,7 @@ export default function AdminCustomizerPage() {
                 fetchProducts();
             }
         } catch (error) {
+                        console.error(error)
             toast.error("Failed to add variant");
         }
     };
@@ -115,6 +117,7 @@ export default function AdminCustomizerPage() {
                 fetchProducts();
             }
         } catch (error) {
+                        console.error(error)
             toast.error("Failed to add view");
         }
     };
@@ -172,6 +175,7 @@ export default function AdminCustomizerPage() {
                 fetchCategories();
             }
         } catch (error) {
+                        console.error(error)
             toast.error("Failed to create category");
         }
     };
@@ -195,6 +199,7 @@ export default function AdminCustomizerPage() {
                 fetchCategories();
             }
         } catch (error) {
+                        console.error(error)
             toast.error("Failed to add assets");
         }
     };

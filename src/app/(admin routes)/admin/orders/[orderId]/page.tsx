@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ordersAPI } from "@/lib/api";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Clock, CreditCard, MapPin, Edit2, Trash2, Copy } from "lucide-react";
+import { ArrowLeft, Clock, CreditCard, MapPin, Edit2, Trash2, Copy, Download, Loader2 } from "lucide-react";
 
 type StatusType =
     | "PENDING"
@@ -159,6 +159,32 @@ export default function AdminOrderDetailPage() {
     const [updating, setUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [paymentStatusUpdate, setPaymentStatusUpdate] = useState<string>("");
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+    const downloadAssets = async (customProductId: string) => {
+        try {
+            setDownloadingId(customProductId);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/download-assets/orders/${orderId}/custom-product/${customProductId}`);
+
+            if (!res.ok) throw new Error("Failed to download assets");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `assets-${customProductId}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            toast.success("Assets downloaded");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to download assets");
+        } finally {
+            setDownloadingId(null);
+        }
+    };
 
     const fetchOrder = async () => {
         if (!orderId) {
@@ -356,6 +382,18 @@ export default function AdminOrderDetailPage() {
                                                                             </div>
                                                                         ))}
                                                                     </div>
+                                                                    <button
+                                                                        onClick={() => downloadAssets(item.customProduct!.id)}
+                                                                        disabled={downloadingId === item.customProduct.id}
+                                                                        className="mt-3 flex items-center gap-2 text-xs bg-black text-white px-3 py-2 rounded hover:bg-gray-800 disabled:opacity-50"
+                                                                    >
+                                                                        {downloadingId === item.customProduct.id ? (
+                                                                            <Loader2 size={12} className="animate-spin" />
+                                                                        ) : (
+                                                                            <Download size={12} />
+                                                                        )}
+                                                                        Download Production Assets
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>
