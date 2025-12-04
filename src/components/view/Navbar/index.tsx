@@ -129,6 +129,13 @@ const Navbar = () => {
             Catalog
           </Link>
 
+          <Link
+            href={"/customizer"}
+            className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
+          >
+            Custom Hoodies
+          </Link>
+
           {user?.isAdmin && (
             <Link
               href="/admin"
@@ -271,6 +278,13 @@ const Navbar = () => {
               className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
             >
               Catalog <ChevronDown className="h-4 w-4" />
+            </Link>
+
+            <Link
+              href={"/customizer"}
+              className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
+            >
+              Custom Hoodies
             </Link>
 
             {user?.isAdmin && (

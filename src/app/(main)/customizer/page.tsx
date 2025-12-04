@@ -4,7 +4,7 @@ import { Stage, Layer, Rect, Text, Image as KonvaImage, Transformer } from "reac
 import useImage from "use-image";
 import { useRouter } from "next/navigation";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
-import { Loader2, Upload, ShoppingCart, Type, Palette, RotateCcw, Image as ImageIcon, Sticker, Bold, Italic, Trash2, Ruler, Shirt } from "lucide-react";
+import { Loader2, Upload, ShoppingCart, Type, Palette, RotateCcw, Image as ImageIcon, Sticker, Bold, Italic, Trash2, Ruler, Shirt, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Types
@@ -32,6 +32,13 @@ export interface CanvasElement {
   borderWidth?: number; // 0-5
   letterSpacing?: number; // -2 to 5
   lineHeight?: number; // 0.8 to 2.0
+  // SVG customization properties
+  svgProperties?: {
+    fillColor?: string; // Override SVG fill color
+    strokeColor?: string; // Override SVG stroke color
+    strokeWidth?: number; // Override stroke width
+    opacity?: number; // Overall SVG opacity (0-1)
+  };
 }
 
 interface TemplateData {
@@ -101,6 +108,292 @@ const HoodieImage = ({ src, width, height }: { src: string; width: number; heigh
   return <KonvaImage image={image} x={offsetX} y={offsetY} width={renderWidth} height={renderHeight} listening={false} />;
 };
 
+// Helper: Detect if URL is SVG
+const isSvgUrl = (url?: string): boolean => {
+  return !!url && url.toLowerCase().endsWith('.svg');
+};
+
+// Helper: Apply SVG customizations via CSS filters & transforms
+const getSvgFilterStyle = (svgProps?: any): React.CSSProperties => {
+  if (!svgProps) return {};
+
+  let filter = '';
+  const styles: React.CSSProperties = {};
+
+  // Apply opacity
+  if (svgProps.opacity !== undefined) {
+    styles.opacity = svgProps.opacity;
+  }
+
+  if (filter) {
+    styles.filter = filter.trim();
+  }
+
+  return styles;
+};
+
+// SVG Image Component with customization support
+const SVGImage = ({
+  svgUrl,
+  width,
+  height,
+  svgProperties,
+}: {
+  svgUrl: string;
+  width: number;
+  height: number;
+  svgProperties?: any;
+}) => {
+  const [svgContent, setSvgContent] = useState<string>('');
+  const svgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchAndCustomizeSVG = async () => {
+      try {
+        const response = await fetch(svgUrl);
+        let content = await response.text();
+
+        // Apply customizations to SVG content
+        if (svgProperties) {
+          const parser = new DOMParser();
+          const svgDoc = parser.parseFromString(content, 'image/svg+xml');
+
+          if (svgDoc.documentElement.tagName === 'svg') {
+            // Apply fill color
+            if (svgProperties.fillColor) {
+              svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line, g').forEach((el) => {
+                const currentFill = el.getAttribute('fill');
+                // Apply fill to elements that don't have fill="none"
+                if (currentFill !== 'none') {
+                  el.setAttribute('fill', svgProperties.fillColor);
+                }
+              });
+            }
+
+            // Apply stroke color - apply to ALL elements
+            if (svgProperties.strokeColor) {
+              svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line').forEach((el) => {
+                el.setAttribute('stroke', svgProperties.strokeColor);
+              });
+            }
+
+            // Apply stroke width - apply to ALL elements
+            if (svgProperties.strokeWidth !== undefined) {
+              if (svgProperties.strokeWidth === 0) {
+                // Remove stroke when width is 0
+                svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line').forEach((el) => {
+                  el.removeAttribute('stroke');
+                  el.removeAttribute('stroke-width');
+                });
+              } else {
+                // Apply stroke width and ensure visibility
+                svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line').forEach((el) => {
+                  el.setAttribute('stroke-width', svgProperties.strokeWidth.toString());
+                  if (!el.getAttribute('stroke')) {
+                    el.setAttribute('stroke', '#000000');
+                  }
+                });
+              }
+            }
+
+            // Apply opacity
+            if (svgProperties.opacity !== undefined) {
+              svgDoc.documentElement.setAttribute('opacity', svgProperties.opacity.toString());
+            }
+
+            content = new XMLSerializer().serializeToString(svgDoc.documentElement);
+          }
+        }
+
+        setSvgContent(content);
+      } catch (error) {
+        console.error('Failed to load SVG:', error);
+      }
+    };
+
+    fetchAndCustomizeSVG();
+  }, [svgUrl, svgProperties]);
+
+  return (
+    <div
+      ref={svgRef}
+      dangerouslySetInnerHTML={{ __html: svgContent }}
+      style={{
+        width,
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...getSvgFilterStyle(svgProperties),
+      }}
+    />
+  );
+};
+
+// Draggable SVG wrapper using HTML2Canvas approach
+const DraggableSVGImage = ({
+  element,
+  isSelected,
+  onSelect,
+  onChange,
+}: {
+  element: CanvasElement;
+  isSelected: boolean;
+  onSelect: () => void;
+  onChange: (newAttrs: CanvasElement) => void;
+}) => {
+  const svgContainerRef = useRef<any>(null);
+  const shapeRef = useRef<any>(null);
+  const trRef = useRef<any>(null);
+  const [svgImage, setSvgImage] = useState<any>(null);
+
+  useEffect(() => {
+    // Convert SVG to canvas image for Konva compatibility
+    const loadSVGAsImage = async () => {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+
+        // Create a wrapper canvas to render SVG
+        const canvas = document.createElement('canvas');
+        canvas.width = element.width;
+        canvas.height = element.height;
+        const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+          // Fetch SVG and render to canvas
+          const response = await fetch(element.src!);
+          let svgText = await response.text();
+
+          // Apply customizations to SVG before rendering
+          if (element.svgProperties) {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+
+            if (svgDoc.documentElement.tagName === 'svg') {
+              // Apply fill color
+              if (element.svgProperties.fillColor) {
+                svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line, g').forEach((el) => {
+                  const currentFill = el.getAttribute('fill');
+                  // Apply fill to elements that don't have fill="none"
+                  if (currentFill !== 'none') {
+                    el.setAttribute('fill', element.svgProperties!.fillColor!);
+                  }
+                });
+              }
+
+              // Apply stroke color - apply to ALL elements
+              if (element.svgProperties.strokeColor) {
+                svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line').forEach((el) => {
+                  el.setAttribute('stroke', element.svgProperties!.strokeColor!);
+                });
+              }
+
+              // Apply stroke width - apply to ALL elements
+              if (element.svgProperties.strokeWidth !== undefined) {
+                if (element.svgProperties.strokeWidth === 0) {
+                  // Remove stroke when width is 0
+                  svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line').forEach((el) => {
+                    el.removeAttribute('stroke');
+                    el.removeAttribute('stroke-width');
+                  });
+                } else {
+                  // Apply stroke width and ensure visibility
+                  svgDoc.querySelectorAll('path, circle, rect, ellipse, polygon, polyline, line').forEach((el) => {
+                    el.setAttribute('stroke-width', element.svgProperties!.strokeWidth!.toString());
+                    if (!el.getAttribute('stroke')) {
+                      el.setAttribute('stroke', '#000000');
+                    }
+                  });
+                }
+              }
+
+              // Apply opacity
+              if (element.svgProperties.opacity !== undefined) {
+                svgDoc.documentElement.setAttribute('opacity', element.svgProperties.opacity.toString());
+              }
+
+              svgText = new XMLSerializer().serializeToString(svgDoc.documentElement);
+            }
+          }
+
+          const blob = new Blob([svgText], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const canvasImg = new window.Image();
+            canvasImg.src = canvas.toDataURL();
+            canvasImg.onload = () => {
+              setSvgImage(canvasImg);
+            };
+            URL.revokeObjectURL(url);
+          };
+          img.src = url;
+        }
+      } catch (error) {
+        console.error('Failed to render SVG as image:', error);
+      }
+    };
+
+    loadSVGAsImage();
+  }, [element.src, element.width, element.height, element.svgProperties]);
+
+  useEffect(() => {
+    if (isSelected && trRef.current && shapeRef.current) {
+      trRef.current.nodes([shapeRef.current]);
+      trRef.current.getLayer()?.batchDraw();
+    }
+  }, [isSelected]);
+
+  return (
+    <>
+      {svgImage && (
+        <KonvaImage
+          ref={shapeRef}
+          image={svgImage}
+          x={element.x}
+          y={element.y}
+          width={element.width}
+          height={element.height}
+          rotation={element.rotation || 0}
+          draggable
+          opacity={element.svgProperties?.opacity ?? 1}
+          onClick={onSelect}
+          onTap={onSelect}
+          onDragEnd={(e) => onChange({ ...element, x: e.target.x(), y: e.target.y() })}
+          onTransformEnd={() => {
+            const node = shapeRef.current;
+            if (!node) return;
+            const scaleX = node.scaleX();
+            const scaleY = node.scaleY();
+            node.scaleX(1);
+            node.scaleY(1);
+            onChange({
+              ...element,
+              x: node.x(),
+              y: node.y(),
+              width: Math.max(10, node.width() * scaleX),
+              height: Math.max(10, node.height() * scaleY),
+              rotation: node.rotation(),
+            });
+          }}
+        />
+      )}
+      {isSelected && (
+        <Transformer
+          ref={trRef}
+          boundBoxFunc={(oldBox, newBox) => {
+            if (newBox.width < 5 || newBox.height < 5) {
+              return oldBox;
+            }
+            return newBox;
+          }}
+        />
+      )}
+    </>
+  );
+};
+
 // ---------------- Draggable Image ----------------
 const URLImage = ({
   image,
@@ -113,6 +406,15 @@ const URLImage = ({
   onSelect: () => void;
   onChange: (newAttrs: CanvasElement) => void;
 }) => {
+  // Check if this is an SVG image
+  const isSvg = isSvgUrl(image.src);
+
+  if (isSvg) {
+    // Use SVG-aware component for SVG images
+    return <DraggableSVGImage element={image} isSelected={isSelected} onSelect={onSelect} onChange={onChange} />;
+  }
+
+  // Regular image handling
   const [img] = useImage(image.src || "", "anonymous");
   const shapeRef = useRef<any>(null);
   const trRef = useRef<any>(null);
@@ -296,7 +598,7 @@ export default function CustomizerPage() {
 
   const [color, setColor] = useState<string>("black");
   const [side, setSide] = useState<HoodieSide>("front");
-  const [activeTab, setActiveTab] = useState<"Product" | "Color" | "Size" | "Side" | "Upload" | "Art" | "Text" | "Order">("Product");
+  const [activeTab, setActiveTab] = useState<"Product" | "Color" | "Size" | "Side" | "Upload" | "Art" | "SVG" | "Text" | "Order">("Product");
 
   const [elementsBySide, setElementsBySide] = useState<Record<HoodieSide, CanvasElement[]>>({
     front: [],
@@ -480,7 +782,10 @@ export default function CustomizerPage() {
       height: 100,
     };
     setElementsBySide({ ...elementsBySide, [side]: [...elements, newEl] });
-    setSelectedId(newEl.id);
+    // Delay selection slightly to ensure SVG is fully rendered (especially for DraggableSVGImage)
+    setTimeout(() => {
+      setSelectedId(newEl.id);
+    }, 100);
   };
 
   const addText = () => {
@@ -686,6 +991,7 @@ export default function CustomizerPage() {
             { id: "Side", icon: RotateCcw },
             { id: "Upload", icon: Upload },
             { id: "Art", icon: Sticker },
+            { id: "SVG", icon: Wand2 },
             { id: "Text", icon: Type },
             { id: "Order", icon: ShoppingCart },
           ].map((tab) => (
@@ -901,12 +1207,210 @@ export default function CustomizerPage() {
               {selectedId && elements.find((el) => el.id === selectedId)?.type === "image" && (
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="text-xs text-gray-500 mb-2">Selected Art</p>
+                  {isSvgUrl(elements.find((el) => el.id === selectedId)?.src) && (
+                    <div className="mb-3 p-2 bg-blue-50 rounded border border-blue-200">
+                      <p className="text-xs text-blue-700 font-medium">SVG Customization Available ✨</p>
+                    </div>
+                  )}
                   <button
                     onClick={() => deleteElement(selectedId!)}
                     className="text-red-500 text-sm hover:underline flex items-center gap-1"
                   >
                     <Trash2 size={14} /> Remove Art
                   </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SVG Customization Tab */}
+          {activeTab === "SVG" && (
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-900">SVG Customization</h3>
+              <p className="text-xs text-gray-600">Select an SVG art to customize</p>
+
+              {selectedId && elements.find((el) => el.id === selectedId)?.type === "image" && isSvgUrl(elements.find((el) => el.id === selectedId)?.src) ? (
+                <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  {/* Fill Color */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">Fill Color</label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={elements.find((el) => el.id === selectedId)?.svgProperties?.fillColor || "#000000"}
+                        onChange={(e) => {
+                          const updated = elements.map((el) =>
+                            el.id === selectedId
+                              ? {
+                                ...el,
+                                svgProperties: {
+                                  ...el.svgProperties,
+                                  fillColor: e.target.value,
+                                },
+                              }
+                              : el
+                          );
+                          setElementsBySide({ ...elementsBySide, [side]: updated });
+                        }}
+                        className="w-10 h-10 rounded cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-600 flex-1">
+                        {elements.find((el) => el.id === selectedId)?.svgProperties?.fillColor || "#000000"}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const updated = elements.map((el) =>
+                            el.id === selectedId
+                              ? {
+                                ...el,
+                                svgProperties: {
+                                  ...el.svgProperties,
+                                  fillColor: undefined,
+                                },
+                              }
+                              : el
+                          );
+                          setElementsBySide({ ...elementsBySide, [side]: updated });
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stroke Color */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">Stroke Color</label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={elements.find((el) => el.id === selectedId)?.svgProperties?.strokeColor || "#000000"}
+                        onChange={(e) => {
+                          const updated = elements.map((el) =>
+                            el.id === selectedId
+                              ? {
+                                ...el,
+                                svgProperties: {
+                                  ...el.svgProperties,
+                                  strokeColor: e.target.value,
+                                },
+                              }
+                              : el
+                          );
+                          setElementsBySide({ ...elementsBySide, [side]: updated });
+                        }}
+                        className="w-10 h-10 rounded cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-600 flex-1">
+                        {elements.find((el) => el.id === selectedId)?.svgProperties?.strokeColor || "#000000"}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const updated = elements.map((el) =>
+                            el.id === selectedId
+                              ? {
+                                ...el,
+                                svgProperties: {
+                                  ...el.svgProperties,
+                                  strokeColor: undefined,
+                                },
+                              }
+                              : el
+                          );
+                          setElementsBySide({ ...elementsBySide, [side]: updated });
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stroke Width */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">
+                      Stroke Width: {elements.find((el) => el.id === selectedId)?.svgProperties?.strokeWidth ?? 0}px
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="0.5"
+                      value={elements.find((el) => el.id === selectedId)?.svgProperties?.strokeWidth ?? 0}
+                      onChange={(e) => {
+                        const updated = elements.map((el) =>
+                          el.id === selectedId
+                            ? {
+                              ...el,
+                              svgProperties: {
+                                ...el.svgProperties,
+                                strokeWidth: parseFloat(e.target.value),
+                              },
+                            }
+                            : el
+                        );
+                        setElementsBySide({ ...elementsBySide, [side]: updated });
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Opacity */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-2">
+                      Opacity: {Math.round((elements.find((el) => el.id === selectedId)?.svgProperties?.opacity ?? 1) * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={elements.find((el) => el.id === selectedId)?.svgProperties?.opacity ?? 1}
+                      onChange={(e) => {
+                        const updated = elements.map((el) =>
+                          el.id === selectedId
+                            ? {
+                              ...el,
+                              svgProperties: {
+                                ...el.svgProperties,
+                                opacity: parseFloat(e.target.value),
+                              },
+                            }
+                            : el
+                        );
+                        setElementsBySide({ ...elementsBySide, [side]: updated });
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Reset All */}
+                  <button
+                    onClick={() => {
+                      const updated = elements.map((el) =>
+                        el.id === selectedId
+                          ? {
+                            ...el,
+                            svgProperties: {
+                              fillColor: undefined,
+                              strokeColor: undefined,
+                              strokeWidth: 0,
+                              opacity: 1,
+                            },
+                          }
+                          : el
+                      );
+                      setElementsBySide({ ...elementsBySide, [side]: updated });
+                    }}
+                    className="w-full py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm font-medium"
+                  >
+                    Reset All
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500 text-sm">
+                  <p>👈 Select an SVG art from the Art tab to customize it</p>
                 </div>
               )}
             </div>
