@@ -14,7 +14,7 @@ export interface ProductVariant {
   priceCurrency: string;
   inventoryQuantity: number;
   // Change: map optionId -> value for easier access
-  selectedOptions: Record<string, string>; 
+  selectedOptions: Record<string, string>;
 }
 
 export interface ProductOption {
@@ -57,4 +57,5 @@ export interface Product {
   compareMinCurrency?: string;
   compareMaxAmount?: string;
   compareMaxCurrency?: string;
+  createdAt?: string; // ISO date string
 }

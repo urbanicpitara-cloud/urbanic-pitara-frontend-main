@@ -1,10 +1,11 @@
+// ... (imports remain similar but ensuring FilterSidebar is used)
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, SlidersHorizontal, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { productsAPI, collectionsAPI } from "@/lib/api";
 import { Product } from "@/types/products";
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/view/ProductCard";
+import FilterSidebar, { FilterState } from "@/components/view/FilterSidebar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -31,48 +34,34 @@ function SearchContent() {
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [activeTab, setActiveTab] = useState("products");
   const [sort, setSort] = useState("relevance");
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [productResults, setProductResults] = useState<any>({
-    products: [],
-    total: 0,
-    page: 1,
-    totalPages: 1,
+  // Full datasets
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+
+  // Filter State
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    priceRange: [0, 50000],
+    sizes: [],
+    colors: [],
+    availability: [],
+    tags: [],
   });
 
-  const [collectionResults, setCollectionResults] = useState<any>({
-    collections: [],
-    total: 0,
-  });
+  // Dynamic Options
+  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+  const [availableColors, setAvailableColors] = useState<string[]>([]);
+  const [maxPrice, setMaxPrice] = useState(50000);
 
-  // 🧹 Reset local states when query changes
-  useEffect(() => {
-    setSearchQuery(queryParam);
-    setPage(1);
-    setProductResults({ products: [], total: 0, page: 1, totalPages: 1 });
-  }, [queryParam]);
+  // Pagination
+  const [displayCount, setDisplayCount] = useState(12);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Sorting logic
-  const getSortParams = (sortValue: string) => {
-    switch (sortValue) {
-      case "price_asc":
-        return { sort: "minPriceAmount", order: "asc" };
-      case "price_desc":
-        return { sort: "maxPriceAmount", order: "desc" };
-      case "title_asc":
-        return { sort: "title", order: "asc" };
-      case "title_desc":
-        return { sort: "title", order: "desc" };
-      case "newest":
-        return { sort: "createdAt", order: "desc" };
-      default:
-        return {};
-    }
-  };
-
-  // 🧠 Fetch search results on every change
+  // 🧠 Fetch search results
   useEffect(() => {
     if (!queryParam) return;
 
@@ -80,36 +69,81 @@ function SearchContent() {
       setLoading(true);
       setError(null);
       try {
-        const { sort: sortField, order } = getSortParams(sort);
-
         const [productsRes, collectionsRes] = await Promise.all([
           productsAPI.getAll({
             search: queryParam,
-            page,
-            limit: 20,
-            sort: sortField,
-            order,
+            limit: 100, // Fetch ample results for client-side filtering
+            sort: sort === 'relevance' ? undefined : (sort.includes('price') ? (sort.includes('asc') ? 'minPriceAmount' : 'maxPriceAmount') : 'createdAt'),
+            order: sort.includes('asc') ? 'asc' : 'desc'
           }),
           collectionsAPI.getAll(),
         ]);
 
-        const filteredCollections = collectionsRes.data.filter(
+        const fetchedProducts = productsRes.data.products || [];
+        setAllProducts(fetchedProducts);
+
+        // Filter collections client-side
+        const filteredCols = collectionsRes.data.filter(
           (col: any) =>
             col.title?.toLowerCase().includes(queryParam.toLowerCase()) ||
             col.description?.toLowerCase().includes(queryParam.toLowerCase())
         );
+        setCollections(filteredCols);
 
-        setProductResults({
-          products: productsRes.data.products || [],
-          total: productsRes.data.pagination?.total || 0,
-          page: productsRes.data.pagination?.page || 1,
-          totalPages: productsRes.data.pagination?.pages || 1,
+        // Calculate dynamic options
+        const sizes = new Set<string>();
+        const colors = new Set<string>();
+        let maxP = 50000;
+
+        fetchedProducts.forEach((p: Product) => {
+          // Max Price
+          const pMax = parseFloat(p.maxPriceAmount || "0");
+          if (pMax > maxP) maxP = pMax;
+
+          // Sizes & Colors
+          p.options?.forEach(opt => {
+            const name = opt.name.toLowerCase();
+            if (name === 'size' || name === 'sizes') {
+              opt.values.forEach((v: any) => {
+                const sizeValue = typeof v === 'string' ? v : (v && typeof v === 'object' && v.name ? String(v.name) : null);
+                if (sizeValue && sizeValue.toUpperCase() !== 'DEFAULT TITLE' && sizeValue.trim()) {
+                  sizes.add(sizeValue.toUpperCase());
+                }
+              });
+            }
+            if (name === 'color' || name === 'colors') {
+              opt.values.forEach((v: any) => {
+                if (typeof v === 'string') colors.add(v);
+                else if (v && typeof v === 'object') {
+                  if (v.name) colors.add(v.name);
+                  else if (v.color) colors.add(v.color);
+                }
+              });
+            }
+          });
+
+          p.variants?.forEach(v => {
+            if (v.title) {
+              v.title.split(' / ').forEach(part => {
+                const upperPart = part.toUpperCase();
+                if (["XS", "S", "M", "L", "XL", "XXL"].includes(upperPart) && upperPart !== 'DEFAULT TITLE') {
+                  sizes.add(upperPart);
+                }
+                if (["Red", "Blue", "Green", "Black", "White", "Pink"].includes(part)) colors.add(part);
+              });
+            }
+          });
         });
 
-        setCollectionResults({
-          collections: filteredCollections,
-          total: filteredCollections.length,
-        });
+        setMaxPrice(maxP);
+        setAvailableSizes(Array.from(sizes).sort());
+        setAvailableColors(Array.from(colors).sort());
+
+        // Reset Price Filter if default
+        if (filters.priceRange[1] === 50000) {
+          setFilters(prev => ({ ...prev, priceRange: [0, maxP] }));
+        }
+
       } catch (err) {
         console.error(err);
         setError("Something went wrong while fetching results.");
@@ -119,7 +153,67 @@ function SearchContent() {
     };
 
     fetchResults();
-  }, [queryParam, page, sort]); // ✅ dependencies correctly include queryParam
+  }, [queryParam, sort]);
+
+  // Apply Filters
+  useEffect(() => {
+    let result = [...allProducts];
+
+    // Price
+    result = result.filter(p => {
+      const price = parseFloat(p.minPriceAmount || "0");
+      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
+    });
+
+    // Size
+    if (filters.sizes.length > 0) {
+      result = result.filter(p =>
+        p.variants.some(v =>
+          v.selectedOptions
+            ? Object.values(v.selectedOptions).some(s => filters.sizes.includes(s))
+            : v.title.split(' / ').some(s => filters.sizes.includes(s))
+        )
+      );
+    }
+
+    // Color
+    if (filters.colors.length > 0) {
+      result = result.filter(p =>
+        p.variants.some(v =>
+          v.selectedOptions
+            ? Object.values(v.selectedOptions).some(c => filters.colors.includes(c))
+            : v.title.split(' / ').some(c => filters.colors.includes(c))
+        )
+      );
+    }
+
+    // Availability
+    if (filters.availability.length > 0) {
+      result = result.filter(p => {
+        const hasStock = p.variants.some(v => v.inventoryQuantity > 0);
+        if (filters.availability.includes("In Stock") && !hasStock) return false;
+        if (filters.availability.includes("Out of Stock") && hasStock) return false;
+        return true;
+      });
+    }
+
+    setFilteredProducts(result);
+    setDisplayCount(12);
+  }, [allProducts, filters]);
+
+  // Infinite Scroll
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setDisplayCount(prev => Math.min(prev + 12, filteredProducts.length));
+      }
+    });
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [filteredProducts.length]);
+
+  const displayedProducts = filteredProducts.slice(0, displayCount);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,21 +221,31 @@ function SearchContent() {
     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  const handleSortChange = (value: string) => {
-    setSort(value);
-    setPage(1);
+  const handleClearFilters = () => {
+    setFilters({
+      priceRange: [0, maxPrice],
+      sizes: [],
+      colors: [],
+      availability: [],
+      tags: [],
+    });
   };
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // Sort Options Map
+  const SORT_OPTIONS = [
+    { label: "Relevance", value: "relevance" },
+    { label: "Price: Low to High", value: "price_asc" },
+    { label: "Price: High to Low", value: "price_desc" },
+    { label: "Newest", value: "newest" },
+  ];
 
   return (
-    <div key={queryParam} className="container mx-auto px-4 py-8 pt-10">
-      <h1 className="text-2xl font-bold mb-6 text-center">Search Results</h1>
+    <div key={queryParam} className="container mx-auto px-4 py-8 pt-10 min-h-screen">
+      <h1 className="text-2xl font-serif font-bold mb-6 text-center">
+        {queryParam ? `Search Results for "${queryParam}"` : "Search"}
+      </h1>
 
-      <form onSubmit={handleSearch} className="mb-8">
+      <form onSubmit={handleSearch} className="mb-8 max-w-2xl mx-auto">
         <div className="flex gap-2">
           <Input
             type="text"
@@ -154,129 +258,136 @@ function SearchContent() {
         </div>
       </form>
 
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-md mb-6">{error}</div>
-      )}
-
       {queryParam ? (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-center mb-8">
             <TabsList>
-              <TabsTrigger value="products">
-                Products ({productResults.total || 0})
-              </TabsTrigger>
-              <TabsTrigger value="collections">
-                Collections ({collectionResults.total || 0})
-              </TabsTrigger>
+              <TabsTrigger value="products">Products ({filteredProducts.length})</TabsTrigger>
+              <TabsTrigger value="collections">Collections ({collections.length})</TabsTrigger>
             </TabsList>
-
-            {activeTab === "products" && (
-              <Select value={sort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="relevance">Relevance</SelectItem>
-                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  <SelectItem value="title_asc">Name: A to Z</SelectItem>
-                  <SelectItem value="title_desc">Name: Z to A</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
           </div>
 
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <>
-              <TabsContent value="products">
-                {productResults.products?.length > 0 ? (
+          <TabsContent value="products">
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Filters Sidebar */}
+              <aside className="hidden lg:block w-64 flex-shrink-0">
+                <FilterSidebar
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  onClearFilters={handleClearFilters}
+                  availableSizes={availableSizes}
+                  availableColors={availableColors}
+                  maxPrice={maxPrice}
+                />
+              </aside>
+
+              {/* Main Content */}
+              <div className="flex-1">
+                <div className="flex justify-between items-center mb-6">
+                  {/* Mobile Filter */}
+                  <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" className="lg:hidden">
+                        <SlidersHorizontal className="w-4 h-4 mr-2" /> Filters
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="overflow-y-auto w-[300px]">
+                      <FilterSidebar
+                        filters={filters}
+                        onFilterChange={setFilters}
+                        onClearFilters={handleClearFilters}
+                        availableSizes={availableSizes}
+                        availableColors={availableColors}
+                        maxPrice={maxPrice}
+                      />
+                    </SheetContent>
+                  </Sheet>
+
+                  <p className="text-sm text-gray-500 hidden sm:block">
+                    Showing {displayedProducts.length} results
+                  </p>
+
+                  <Select value={sort} onValueChange={setSort}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SORT_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Active Filters */}
+                {(filters.sizes.length > 0 || filters.colors.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {filters.sizes.map(s => (
+                      <span key={s} className="bg-gray-100 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+                        Size: {s} <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters(prev => ({ ...prev, sizes: prev.sizes.filter(x => x !== s) }))} />
+                      </span>
+                    ))}
+                    {filters.colors.map(c => (
+                      <span key={c} className="bg-gray-100 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+                        Color: {c} <X className="w-3 h-3 cursor-pointer" onClick={() => setFilters(prev => ({ ...prev, colors: prev.colors.filter(x => x !== c) }))} />
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {loading ? (
+                  <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-gray-300" /></div>
+                ) : displayedProducts.length > 0 ? (
                   <>
                     <motion.div
-                      className="flex flex-wrap gap-2 justify-center sm:justify-start"
-                      layout
-                      initial={{ opacity: 0 }} 
+                      className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"
+                      initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
                     >
-                      {productResults.products.map((product: Product) => (
-                        <motion.div
-                          key={product.id}
-                          className="w-[48%] sm:w-[45%] md:w-[30%] lg:w-[22%]"
-                          whileHover={{
-                            // scale: 1.05,
-                            boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-                          }}
-                        >
-                          <ProductCard product={product} />
-                        </motion.div>
+                      {displayedProducts.map((product, i) => (
+                        <ProductCard key={`${String(product.id)}-${i}`} product={product} idx={i} />
                       ))}
                     </motion.div>
-
-                    {productResults.totalPages > 1 && (
-                      <div className="flex justify-center mt-12 gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => handlePageChange(page - 1)}
-                          disabled={page === 1}
-                        >
-                          Previous
-                        </Button>
-                        <span className="px-3">
-                          Page {page} of {productResults.totalPages}
-                        </span>
-                        <Button
-                          variant="outline"
-                          onClick={() => handlePageChange(page + 1)}
-                          disabled={page >= productResults.totalPages}
-                        >
-                          Next
-                        </Button>
+                    {displayCount < filteredProducts.length && (
+                      <div ref={sentinelRef} className="h-20 flex justify-center items-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    No products found for &quot;{queryParam}&quot;
-                  </div>
+                  <div className="text-center py-20 text-gray-500">No products found matching your filters.</div>
                 )}
-              </TabsContent>
+              </div>
+            </div>
+          </TabsContent>
 
-              <TabsContent value="collections">
-                {collectionResults.collections?.length > 0 ? (
-                  <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-                    {collectionResults.collections.map((collection: Collection) => (
-                      <Link
-                        key={collection.id}
-                        href={`/collections/${collection.handle}`}
-                        className="group block w-full sm:w-[48%] md:w-[31%] bg-gray-50 rounded-lg p-6 shadow hover:shadow-lg transition"
-                      >
-                        <h3 className="font-medium text-lg mb-2 group-hover:text-indigo-600">
-                          {collection.title}
-                        </h3>
-                        {collection.description && (
-                          <p className="text-gray-600 line-clamp-2">
-                            {collection.description}
-                          </p>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    No collections found for &quot;{queryParam}&quot;
-                  </div>
-                )}
-              </TabsContent>
-            </>
-          )}
+          <TabsContent value="collections">
+            {collections.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {collections.map((collection) => (
+                  <Link
+                    key={collection.id}
+                    href={`/collections/${collection.handle}`}
+                    className="group block bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition"
+                  >
+                    <h3 className="font-serif font-medium text-lg mb-2 group-hover:text-indigo-600">
+                      {collection.title}
+                    </h3>
+                    {collection.description && (
+                      <p className="text-gray-600 line-clamp-2 text-sm">
+                        {collection.description}
+                      </p>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 text-gray-500">No collections found.</div>
+            )}
+          </TabsContent>
         </Tabs>
       ) : (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-20 text-gray-500">
           Enter a search term to find products and collections.
         </div>
       )}
