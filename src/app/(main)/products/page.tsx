@@ -5,7 +5,7 @@ import { productsAPI } from "@/lib/api";
 import ProductCard from "@/components/view/ProductCard";
 import FilterSidebar, { FilterState } from "@/components/view/FilterSidebar";
 import { Product } from "@/types/products";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 import { Loader2, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,11 +26,11 @@ export default function ProductsPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // const [error, setError] = useState("");
 
   // Pagination / Infinite Scroll
   const [displayCount, setDisplayCount] = useState(12);
-  const [hasMore, setHasMore] = useState(true);
+  // const [hasMore, setHasMore] = useState(true);
 
   // Filter & Sort State
   const [sort, setSort] = useState<SortOption>(SORT_OPTIONS[0]);
@@ -58,7 +58,7 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      setError("");
+      // setError("");
       try {
         const res = await productsAPI.getAll({
           limit: 100, // Fetch up to 100 for better client-side filter experience
@@ -136,8 +136,9 @@ export default function ProductsPage() {
         }));
         setAvailableColors(Array.from(colors).sort());
 
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load products");
+      } catch (err) {
+        // setError(err instanceof Error ? err.message : "Failed to load products");
+        console.error(err)
       } finally {
         setLoading(false);
       }
