@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/admin/sidebar";
 import Header from "@/components/admin/header";
 
@@ -12,8 +12,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { user, loading } = useAuth();
-  console.log("user :",user)
+  console.log("user :", user)
   const router = useRouter();
+
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !user.isAdmin)) {
@@ -31,10 +33,10 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-y-auto">
-        <Header />
-        <main className="flex-1 p-6 bg-gray-50">{children}</main>
+      <Sidebar mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen} />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header onMobileNavOpen={() => setMobileNavOpen(true)} />
+        <main className="flex-1 p-6 bg-gray-50 overflow-x-hidden overflow-y-auto">{children}</main>
       </div>
     </div>
   );

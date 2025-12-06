@@ -21,7 +21,7 @@ const BridalSpotlight = () => {
       </div>
 
       <div className="relative h-full flex flex-col items-center justify-center text-center px-6 z-10">
-        <span className="text-[var(--gold)] text-lg font-medium tracking-[0.2em] uppercase mb-4">
+        <span className="text-white text-lg font-medium tracking-[0.2em] uppercase mb-4">
           Signature Collection
         </span>
 
@@ -29,7 +29,7 @@ const BridalSpotlight = () => {
           The Royal Bridal Edit
         </h2>
 
-        <p className="text-white/90 text-lg md:text-xl mb-10 max-w-2xl font-light leading-relaxed">
+        <p className="text-white text-lg md:text-xl mb-10 max-w-2xl font-light leading-relaxed">
           Experience exquisite craftsmanship and timeless elegance with our signature lehengas and bridal ensembles.
         </p>
 

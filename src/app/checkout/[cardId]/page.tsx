@@ -120,19 +120,19 @@ export default function CheckoutPage() {
 
   const getFinalTotal = (subtotal: number, discount?: Discount | null, paymentMethod: PaymentMethod = "PHONEPE"): number => {
     let total = subtotal;
-    
+
     // Apply discount first
     if (discount) {
       const value = Number(discount.value);
       if (discount.type === "PERCENTAGE") total = subtotal - (subtotal * value) / 100;
       else if (discount.type === "FIXED") total = Math.max(subtotal - value, 0);
     }
-    
+
     // Add COD surcharge if applicable
     if (paymentMethod === "COD") {
       total += getCODSurcharge();
     }
-    
+
     return total;
   };
 
@@ -258,6 +258,7 @@ export default function CheckoutPage() {
         cartId: cart.id,
         shippingAddressId: shippingAddress.id,
         discountCode: appliedDiscount ? appliedDiscount.code : null,
+        paymentMethod: "COD",
         cartSnapshot: cart.items.map((it) => ({
           productId: it.product.id,
           variantId: it.variantId || null,
@@ -419,11 +420,10 @@ export default function CheckoutPage() {
                 {addresses.map((addr) => (
                   <label
                     key={addr.id}
-                    className={`flex items-start gap-2 border rounded-md p-3 cursor-pointer ${
-                      selectedAddressId === addr.id
+                    className={`flex items-start gap-2 border rounded-md p-3 cursor-pointer ${selectedAddressId === addr.id
                         ? "border-black bg-gray-50"
                         : "border-gray-200"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -606,7 +606,7 @@ export default function CheckoutPage() {
                 ₹{cart.totalAmount.toFixed(2)} {cart.currency}
               </span>
             </div>
-            
+
             {selectedPaymentMethod === "PHONEPE" ? (
               <Button
                 onClick={handlePayWithPhonePe}

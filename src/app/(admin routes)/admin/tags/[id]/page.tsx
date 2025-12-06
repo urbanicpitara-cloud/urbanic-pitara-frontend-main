@@ -86,38 +86,64 @@ export default function TagEditPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto p-6 space-y-6">
-            <h1 className="text-3xl font-bold">{tagIdFromUrl ? "Edit Tag" : "Add New Tag"}</h1>
+        <div className="max-w-2xl mx-auto py-8 px-4 h-full flex flex-col">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6 border-b border-gray-100">
+                    <h1 className="text-xl font-bold text-gray-900">{tagIdFromUrl ? "Edit Tag" : "Add New Tag"}</h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage tag details and visibility</p>
+                </div>
 
-            <div className="space-y-4">
-                <input
-                    value={tagName}
-                    onChange={(e) => setTagName(e.target.value)}
-                    placeholder="Tag Name"
-                    className="border p-3 rounded w-full focus:ring focus:ring-green-200"
-                />
-                <input
-                    value={handle}
-                    onChange={handleHandleChange}
-                    placeholder="Handle (auto-generated)"
-                    className="border p-3 rounded w-full focus:ring focus:ring-green-200"
-                />
-                <textarea
-                    value={description || ""}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Description"
-                    className="border p-3 rounded w-full focus:ring focus:ring-green-200"
-                />
+                <div className="p-6 space-y-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tag Name</label>
+                        <input
+                            value={tagName}
+                            onChange={(e) => setTagName(e.target.value)}
+                            placeholder="e.g. New Arrivals"
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:bg-white transition-all text-sm"
+                        />
+                    </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Handle <span className="text-gray-400 font-normal">(Auto-generated)</span>
+                        </label>
+                        <input
+                            value={handle}
+                            onChange={handleHandleChange}
+                            placeholder="new-arrivals"
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:bg-white transition-all text-sm font-mono text-gray-600"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea
+                            value={description || ""}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Optional description..."
+                            rows={4}
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5 focus:bg-white transition-all text-sm resize-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+                    <button
+                        onClick={() => router.back()}
+                        className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-all"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
+                    >
+                        {saving ? "Saving..." : "Save Changes"}
+                    </button>
+                </div>
             </div>
-
-            <button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 disabled:opacity-50"
-            >
-                {saving ? "Saving..." : "Save Tag"}
-            </button>
         </div>
     );
 }

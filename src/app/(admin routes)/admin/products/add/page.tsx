@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -217,18 +218,18 @@ export default function AddProductPage() {
 
               <div>
                 <Label>Collection</Label>
-                <select
-                  value={collectionId}
-                  onChange={(e) => setCollectionId(e.target.value)}
-                  className="w-full border rounded-md p-2"
-                >
-                  <option value="">Select collection</option>
-                  {collections.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
+                <Select value={collectionId} onValueChange={setCollectionId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select collection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {collections.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

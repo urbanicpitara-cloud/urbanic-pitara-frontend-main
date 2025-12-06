@@ -55,7 +55,7 @@ export function useProducts(): UseProductsResult {
       const params = {
         search: search || undefined,
         page: overridePage || pagination.page,
-        all:true,
+        all: true,
         limit: pagination.limit,
         ...filters,
       };

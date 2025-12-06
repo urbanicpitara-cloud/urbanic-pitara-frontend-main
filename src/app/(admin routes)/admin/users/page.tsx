@@ -151,138 +151,140 @@ export default function AdminUsersPage() {
         </button>
       </div>
 
-      <table className="w-full border border-gray-300">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 border">
-              <input
-                type="checkbox"
-                onChange={handleSelectAll}
-                checked={selectedUsers.size === users.length && users.length > 0}
-              />
-            </th>
-            <th className="p-2 border">Name</th>
-            <th className="p-2 border">Email</th>
-            <th className="p-2 border">Phone</th>
-            <th className="p-2 border">Role</th>
-            <th className="p-2 border">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="hover:bg-gray-50">
-              <td className="p-2 border text-center">
+      <div className="overflow-x-auto bg-white border border-gray-300 rounded mb-4">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-100 border-b">
+            <tr>
+              <th className="p-3 border-r text-left">
                 <input
                   type="checkbox"
-                  checked={selectedUsers.has(user.id)}
-                  onChange={() => handleSelectUser(user.id)}
+                  onChange={handleSelectAll}
+                  checked={selectedUsers.size === users.length && users.length > 0}
                 />
-              </td>
-              <td className="p-2 border">
-                {editingUser?.id === user.id ? (
-                  <input
-                    type="text"
-                    value={editingUser.firstName}
-                    onChange={(e) =>
-                      setEditingUser({ ...editingUser, firstName: e.target.value })
-                    }
-                    placeholder="First Name"
-                    className="border p-1 w-full"
-                  />
-                ) : (
-                  `${user.firstName} ${user.lastName}`
-                )}
-              </td>
-              <td className="p-2 border">
-                {editingUser?.id === user.id ? (
-                  <input
-                    type="email"
-                    value={editingUser.email}
-                    onChange={(e) =>
-                      setEditingUser({ ...editingUser, email: e.target.value })
-                    }
-                    className="border p-1 w-full"
-                  />
-                ) : (
-                  user.email
-                )}
-              </td>
-              <td className="p-2 border">
-                {editingUser?.id === user.id ? (
-                  <input
-                    type="text"
-                    value={editingUser.phone || ""}
-                    onChange={(e) =>
-                      setEditingUser({ ...editingUser, phone: e.target.value })
-                    }
-                    className="border p-1 w-full"
-                  />
-                ) : (
-                  user.phone || "-"
-                )}
-              </td>
-              <td className="p-2 border">
-                {editingUser?.id === user.id ? (
-                  <select
-                    value={editingUser.isAdmin ? "admin" : "user"}
-                    onChange={(e) =>
-                      setEditingUser({ ...editingUser, isAdmin: e.target.value === "admin" })
-                    }
-                    className="border p-1 w-full"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                ) : user.isAdmin ? (
-                  "Admin"
-                ) : (
-                  "User"
-                )}
-              </td>
-              <td className="p-2 border flex gap-2">
-                {editingUser?.id === user.id ? (
-                  <>
-                    <button
-                      className="bg-green-500 text-white px-2 py-1 rounded"
-                      onClick={handleSave}
-                      disabled={saving}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="bg-gray-300 px-2 py-1 rounded"
-                      onClick={() => setEditingUser(null)}
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="bg-blue-500 text-white px-2 py-1 rounded"
-                      onClick={() => handleEdit(user)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="bg-yellow-500 text-white px-2 py-1 rounded"
-                      onClick={() => handleResetPassword(user.id)}
-                    >
-                      Reset PW
-                    </button>
-                    <button
-                      className="bg-red-500 text-white px-2 py-1 rounded"
-                      onClick={() => handleDelete(user.id)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              </td>
+              </th>
+              <th className="p-3 border-r text-left font-semibold">Name</th>
+              <th className="p-3 border-r text-left font-semibold">Email</th>
+              <th className="p-3 border-r text-left font-semibold">Phone</th>
+              <th className="p-3 border-r text-left font-semibold">Role</th>
+              <th className="p-3 text-left font-semibold">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} className="hover:bg-gray-50 border-b last:border-0">
+                <td className="p-3 border-r text-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedUsers.has(user.id)}
+                    onChange={() => handleSelectUser(user.id)}
+                  />
+                </td>
+                <td className="p-3 border-r">
+                  {editingUser?.id === user.id ? (
+                    <input
+                      type="text"
+                      value={editingUser.firstName}
+                      onChange={(e) =>
+                        setEditingUser({ ...editingUser, firstName: e.target.value })
+                      }
+                      placeholder="First Name"
+                      className="border p-1 w-full rounded"
+                    />
+                  ) : (
+                    `${user.firstName} ${user.lastName}`
+                  )}
+                </td>
+                <td className="p-3 border-r">
+                  {editingUser?.id === user.id ? (
+                    <input
+                      type="email"
+                      value={editingUser.email}
+                      onChange={(e) =>
+                        setEditingUser({ ...editingUser, email: e.target.value })
+                      }
+                      className="border p-1 w-full rounded"
+                    />
+                  ) : (
+                    user.email
+                  )}
+                </td>
+                <td className="p-3 border-r">
+                  {editingUser?.id === user.id ? (
+                    <input
+                      type="text"
+                      value={editingUser.phone || ""}
+                      onChange={(e) =>
+                        setEditingUser({ ...editingUser, phone: e.target.value })
+                      }
+                      className="border p-1 w-full rounded"
+                    />
+                  ) : (
+                    user.phone || "-"
+                  )}
+                </td>
+                <td className="p-3 border-r">
+                  {editingUser?.id === user.id ? (
+                    <select
+                      value={editingUser.isAdmin ? "admin" : "user"}
+                      onChange={(e) =>
+                        setEditingUser({ ...editingUser, isAdmin: e.target.value === "admin" })
+                      }
+                      className="border p-1 w-full rounded"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : user.isAdmin ? (
+                    "Admin"
+                  ) : (
+                    "User"
+                  )}
+                </td>
+                <td className="p-3 flex gap-2">
+                  {editingUser?.id === user.id ? (
+                    <>
+                      <button
+                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
+                        onClick={handleSave}
+                        disabled={saving}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="bg-gray-300 px-2 py-1 rounded hover:bg-gray-400 transition"
+                        onClick={() => setEditingUser(null)}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition"
+                        onClick={() => handleEdit(user)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition"
+                        onClick={() => handleResetPassword(user.id)}
+                      >
+                        Reset PW
+                      </button>
+                      <button
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
+                        onClick={() => handleDelete(user.id)}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
       <div className="flex justify-between mt-4">

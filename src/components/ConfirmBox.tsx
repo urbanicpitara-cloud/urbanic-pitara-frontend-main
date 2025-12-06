@@ -19,6 +19,7 @@ interface AlertDialogConfirmProps {
   onConfirm: (id: string) => Promise<void> | void;
   description?: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  renderTrigger?: (onClick?: () => void) => React.ReactNode;
 }
 
 export function AlertDialogConfirm({
@@ -27,13 +28,18 @@ export function AlertDialogConfirm({
   onConfirm,
   description = "This action cannot be undone.",
   variant = "outline",
+  renderTrigger,
 }: AlertDialogConfirmProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant={variant} size="sm">
-          {showBtnText}
-        </Button>
+        {renderTrigger ? (
+          renderTrigger()
+        ) : (
+          <Button variant={variant} size="sm">
+            {showBtnText}
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

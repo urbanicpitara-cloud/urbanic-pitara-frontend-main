@@ -3,9 +3,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RefreshCw, Filter, Plus, Trash2, Edit } from "lucide-react";
+import { RefreshCw, Filter, Plus, Trash2, Edit, Search } from "lucide-react";
 import { useState } from "react";
-import BulkEditProductsModal from "./BulkEditModal"; // ✅ make sure the path matches your file name
+import BulkEditProductsModal from "./BulkEditModal";
 import Link from "next/link";
 
 interface ProductsToolbarProps {
@@ -44,52 +44,52 @@ export default function ProductsToolbar({
     <>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         {/* Search Bar */}
-        <form
-          onSubmit={handleSearchSubmit}
-          className="flex items-center gap-2 w-full sm:w-1/2"
-        >
-          <Input
-            placeholder="Search products..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            className="w-full"
-          />
-          <Button type="submit" variant="secondary">
-            Search
-          </Button>
-        </form>
+        <div className="relative w-full sm:w-96">
+          <form onSubmit={handleSearchSubmit}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search products..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+            />
+          </form>
+        </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {selectedCount > 0 && (
-            <>
+            <div className="flex items-center gap-2 mr-2 pr-2 border-r border-gray-100">
+              <span className="text-sm text-gray-500 hidden sm:inline-block">{selectedCount} selected</span>
+
               <Button
                 variant="destructive"
-                size="sm"
+                size="icon"
                 onClick={onBulkDelete}
-                title="Delete selected"
+                className="h-9 w-9"
+                title="Delete Selected"
               >
-                <Trash2 className="w-4 h-4 mr-1" />
-                Delete ({selectedCount})
+                <Trash2 className="w-4 h-4" />
               </Button>
 
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 onClick={() => setEditModalOpen(true)}
-                title="Bulk edit selected"
+                className="h-9 w-9 text-gray-600"
+                title="Edit Selected"
               >
-                <Edit className="w-4 h-4 mr-1" />
-                Edit ({selectedCount})
+                <Edit className="w-4 h-4" />
               </Button>
-            </>
+            </div>
           )}
 
           <Button
             variant="outline"
             size="icon"
-            title="Refresh"
             onClick={onRefresh}
+            className="h-9 w-9 text-gray-600 hover:text-black"
+            title="Refresh List"
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
@@ -98,23 +98,23 @@ export default function ProductsToolbar({
             <Button
               variant="outline"
               size="icon"
-              title="Filters"
               onClick={onOpenFilters}
+              className="h-9 w-9 text-gray-600 hover:text-black"
+              title="Filters"
             >
               <Filter className="w-4 h-4" />
             </Button>
           )}
 
-        <Link href="products/add">
-          <Button className="bg-blue-600 text-white hover:bg-blue-800">
-            <Plus className="w-4 h-4 mr-1" />
-            Add Product
-          </Button>
+          <Link href="products/add">
+            <Button className="bg-black text-white hover:bg-gray-800 h-9 px-4 shadow-sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
           </Link>
         </div>
       </div>
 
-      {/* ✅ Bulk Edit Modal */}
       <BulkEditProductsModal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}

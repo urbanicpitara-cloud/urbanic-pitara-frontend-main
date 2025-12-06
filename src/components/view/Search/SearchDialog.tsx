@@ -43,15 +43,15 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogHeader className="flex justify-between items-center px-4 pt-4">
-          <DialogTitle className=""></DialogTitle>
-        </DialogHeader>
       <DialogContent
         className={cn(
-          "max-w-[600px] w-[90%] h-[50vh] p-4 overflow-hidden rounded-2xl border border-gray-200 shadow-xl",
+          "max-w-[600px] w-[90%] h-[50vh] p-0 overflow-hidden rounded-2xl border border-gray-200 shadow-xl",
           "bg-white"
         )}
       >
+        <DialogHeader className="flex justify-between items-center px-4 pt-4">
+          <DialogTitle className="sr-only">Search Products</DialogTitle>
+        </DialogHeader>
         <div className="px-4 py-4">
           <SearchProducts />
         </div>

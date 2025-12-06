@@ -7,6 +7,30 @@ import { ordersAPI } from "@/lib/api";
 import Image from "next/image";
 import { toast } from "sonner";
 import { OrdersPageLoading } from "@/components/ui/loading-states";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Filter, MoreHorizontal, Eye, Trash2, FileDown } from "lucide-react";
+import { AlertDialogConfirm } from "@/components/ConfirmBox";
 
 interface Product {
   id: string;
@@ -48,8 +72,24 @@ interface Order {
 }
 
 const PAGE_SIZE = 10;
-// const MAX_AVATAR_DISPLAY = 5;
 const STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELED"];
+
+const statusColors: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  processing: "bg-blue-100 text-blue-800 border-blue-200",
+  shipped: "bg-purple-100 text-purple-800 border-purple-200",
+  delivered: "bg-green-100 text-green-800 border-green-200",
+  canceled: "bg-red-100 text-red-800 border-red-200",
+  refunded: "bg-gray-100 text-gray-800 border-gray-200"
+};
+
+const paymentStatusColors: Record<string, string> = {
+  INITIATED: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  PAID: "bg-green-50 text-green-700 border-green-200",
+  FAILED: "bg-red-50 text-red-700 border-red-200",
+  REFUNDED: "bg-purple-50 text-purple-700 border-purple-200",
+  NONE: "bg-gray-50 text-gray-700 border-gray-200",
+};
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -58,6 +98,7 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -91,6 +132,16 @@ export default function AdminOrdersPage() {
       );
     }
 
+    if (searchTerm) {
+      const lowerTerm = searchTerm.toLowerCase();
+      result = result.filter(
+        (o) =>
+          (o._id || o.id || "").toLowerCase().includes(lowerTerm) ||
+          (o.user?.firstName || "").toLowerCase().includes(lowerTerm) ||
+          (o.user?.email || "").toLowerCase().includes(lowerTerm)
+      )
+    }
+
     if (startDate) {
       const start = new Date(startDate);
       result = result.filter(
@@ -106,27 +157,11 @@ export default function AdminOrdersPage() {
 
     setFilteredOrders(result);
     setCurrentPage(1);
-  }, [orders, statusFilter, startDate, endDate]);
+  }, [orders, statusFilter, searchTerm, startDate, endDate]);
 
   const formatAmount = (order: Order) => {
     const value = order.total ?? order.totalAmount ?? order.subtotal ?? 0;
     return Number(value || 0).toFixed(2);
-  };
-
-  const statusColors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    processing: "bg-blue-100 text-blue-800",
-    shipped: "bg-purple-100 text-purple-800",
-    delivered: "bg-green-100 text-green-800",
-    canceled: "bg-red-100 text-red-800",
-  };
-
-  const paymentStatusColors: Record<string, string> = {
-    INITIATED: "bg-yellow-100 text-yellow-800",
-    PAID: "bg-green-100 text-green-800",
-    FAILED: "bg-red-100 text-red-800",
-    REFUNDED: "bg-purple-100 text-purple-800",
-    NONE: "bg-gray-100 text-gray-800",
   };
 
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
@@ -161,6 +196,7 @@ export default function AdminOrdersPage() {
       await fetchOrders();
       setSelectedOrders([]);
       setBulkStatus("");
+      toast.success(`Updated ${selectedOrders.length} orders`);
     } catch (err) {
       console.error(err);
       toast.error("Failed to update orders.");
@@ -169,12 +205,6 @@ export default function AdminOrdersPage() {
 
   const handleBulkDelete = async () => {
     if (selectedOrders.length === 0) return;
-    
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${selectedOrders.length} order(s)? This action cannot be undone.`
-    );
-    
-    if (!confirmed) return;
 
     try {
       await ordersAPI.bulkDeleteAdmin(selectedOrders);
@@ -191,6 +221,7 @@ export default function AdminOrdersPage() {
     try {
       await ordersAPI.updateStatusAdmin(orderId, { status: newStatus as any });
       await fetchOrders();
+      toast.success("Order status updated");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update order status.");
@@ -203,226 +234,252 @@ export default function AdminOrdersPage() {
   if (error)
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-red-500 space-y-4">
-        <p>{error}</p>
-        <button
-          onClick={fetchOrders}
-          className="border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
-        >
-          Retry
-        </button>
+        <p className="text-lg font-medium">{error}</p>
+        <Button onClick={fetchOrders} variant="outline">Retry</Button>
       </div>
     );
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Orders</h1>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-4 items-center">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="all">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="canceled">Cancelled</option>
-        </select>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="border px-3 py-2 rounded"
-        />
+    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <p className="text-gray-500 mt-1">Manage and track your customer orders.</p>
+        </div>
+        <Button variant="outline">
+          <FileDown className="mr-2 h-4 w-4" /> Export
+        </Button>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedOrders.length > 0 && (
-        <div className="mb-4 flex gap-2 items-center">
-          <select
-            value={bulkStatus}
-            onChange={(e) => setBulkStatus(e.target.value)}
-            className="border px-3 py-2 rounded"
-          >
-            <option value="">Change Status...</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={handleBulkUpdate}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Update Selected ({selectedOrders.length})
-          </button>
-          <button
-            onClick={handleBulkDelete}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-          >
-            Delete Selected ({selectedOrders.length})
-          </button>
-        </div>
-      )}
+      {/* Filters & Actions Bar */}
+      <Card>
+        <CardContent className="p-4 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row gap-4 flex-1">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search Order ID, Customer..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-500" />
+                  <SelectValue placeholder="Filter Status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {STATUSES.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {/* Simple date inputs for now, could be improved with DatePicker later */}
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                className="w-auto"
+              />
+              <span className="text-gray-400">-</span>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                className="w-auto"
+              />
+            </div>
+          </div>
 
-      {filteredOrders.length === 0 ? (
-        <p className="text-gray-500">No orders found.</p>
-      ) : (
-        <div className="overflow-x-auto border rounded-lg shadow-sm">
-          <table className="min-w-full table-auto border-collapse">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-3 border">
-                  <input
-                    type="checkbox"
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    checked={
-                      selectedOrders.length === paginatedOrders.length &&
-                      paginatedOrders.length > 0
-                    }
+          {/* Bulk Actions */}
+          {selectedOrders.length > 0 && (
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5">
+              <span className="text-sm font-medium mr-2">{selectedOrders.length} selected</span>
+              <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Update Status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleBulkUpdate} disabled={!bulkStatus}>Update</Button>
+              <Button 
+                variant="destructive" 
+                size="icon"
+                onClick={handleBulkDelete}
+                title="Delete Selected"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Orders Table */}
+      <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">No orders found</h3>
+            <p className="text-gray-500 mt-1">Try adjusting your filters or search terms.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={selectedOrders.length === paginatedOrders.length && paginatedOrders.length > 0}
+                    onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   />
-                </th>
-                <th className="px-4 py-3 text-left border">Order ID</th>
-                <th className="px-4 py-3 text-left border">User</th>
-                <th className="px-4 py-3 text-left border">Products</th>
-                <th className="px-4 py-3 text-left border">Total (₹)</th>
-                <th className="px-4 py-3 text-left border">Status</th>
-                <th className="px-4 py-3 text-left border">Payment</th>
-                <th className="px-4 py-3 text-left border">Date</th>
-                <th className="px-4 py-3 text-left border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {paginatedOrders.map((order, i) => {
                 const id = order._id ?? order.id ?? `unknown-${i}`;
-                const shortId = typeof id === "string" ? id.slice(0, 8) + "..." : "—";
-                const statusClass =
-                  order.status && statusColors[order.status.toLowerCase()]
-                    ? statusColors[order.status.toLowerCase()]
-                    : "bg-gray-100 text-gray-800";
-
-                // const productsToShow = order.items?.slice(0, MAX_AVATAR_DISPLAY) ?? [];
-                // const extraCount = (order.items?.length ?? 0) - MAX_AVATAR_DISPLAY;
+                const shortId = typeof id === "string" ? id.slice(0, 8).toUpperCase() : "—";
+                const status = order.status?.toLowerCase() || "pending";
 
                 return (
-                  <tr key={id} className="hover:bg-gray-50 transition">
-                    <td className="px-4 py-2 border">
-                      <input
-                        type="checkbox"
+                  <TableRow key={id} className="hover:bg-gray-50/50">
+                    <TableCell>
+                      <Checkbox
                         checked={selectedOrders.includes(id)}
-                        onChange={(e) => handleSelectOrder(id, e.target.checked)}
+                        onCheckedChange={(checked) => handleSelectOrder(id, !!checked)}
                       />
-                    </td>
-                    <td className="px-4 py-2 border">{shortId}</td>
-                    <td className="px-4 py-2 border">
-                      {order.user?.firstName || ""} {order.user?.lastName || ""} (
-                      {order.user?.email || "No Email"})
-                    </td>
-                    <td className="px-2 py-2 border">
-                      <div className="flex items-center justify-center">
-                        <div className="flex -space-x-2">
-                          {order.items?.slice(0, 4).map((item) => {
-                            const imageUrl = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
-                            const title = item.customProduct?.title || item.product?.title || "Product";
-                            const altText = item.product?.featuredImage?.altText || title;
-
-                            return imageUrl ? (
-                              <Image
-                                key={item.id}
-                                src={imageUrl}
-                                alt={altText}
-                                width={25}
-                                height={25}
-                                sizes="80px"
-                                className="rounded-full object-cover border-2 border-white hover:scale-110 transition"
-                                title={title}
-                              />
-                            ) : null;
-                          })}
-                          {(order.items?.length ?? 0) > 4 && (
-                            <span className="w-8 h-8 flex items-center justify-center text-xs font-medium bg-gray-200 text-gray-700 rounded-full border-2 border-white">
-                              +{(order.items?.length ?? 0) - 4}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-2 border">{formatAmount(order)}</td>
-                    <td className="px-4 py-2 border">
-                      <select
-                        value={order.status?.toUpperCase() ?? ""}
-                        onChange={(e) => handleStatusChange(id, e.target.value)}
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClass}`}
-                      >
-                        {STATUSES.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-4 py-2 border">
-                      {order.payment ? (
-                        <div className="flex flex-col gap-1">
-                          <span
-                            className={`px-2 py-1 text-xs font-semibold rounded-full ${paymentStatusColors[order.payment.status] || "bg-gray-100 text-gray-800"}`}
-                          >
-                            {order.payment.status}
-                          </span>
-                          <p className="text-xs text-gray-600">{order.payment.method}</p>
+                    </TableCell>
+                    <TableCell className="font-medium font-mono text-xs text-gray-500">
+                      <span className="text-gray-900 text-sm font-sans">{shortId}</span>
+                    </TableCell>
+                    <TableCell>
+                      {order.user ? (
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{order.user.firstName} {order.user.lastName}</span>
+                          <span className="text-xs text-gray-500">{order.user.email}</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-500">No payment</span>
+                        <span className="text-gray-400 italic">Guest User</span>
                       )}
-                    </td>
-                    <td className="px-4 py-2 border">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleString() : "—"}
-                    </td>
-                    <td className="px-4 py-2 border">
-                      <Link href={`/admin/orders/${id}`} className="text-blue-600 hover:underline text-sm">
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                );
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex -space-x-2 overflow-hidden py-1">
+                        {order.items?.slice(0, 3).map((item) => {
+                          const img = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
+                          return img ? (
+                            <div key={item.id} className="relative w-8 h-8 rounded-full border-2 border-white ring-1 ring-gray-100 overflow-hidden bg-gray-100">
+                              <Image
+                                src={img}
+                                alt="Product"
+                                fill
+                                className="object-cover"
+                                sizes="32px"
+                              />
+                            </div>
+                          ) : null;
+                        })}
+                        {(order.items?.length ?? 0) > 3 && (
+                          <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-medium text-gray-600">
+                            +{(order.items?.length ?? 0) - 3}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      ₹{formatAmount(order)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`font-normal ${statusColors[status] || "bg-gray-100"}`}>
+                        {order.status || "Pending"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {order.payment ? (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={`font-normal border-0 ${paymentStatusColors[order.payment.status]}`}>
+                            {order.payment.status}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-gray-500 text-xs">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ""}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/orders/${id}`} className="cursor-pointer">
+                              <Eye className="mr-2 h-4 w-4" /> View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                          {STATUSES.map(s => (
+                            <DropdownMenuItem key={s} onClick={() => handleStatusChange(id, s)}>
+                              <span className={status === s.toLowerCase() ? "font-bold" : ""}>{s}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
+        )}
 
-          {/* Pagination */}
-          <div className="flex justify-center items-center mt-6 space-x-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-4 border-t bg-gray-50">
+            <div className="text-sm text-gray-500">
+              Showing {((currentPage - 1) * PAGE_SIZE) + 1} to {Math.min(currentPage * PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length} results
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
           </div>
-        </div >
-      )
-      }
-    </div >
+        )}
+      </div>
+    </div>
   );
 }

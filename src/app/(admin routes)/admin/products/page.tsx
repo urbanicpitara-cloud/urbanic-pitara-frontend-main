@@ -15,28 +15,31 @@ export default function AdminProductsPage() {
     setSearch,
     refresh,
   } = useProducts();
-  
-const bulk = useBulkActions(products, refresh);
+
+  const bulk = useBulkActions(products, refresh);
 
 
   return (
-    <div className="p-6 space-y-6">
-      <ProductsToolbar
-        search={search}
-        setSearch={setSearch}
-        selectedCount={bulk.selected.length}
-        onBulkDelete={bulk.bulkDelete}
-        onBulkEdit={bulk.bulkUpdate}
-        onRefresh={refresh}
-      />
+    <div className="flex flex-col h-full space-y-4">
+      <div className="flex-none">
+        <ProductsToolbar
+          search={search}
+          setSearch={setSearch}
+          selectedCount={bulk.selected.length}
+          onBulkDelete={bulk.bulkDelete}
+          onBulkEdit={bulk.bulkUpdate}
+          onRefresh={refresh}
+        />
+      </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-10 text-gray-500">
-          <Loader2 className="animate-spin w-6 h-6 mr-2" /> Loading products...
-        </div>
-      ) : error ? (
-        <div className="text-red-500">Error: {error}</div>
-      ) : (
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center items-center h-full text-gray-500">
+            <Loader2 className="animate-spin w-6 h-6 mr-2" /> Loading products...
+          </div>
+        ) : error ? (
+          <div className="text-red-500">Error: {error}</div>
+        ) : (
           <ProductsTable
             products={products}
             selected={bulk.selected}
@@ -44,8 +47,8 @@ const bulk = useBulkActions(products, refresh);
             onSelectAll={bulk.toggleSelectAll}
             onRefresh={refresh}
           />
-
-      )}
+        )}
+      </div>
     </div>
   );
 }
