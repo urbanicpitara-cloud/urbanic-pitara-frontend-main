@@ -469,7 +469,7 @@ export default function AdminCustomizerPage() {
                                         <input
                                             type="file"
                                             className="hidden"
-                                            accept=".svg"
+                                            accept=".svg,.png,.jpg,.jpeg,.webp"
                                             multiple
                                             onChange={(e) => {
                                                 if (e.target.files && e.target.files.length > 0) {
