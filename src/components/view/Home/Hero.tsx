@@ -3,12 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import localFont from "next/font/local"
 import { motion } from "motion/react";
-
-const myCustomFont = localFont({
-  src: "./fonts/samakaran-normal.ttf",
-})
 
 interface HeroProps {
   images?: {
@@ -63,9 +58,9 @@ const Hero: React.FC<HeroProps> = ({
           className="flex flex-col items-center max-w-5xl"
         >
           {/* Decorative Top Element */}
-       
 
-          <h1 className={`text-white text-6xl md:text-8xl lg:text-9xl font-medium mb-8 leading-tight uppercase tracking-wider drop-shadow-2xl ${myCustomFont.className}`}>
+
+          <h1 className={`text-white text-6xl md:text-8xl lg:text-9xl font-medium mb-8 leading-tight uppercase tracking-wider drop-shadow-2xl font-samarkan`}>
             Urbanic Pitara
           </h1>
 

@@ -19,6 +19,9 @@ export default {
         platinum: 'var(--platinum)',
         "indigo-dye": 'var(--indigo-dye)',
       },
+      fontFamily: {
+        samarkan: ["var(--font-samarkan)"],
+      },
 
       // GRADIENTS
       backgroundImage: {
@@ -41,5 +44,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"),require('@tailwindcss/typography')],
+  plugins: [require("tailwindcss-animate"), require('@tailwindcss/typography')],
 } satisfies Config;
