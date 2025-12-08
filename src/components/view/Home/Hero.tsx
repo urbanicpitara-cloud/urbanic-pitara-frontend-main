@@ -63,11 +63,7 @@ const Hero: React.FC<HeroProps> = ({
           className="flex flex-col items-center max-w-5xl"
         >
           {/* Decorative Top Element */}
-          <div className="flex items-center gap-4 mb-8 opacity-80">
-            <div className="w-12 h-[1px] bg-[var(--gold)]" />
-            <span className="text-[var(--gold)] uppercase tracking-[0.3em] text-sm font-medium">Est. 2024</span>
-            <div className="w-12 h-[1px] bg-[var(--gold)]" />
-          </div>
+       
 
           <h1 className={`text-white text-6xl md:text-8xl lg:text-9xl font-medium mb-8 leading-tight uppercase tracking-wider drop-shadow-2xl ${myCustomFont.className}`}>
             Urbanic Pitara
