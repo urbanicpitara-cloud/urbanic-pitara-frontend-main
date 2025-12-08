@@ -1021,27 +1021,28 @@ export default function CustomizerPage() {
           <h1 className="text-xl font-bold text-gray-900">Customizer</h1>
         </div>
 
-        <div className="flex border-b border-gray-100 overflow-x-auto">
+        <div className="flex border-b border-gray-100 overflow-x-auto no-scrollbar">
           {[
-            { id: "Product", icon: Shirt },
-            { id: "Color", icon: Palette },
-            { id: "Size", icon: Ruler },
-            { id: "Side", icon: RotateCcw },
-            { id: "Upload", icon: Upload },
-            { id: "Art", icon: Sticker },
-            { id: "SVG", icon: Wand2 },
-            { id: "Text", icon: Type },
-            { id: "Order", icon: ShoppingCart },
+            { id: "Product", icon: Shirt, label: "Product" },
+            { id: "Color", icon: Palette, label: "Color" },
+            { id: "Size", icon: Ruler, label: "Size" },
+            { id: "Side", icon: RotateCcw, label: "Side" },
+            { id: "Upload", icon: Upload, label: "Upload" },
+            { id: "Art", icon: Sticker, label: "Art" },
+            { id: "SVG", icon: Wand2, label: "SVG" },
+            { id: "Text", icon: Type, label: "Text" },
+            { id: "Order", icon: ShoppingCart, label: "Order" },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 p-3 flex justify-center items-center border-b-2 transition-colors ${activeTab === tab.id
+              className={`flex-1 min-w-[70px] p-3 flex flex-col gap-1 justify-center items-center border-b-2 transition-colors ${activeTab === tab.id
                 ? "border-black text-black"
                 : "border-transparent text-gray-400 hover:text-gray-600"
                 }`}
             >
               <tab.icon size={20} />
+              <span className="text-[10px] font-medium uppercase tracking-wide">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -1681,45 +1682,94 @@ export default function CustomizerPage() {
           )}
 
           {activeTab === "Order" && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full border rounded-lg px-3 py-2"
-                />
+            <div className="space-y-6">
+              <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Order Details</h4>
+
+                {/* Product Summary */}
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                  <div className="w-16 h-16 bg-white rounded-md border border-gray-200 p-1 flex items-center justify-center">
+                    <Shirt className="text-gray-400" size={32} />
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-gray-900 line-clamp-1">{selectedProduct?.name || "Custom Hoodie"}</h5>
+                    <p className="text-xs text-gray-500">
+                      {color} / {size} / {side.charAt(0).toUpperCase() + side.slice(1)} view
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quantity Stepper */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-500 mb-2">Quantity</label>
+                  <div className="flex items-center border border-gray-300 rounded-lg bg-white w-max">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-l-lg transition-colors border-r border-gray-100"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-12 text-center text-sm font-medium focus:outline-none py-1"
+                    />
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-r-lg transition-colors border-l border-gray-100"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="space-y-2 text-sm pt-2">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Base Price ({size})</span>
+                    <span>₹{["L", "XL", "2XL"].includes(size) ? 999 : 899}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Design Customization</span>
+                    <span>₹{calculatedPrice - (["L", "XL", "2XL"].includes(size) ? 999 : 899)}</span>
+                  </div>
+                  <div className="flex justify-between font-medium text-black pt-2 border-t border-gray-200 mt-2">
+                    <span>Unit Price</span>
+                    <span>₹{calculatedPrice}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Unit Price</span>
-                  <span className="font-medium">₹{calculatedPrice}</span>
-                </div>
-                <div className="flex justify-between mb-4 text-lg font-bold">
-                  <span>Total</span>
-                  <span>₹{(calculatedPrice * quantity).toFixed(2)}</span>
+
+              {/* Total & Action */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <span className="text-gray-500 text-sm">Total Payable</span>
+                  <span className="text-2xl font-bold text-black">₹{(calculatedPrice * quantity).toFixed(2)}</span>
                 </div>
 
                 <button
                   disabled={uploading}
                   onClick={handleAddToCart}
-                  className="w-full py-3 bg-black text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
+                  className="w-full py-3.5 bg-black text-white text-base font-semibold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-900 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all transform active:scale-[0.98]"
                 >
                   {uploading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Processing...
                     </>
                   ) : (
                     <>
-                      <ShoppingCart size={18} />
+                      <ShoppingCart size={20} />
                       Add to Cart
                     </>
                   )}
                 </button>
+                <p className="text-xs text-center text-gray-400 mt-2">
+                  Secure checkout powered by PhonePe
+                </p>
               </div>
             </div>
           )}
@@ -1729,13 +1779,38 @@ export default function CustomizerPage() {
       {/* Canvas Area */}
       <div
         ref={containerRef}
-        className="w-full md:flex-1 bg-gray-50 flex items-center justify-center p-4 md:p-8 overflow-hidden min-h-[300px] md:min-h-0"
-        style={{
-          backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
-          backgroundSize: '20px 20px'
+        className="w-full md:flex-1 relative flex items-center justify-center p-4 md:p-8 overflow-hidden min-h-[300px] md:min-h-0 group"
+        onMouseMove={(e) => {
+          if (!containerRef.current) return;
+          const rect = containerRef.current.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          containerRef.current.style.setProperty('--x', `${x}px`);
+          containerRef.current.style.setProperty('--y', `${y}px`);
         }}
       >
-        <div className="bg-transparent overflow-hidden">
+        {/* Base Grid - Faint & Static */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-20"
+          style={{
+             background: 'radial-gradient(#94a3b8 1px, transparent 1px)',
+             backgroundSize: '24px 24px',
+          }}
+        />
+
+        {/* Interactive Highlight - Darker dots revealed under cursor */}
+        <div 
+          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-60"
+          style={{
+             background: 'radial-gradient(#000000 1.5px, transparent 1.5px)',
+             backgroundSize: '24px 24px',
+             // Flashlight effect: Show only near cursor
+             maskImage: 'radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%)',
+             WebkitMaskImage: 'radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%)',
+          }}
+        />
+
+        <div className="bg-transparent overflow-hidden relative z-10 filter drop-shadow-xl">
           <Stage
             width={600 * scale}
             height={600 * scale}
@@ -1788,34 +1863,37 @@ export default function CustomizerPage() {
       </div>
 
       {/* Hidden Stages for Snapshot Capture */}
-      <div style={{ position: "absolute", top: -10000, left: -10000, visibility: "hidden" }}>
-        {Object.entries(elementsBySide).map(([s, els]) => {
-          if (els.length === 0) return null;
-          return (
-            <Stage
-              key={s}
-              ref={(node) => {
-                if (node) previewRefs.current[s] = node;
-                else delete previewRefs.current[s];
-              }}
-              width={600}
-              height={600}
-              scale={{ x: 1, y: 1 }}
-            >
-              <Layer>
-                <HoodieImage src={getTemplateUrl(color, s)} width={600} height={600} />
-                {els.map((el) => {
-                  if (el.type === "image") {
-                    return <URLImage key={el.id} image={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
-                  } else {
-                    return <URLText key={el.id} element={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
-                  }
-                })}
-              </Layer>
-            </Stage>
-          );
-        })}
-      </div>
-    </div>
+      < div style={{ position: "absolute", top: -10000, left: -10000, visibility: "hidden" }
+      }>
+        {
+          Object.entries(elementsBySide).map(([s, els]) => {
+            if (els.length === 0) return null;
+            return (
+              <Stage
+                key={s}
+                ref={(node) => {
+                  if (node) previewRefs.current[s] = node;
+                  else delete previewRefs.current[s];
+                }}
+                width={600}
+                height={600}
+                scale={{ x: 1, y: 1 }}
+              >
+                <Layer>
+                  <HoodieImage src={getTemplateUrl(color, s)} width={600} height={600} />
+                  {els.map((el) => {
+                    if (el.type === "image") {
+                      return <URLImage key={el.id} image={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
+                    } else {
+                      return <URLText key={el.id} element={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
+                    }
+                  })}
+                </Layer>
+              </Stage>
+            );
+          })
+        }
+      </div >
+    </div >
   );
 }
