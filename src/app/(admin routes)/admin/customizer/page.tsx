@@ -4,18 +4,49 @@ import { Plus, Trash2, Loader2, Image as ImageIcon, Palette } from "lucide-react
 import { toast } from "sonner";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 
+interface ProductVariant {
+    id: string;
+    colorName: string;
+    colorHex: string;
+    views: ProductView[];
+}
+
+interface ProductView {
+    id: string;
+    side: string;
+    imageUrl: string;
+}
+
+interface Product {
+    id: string;
+    name: string;
+    basePrice: number;
+    variants: ProductVariant[];
+}
+
+interface Asset {
+    id: string;
+    url: string;
+    name: string;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    assets: Asset[];
+}
+
 export default function AdminCustomizerPage() {
     const [activeTab, setActiveTab] = useState<"products" | "arts">("products");
 
     // Products State
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [newProductName, setNewProductName] = useState("");
     const [newProductPrice, setNewProductPrice] = useState("899");
 
     // Arts State
-    const [categories, setCategories] = useState<any[]>([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [newCategoryName, setNewCategoryName] = useState("");
 
     // Fetch Data
@@ -44,7 +75,7 @@ export default function AdminCustomizerPage() {
             console.error(error);
             toast.error("Failed to fetch categories");
         } finally {
-            setLoadingCategories(false);
+            // Categories loaded
         }
     };
 
@@ -99,7 +130,7 @@ export default function AdminCustomizerPage() {
                 fetchProducts();
             }
         } catch (error) {
-                        console.error(error)
+            console.error(error)
             toast.error("Failed to add variant");
         }
     };
@@ -117,7 +148,7 @@ export default function AdminCustomizerPage() {
                 fetchProducts();
             }
         } catch (error) {
-                        console.error(error)
+            console.error(error)
             toast.error("Failed to add view");
         }
     };
@@ -175,7 +206,7 @@ export default function AdminCustomizerPage() {
                 fetchCategories();
             }
         } catch (error) {
-                        console.error(error)
+            console.error(error)
             toast.error("Failed to create category");
         }
     };
@@ -199,7 +230,7 @@ export default function AdminCustomizerPage() {
                 fetchCategories();
             }
         } catch (error) {
-                        console.error(error)
+            console.error(error)
             toast.error("Failed to add assets");
         }
     };
@@ -326,7 +357,7 @@ export default function AdminCustomizerPage() {
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {product.variants.map((variant: any) => (
+                                            {product.variants.map((variant) => (
                                                 <div key={variant.id} className="border rounded p-3">
                                                     <div className="flex justify-between items-center mb-2">
                                                         <div className="flex items-center gap-2">
@@ -340,7 +371,7 @@ export default function AdminCustomizerPage() {
 
                                                     {/* Views */}
                                                     <div className="space-y-2">
-                                                        {variant.views.map((view: any) => (
+                                                        {variant.views.map((view) => (
                                                             <div key={view.id} className="flex items-center justify-between gap-2 text-sm bg-gray-50 p-1 rounded">
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="uppercase text-xs font-bold w-12">{view.side}</span>
@@ -419,9 +450,9 @@ export default function AdminCustomizerPage() {
                                 </h3>
 
                                 <div className="grid grid-cols-4 gap-2 mb-4">
-                                    {cat.assets.map((asset: any) => (
+                                    {cat.assets.map((asset) => (
                                         <div key={asset.id} className="aspect-square border rounded p-1 flex items-center justify-center bg-gray-50 relative group">
-                                            <img src={asset.url} className="max-w-full max-h-full" />
+                                            <img src={asset.url} className="max-w-full max-h-full" alt={asset.name || "Asset"} />
                                             <button
                                                 onClick={() => deleteAsset(asset.id)}
                                                 className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-bl opacity-0 group-hover:opacity-100 transition-opacity"

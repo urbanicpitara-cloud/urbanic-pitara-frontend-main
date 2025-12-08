@@ -87,7 +87,7 @@ export default function ProductsPage() {
           p.options?.forEach(opt => {
             const name = opt.name.toLowerCase();
             if (name === 'size' || name === 'sizes') {
-              opt.values.forEach((v: any) => {
+              opt.values.forEach((v: string | { name?: string }) => {
                 const sizeValue = typeof v === 'string' ? v : (v && typeof v === 'object' && v.name ? String(v.name) : null);
                 if (sizeValue && sizeValue.toUpperCase() !== 'DEFAULT TITLE' && sizeValue.trim()) {
                   sizes.add(sizeValue.toUpperCase());
@@ -95,7 +95,7 @@ export default function ProductsPage() {
               });
             }
             if (name === 'color' || name === 'colors' || name === 'colour') {
-              opt.values.forEach((v: any) => {
+              opt.values.forEach((v: string | { name?: string; color?: string }) => {
                 if (typeof v === 'string') colors.add(v);
                 else if (v && typeof v === 'object') {
                   if (v.name) colors.add(v.name);
@@ -107,15 +107,17 @@ export default function ProductsPage() {
 
           // Check variants if options missing
           p.variants?.forEach(v => {
-            v.selectedOptions && Object.entries(v.selectedOptions).forEach(([key, val]) => {
-              const k = key.toLowerCase();
-              if (k === 'size' || k === 'sizes') {
-                if (val.toUpperCase() !== 'DEFAULT TITLE' && val.trim()) {
-                  sizes.add(val.toUpperCase());
+            if (v.selectedOptions) {
+              Object.entries(v.selectedOptions).forEach(([key, val]) => {
+                const k = key.toLowerCase();
+                if (k === 'size' || k === 'sizes') {
+                  if (val.toUpperCase() !== 'DEFAULT TITLE' && val.trim()) {
+                    sizes.add(val.toUpperCase());
+                  }
                 }
-              }
-              if (k === 'color' || k === 'colors') colors.add(val);
-            });
+                if (k === 'color' || k === 'colors') colors.add(val);
+              });
+            }
             if (v.title) {
               // Fallback parsing "Red / L"
               v.title.split(' / ').forEach(part => {
@@ -145,6 +147,7 @@ export default function ProductsPage() {
     };
 
     fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort]); // Re-fetch on sort change (server sorting)
 
   // Filter Logic

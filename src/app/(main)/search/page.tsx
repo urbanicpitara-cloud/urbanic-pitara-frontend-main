@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/view/ProductCard";
 import FilterSidebar, { FilterState } from "@/components/view/FilterSidebar";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -35,7 +35,6 @@ function SearchContent() {
   const [activeTab, setActiveTab] = useState("products");
   const [sort, setSort] = useState("relevance");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Full datasets
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -67,7 +66,6 @@ function SearchContent() {
 
     const fetchResults = async () => {
       setLoading(true);
-      setError(null);
       try {
         const [productsRes, collectionsRes] = await Promise.all([
           productsAPI.getAll({
@@ -146,13 +144,13 @@ function SearchContent() {
 
       } catch (err) {
         console.error(err);
-        setError("Something went wrong while fetching results.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryParam, sort]);
 
   // Apply Filters

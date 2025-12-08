@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, MoreHorizontal, Eye, Trash2, FileDown } from "lucide-react";
-import { AlertDialogConfirm } from "@/components/ConfirmBox";
 
 interface Product {
   id: string;

@@ -258,7 +258,7 @@ export default function TagAddPage() {
 
             {filteredProducts.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-gray-400 py-12">
-                <p>No products found matching "{searchTerm}"</p>
+                <p>No products found matching &quot;{searchTerm}&quot;</p>
               </div>
             )}
           </div>

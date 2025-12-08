@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -44,7 +44,7 @@ export default function Sidebar({ mobileNavOpen, setMobileNavOpen }: SidebarProp
   const [collapsed, setCollapsed] = useState(false);
 
   const NavContent = useMemo(() => {
-    return () => (
+    const Component = () => (
       <div className="flex flex-col h-full bg-white text-gray-900">
         <div className={cn(
           "h-16 flex items-center border-b border-gray-100",
@@ -103,6 +103,8 @@ export default function Sidebar({ mobileNavOpen, setMobileNavOpen }: SidebarProp
         </div>
       </div>
     );
+    Component.displayName = 'NavContent';
+    return Component;
   }, [collapsed, pathname, logout, setMobileNavOpen]);
 
   return (
@@ -111,6 +113,7 @@ export default function Sidebar({ mobileNavOpen, setMobileNavOpen }: SidebarProp
       <div className="lg:hidden">
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetContent side="left" className="p-0 w-64 border-r-0">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <NavContent />
           </SheetContent>
         </Sheet>

@@ -11,7 +11,7 @@ import FilterSidebar, { FilterState } from "@/components/view/FilterSidebar";
 import { Product } from '@/types/products';
 import { Loader2, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,

@@ -158,7 +158,7 @@ export default function HomePage() {
           </svg>
         </div>
         <h3 className="text-3xl md:text-5xl italic text-gray-800 max-w-4xl mx-auto font-serif leading-tight">
-          "Elegance is not about being noticed, it&apos;s about being remembered."
+          &ldquo;Elegance is not about being noticed, it&apos;s about being remembered.&rdquo;
         </h3>
         <p className="mt-6 text-gray-500 uppercase tracking-widest text-sm font-medium">— Giorgio Armani</p>
       </motion.section>

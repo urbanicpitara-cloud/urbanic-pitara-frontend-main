@@ -15,7 +15,6 @@ import {
   CartesianGrid
 } from "recharts";
 import {
-  ArrowUpRight,
   User,
   Package,
   Tag,
@@ -146,7 +145,7 @@ export default function AdminDashboardPageImproved() {
 
   // derived stats
   const validOrders = useMemo(() => orders.filter(o => !["CANCELED", "REFUNDED"].includes((o.status || "").toUpperCase())), [orders]);
-  const canceledOrdersCount = useMemo(() => orders.filter(o => ["CANCELED", "REFUNDED"].includes((o.status || "").toUpperCase())).length, [orders]);
+  // const canceledOrdersCount = useMemo(() => orders.filter(o => ["CANCELED", "REFUNDED"].includes((o.status || "").toUpperCase())).length, [orders]);
   const totalRevenue = useMemo(() => validOrders.reduce((s, o) => s + toNumber(o.totalAmount ?? o.total ?? o.amount ?? o.subtotal), 0), [validOrders]);
 
   const lowStockProducts = useMemo(() => products.filter(p => p.variants?.some(v => v.inventoryQty < 5)), [products]);
