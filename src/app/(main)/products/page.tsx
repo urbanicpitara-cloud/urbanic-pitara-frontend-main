@@ -163,12 +163,19 @@ export default function ProductsPage() {
     // Size
     if (filters.sizes.length > 0) {
       result = result.filter(p => {
+        // Normalize filter sizes to uppercase for comparison
+        const normalizedFilterSizes = filters.sizes.map(s => s.toUpperCase());
+
         // Check if any variant matches ANY selected size
         return p.variants.some(v => {
           if (v.selectedOptions) {
-            return Object.values(v.selectedOptions).some(s => filters.sizes.includes(s));
+            return Object.values(v.selectedOptions).some(s =>
+              normalizedFilterSizes.includes(s.toUpperCase())
+            );
           }
-          return v.title.split(' / ').some(part => filters.sizes.includes(part));
+          return v.title.split(' / ').some(part =>
+            normalizedFilterSizes.includes(part.toUpperCase())
+          );
         });
       });
     }

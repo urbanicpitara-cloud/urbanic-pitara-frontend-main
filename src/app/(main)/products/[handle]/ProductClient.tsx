@@ -322,12 +322,12 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
               <div className="flex flex-wrap gap-2">
                 {opt.values.map(val => {
                   const displayValue = normalizeOptionValue(val);
-                  const isSelected = selectedOptions[opt.id] === displayValue;
+                  const isSelected = selectedOptions[opt.id]?.toLowerCase() === displayValue.toLowerCase();
 
                   // Find if there's a variant available with this option
                   const hasVariantWithOption = product.variants.some(variant => {
                     const variantOptions = variant.selectedOptions;
-                    return variantOptions[opt.name.toLowerCase()] === displayValue.toLowerCase();
+                    return variantOptions[opt.name.toLowerCase()]?.toLowerCase() === displayValue.toLowerCase();
                   });
 
                   return (

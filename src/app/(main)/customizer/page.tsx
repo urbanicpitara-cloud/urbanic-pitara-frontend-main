@@ -509,7 +509,7 @@ const URLText = ({
           y={element.y}
           width={element.width || 100}
           height={element.height || 50}
-          fill={element.backgroundColor}
+          // fill={element.backgroundColor}
           opacity={element.backgroundOpacity ?? 1}
           cornerRadius={4}
         />

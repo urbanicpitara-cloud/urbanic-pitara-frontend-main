@@ -165,11 +165,18 @@ function SearchContent() {
 
     // Size
     if (filters.sizes.length > 0) {
+      // Normalize filter sizes to uppercase for comparison
+      const normalizedFilterSizes = filters.sizes.map(s => s.toUpperCase());
+
       result = result.filter(p =>
         p.variants.some(v =>
           v.selectedOptions
-            ? Object.values(v.selectedOptions).some(s => filters.sizes.includes(s))
-            : v.title.split(' / ').some(s => filters.sizes.includes(s))
+            ? Object.values(v.selectedOptions).some(s =>
+              normalizedFilterSizes.includes(s.toUpperCase())
+            )
+            : v.title.split(' / ').some(s =>
+              normalizedFilterSizes.includes(s.toUpperCase())
+            )
         )
       );
     }
