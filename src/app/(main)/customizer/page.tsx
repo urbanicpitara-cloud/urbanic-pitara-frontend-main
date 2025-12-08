@@ -617,22 +617,56 @@ export default function CustomizerPage() {
   const [customImageUploading, setCustomImageUploading] = useState(false);
   const [size, setSize] = useState<string>("M");
   const [calculatedPrice, setCalculatedPrice] = useState<number>(899);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
   // Handle responsive scaling
   useEffect(() => {
-    const handleResize = () => {
-      const containerWidth = window.innerWidth;
-      // On mobile/tablet, we want the canvas to fit the screen width minus padding
-      // 500 is the base canvas size
-      // We subtract 48px for padding (32px container padding + some safety margin)
-      const newScale = Math.min(1, (containerWidth - 48) / 500);
-      setScale(newScale);
+    const updateScale = () => {
+      if (!containerRef.current) return;
+
+      const { clientWidth, clientHeight } = containerRef.current;
+
+      // Calculate max scale that fits in the container
+      // Base canvas size is 500px matches Stage width logic (though stage says 600 * scale below, 
+      // the logic seems to revolve around a 500-600px base. Let's assume 500 safety or 600 base).
+      // Looking at Stage below: width={600 * scale}, height={600 * scale}
+      // But content seems derived from 500x500 logic often. 
+      // Let's target fitting the 600x600 Stage into the container with some padding.
+
+      const padding = 48; // 32px padding + margin
+      const availableWidth = clientWidth - padding;
+      const availableHeight = clientHeight - padding;
+
+      // We want to fit a 600x600 Stage into availableWidth x availableHeight
+      const scaleW = availableWidth / 600;
+      const scaleH = availableHeight / 600;
+
+      // Use the smaller scale to ensure it matches fit-contain
+      // We do NOT cap at 1 anymore, allowing it to grow on large screens!
+      const newScale = Math.min(scaleW, scaleH);
+
+      // Optional: Logic to prevent it from becoming microscopic on very small devices
+      // or excessively huge if we want a max cap (e.g. 2x). 
+      // For "making it look better ui/ux", filling space is good.
+      // Let's cap max at 1.5 to avoid pixels looking too chunky if assets aren't huge, 
+      // or just let it fly. Let's try capping at 1.8 for reasonable bounds.
+      setScale(Math.min(Math.max(newScale, 0.5), 1.8));
     };
 
-    handleResize(); // Initial calculation
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Initial calcluation
+    updateScale();
+
+    // Observer
+    const observer = new ResizeObserver(() => {
+      updateScale();
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
   }, []);
 
   // Calculate price whenever elements or size changes
@@ -647,7 +681,7 @@ export default function CustomizerPage() {
     }
 
     // Design Cost
-    const CANVAS_AREA = 500 * 500;
+    const CANVAS_AREA = 600 * 600;
     const allElements = [
       ...elementsBySide.front,
       ...elementsBySide.back,
@@ -983,7 +1017,7 @@ export default function CustomizerPage() {
     <div className="flex flex-col-reverse md:flex-row h-[calc(100vh-64px)] bg-gray-50">
       {/* Sidebar */}
       <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-100">
+        <div className="p-4 border-b border-gray-100 pt-8">
           <h1 className="text-xl font-bold text-gray-900">Customizer</h1>
         </div>
 
@@ -1694,6 +1728,7 @@ export default function CustomizerPage() {
 
       {/* Canvas Area */}
       <div
+        ref={containerRef}
         className="w-full md:flex-1 bg-gray-50 flex items-center justify-center p-4 md:p-8 overflow-hidden min-h-[300px] md:min-h-0"
         style={{
           backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
@@ -1711,7 +1746,7 @@ export default function CustomizerPage() {
           >
             <Layer>
               {currentTemplateUrl ? (
-                <HoodieImage src={currentTemplateUrl} width={500} height={500} />
+                <HoodieImage src={currentTemplateUrl} width={600} height={600} />
               ) : (
                 <Text text="No template available" x={150} y={240} fontSize={20} />
               )}
@@ -1763,12 +1798,12 @@ export default function CustomizerPage() {
                 if (node) previewRefs.current[s] = node;
                 else delete previewRefs.current[s];
               }}
-              width={500}
-              height={500}
+              width={600}
+              height={600}
               scale={{ x: 1, y: 1 }}
             >
               <Layer>
-                <HoodieImage src={getTemplateUrl(color, s)} width={500} height={500} />
+                <HoodieImage src={getTemplateUrl(color, s)} width={600} height={600} />
                 {els.map((el) => {
                   if (el.type === "image") {
                     return <URLImage key={el.id} image={el} isSelected={false} onSelect={() => { }} onChange={() => { }} />;
