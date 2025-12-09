@@ -7,7 +7,7 @@ import Link from "next/link";
 
 const BridalSpotlight = () => {
   return (
-    <section className="relative w-full h-[80vh] overflow-hidden">
+    <section className="relative w-full h-[80vh] md:h-screen">
       {/* Parallax Background */}
       <div className="absolute inset-0">
         <Image

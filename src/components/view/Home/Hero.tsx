@@ -32,7 +32,7 @@ const Hero: React.FC<HeroProps> = ({
   };
 
   return (
-    <section className="relative w-full h-[90vh] md:h-[100dvh] overflow-hidden">
+    <section className="relative w-full h-[90vh] md:h-screen">
       {/* Responsive background image */}
       <div className="absolute inset-0">
         <picture>

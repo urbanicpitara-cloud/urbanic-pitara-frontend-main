@@ -56,7 +56,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <Providers>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} antialiased overflow-x-hidden`}
+          className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} antialiased`}
         >
           <ThemeProvider>
             <CartProvider>

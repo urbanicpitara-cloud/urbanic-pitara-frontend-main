@@ -2,10 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base font */
+/* Fix scrollbar gutter to prevent layout shift */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
   @apply bg-white text-gray-900;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 
