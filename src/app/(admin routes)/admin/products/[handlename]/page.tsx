@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -38,7 +39,7 @@ export default function EditProductPage() {
   const [handle, setHandle] = useState("");
   const [htmlDescription, setHtmlDescription] = useState("");
   const [tags, setTags] = useState("");
-  const [collectionId, setCollectionId] = useState("");
+  const [collectionIds, setCollectionIds] = useState<string[]>([]);
   const [collections, setCollections] = useState<{ id: string; title: string }[]>([]);
   const [published, setPublished] = useState(true);
   const [images, setImages] = useState<string[]>([]);
@@ -95,7 +96,7 @@ export default function EditProductPage() {
           });
 
           setTags(product.tags?.map((t: any) => t.name).join(", ") || "");
-          setCollectionId(product.collectionId || "");
+          setCollectionIds(product.collections?.map((c: any) => c.id) || []);
           setPublished(product.published ?? true);
           setImages(product.images?.map((img: any) => img.url) || []);
           setMetaTitle(product.metaTitle || "");
@@ -148,8 +149,8 @@ export default function EditProductPage() {
 
   // ---------- Update ----------
   const handleUpdate = async () => {
-    if (!title || !collectionId) {
-      toast.info("Title and Collection are required.");
+    if (!title) {
+      toast.info("Title is required.");
       return;
     }
     if (!productId) {
@@ -164,7 +165,7 @@ export default function EditProductPage() {
       const productData = {
         title,
         handle,
-        collectionId,
+        collectionIds,
         descriptionHtml: htmlDescription,
         description: textDescription,
         images: images.map((url) => ({ url })),
@@ -250,19 +251,13 @@ export default function EditProductPage() {
                 />
               </div>
               <div>
-                <Label>Collection</Label>
-                <select
-                  value={collectionId}
-                  onChange={(e) => setCollectionId(e.target.value)}
-                  className="w-full border rounded-md p-2"
-                >
-                  <option value="">Select collection</option>
-                  {collections.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
+                <Label>Collections</Label>
+                <MultiSelect
+                  options={collections}
+                  selected={collectionIds}
+                  onChange={setCollectionIds}
+                  placeholder="Select collections"
+                />
               </div>
               <div>
                 <Label>Description (HTML)</Label>

@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export default function AddProductPage() {
   const [compareAmount, setCompareAmount] = useState("");
   const [stock, setStock] = useState("");
   const [tags, setTags] = useState("");
-  const [collectionId, setCollectionId] = useState("");
+  const [collectionIds, setCollectionIds] = useState<string[]>([]);
   const [collections, setCollections] = useState<{ id: string; title: string }[]>(
     []
   );
@@ -124,8 +124,8 @@ export default function AddProductPage() {
 
   // Submit
   const handleSubmit = async () => {
-    if (!title || !collectionId) {
-      toast.info("Title and Collection are required.");
+    if (!title) {
+      toast.info("Title is required.");
       return;
     }
 
@@ -135,7 +135,7 @@ export default function AddProductPage() {
       const productData = {
         title,
         handle,
-        collectionId,
+        collectionIds,
         descriptionHtml: htmlDescription,
         description: textDescription,
         images: images.map((url) => ({ url })),
@@ -217,19 +217,13 @@ export default function AddProductPage() {
               </div>
 
               <div>
-                <Label>Collection</Label>
-                <Select value={collectionId} onValueChange={setCollectionId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select collection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {collections.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Collections</Label>
+                <MultiSelect
+                  options={collections}
+                  selected={collectionIds}
+                  onChange={setCollectionIds}
+                  placeholder="Select collections"
+                />
               </div>
 
               <div>
