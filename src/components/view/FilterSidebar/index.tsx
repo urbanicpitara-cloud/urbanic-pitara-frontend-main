@@ -29,7 +29,7 @@ export default function FilterSidebar({
     onFilterChange,
     onClearFilters,
     availableSizes = ["XS", "S", "M", "L", "XL", "XXL"],
-    availableColors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"],
+    // availableColors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"],
     availableTags = [],
     maxPrice = 50000,
 }: FilterSidebarProps) {
@@ -58,12 +58,12 @@ export default function FilterSidebar({
         onFilterChange({ ...filters, sizes: newSizes });
     };
 
-    const handleColorToggle = (color: string) => {
-        const newColors = filters.colors.includes(color)
-            ? filters.colors.filter((c) => c !== color)
-            : [...filters.colors, color];
-        onFilterChange({ ...filters, colors: newColors });
-    };
+    // const handleColorToggle = (color: string) => {
+    //     const newColors = filters.colors.includes(color)
+    //         ? filters.colors.filter((c) => c !== color)
+    //         : [...filters.colors, color];
+    //     onFilterChange({ ...filters, colors: newColors });
+    // };
 
     const handleAvailabilityToggle = (value: string) => {
         const newAvailability = filters.availability.includes(value)
@@ -79,15 +79,15 @@ export default function FilterSidebar({
         onFilterChange({ ...filters, tags: newTags });
     };
 
-    const colorMap: Record<string, string> = {
-        Red: "bg-red-500",
-        Blue: "bg-blue-500",
-        Green: "bg-green-500",
-        Black: "bg-black",
-        White: "bg-white border-2 border-gray-300",
-        Pink: "bg-pink-500",
-        Yellow: "bg-yellow-400",
-    };
+    // const colorMap: Record<string, string> = {
+    //     Red: "bg-red-500",
+    //     Blue: "bg-blue-500",
+    //     Green: "bg-green-500",
+    //     Black: "bg-black",
+    //     White: "bg-white border-2 border-gray-300",
+    //     Pink: "bg-pink-500",
+    //     Yellow: "bg-yellow-400",
+    // };
 
     const hasActiveFilters =
         filters.priceRange[0] > 0 ||
