@@ -113,6 +113,20 @@ export default function CollectionPage() {
           });
 
           p.variants?.forEach((v: any) => {
+            // Check selectedOptions first (structured data)
+            if (v.selectedOptions) {
+              Object.entries(v.selectedOptions).forEach(([key, val]) => {
+                const k = key.toLowerCase();
+                if (k === 'size' || k === 'sizes') {
+                  const sizeVal = String(val).toUpperCase();
+                  if (sizeVal !== 'DEFAULT TITLE' && sizeVal.trim()) {
+                    sizes.add(sizeVal);
+                  }
+                }
+                if (k === 'color' || k === 'colors') colors.add(String(val));
+              });
+            }
+            // Fallback to parsing title (legacy format)
             if (v.title) {
               v.title.split(' / ').forEach((part: string) => {
                 const upperPart = part.toUpperCase();
@@ -126,7 +140,10 @@ export default function CollectionPage() {
         });
 
         setMaxPrice(maxP);
-        setAvailableSizes(Array.from(sizes).sort());
+        setAvailableSizes(Array.from(sizes).sort((a, b) => {
+          const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+          return sizeOrder.indexOf(a) - sizeOrder.indexOf(b);
+        }));
         setAvailableColors(Array.from(colors).sort());
 
         // Reset Price Filter if default

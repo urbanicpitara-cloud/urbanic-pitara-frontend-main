@@ -169,7 +169,7 @@ export default function FilterSidebar({
             </div>
 
             {/* Color Filter */}
-            <div className="mb-6 pb-6 border-b border-gray-200">
+            {/* <div className="mb-6 pb-6 border-b border-gray-200">
                 <button
                     onClick={() => toggleSection("color")}
                     className="flex justify-between items-center w-full mb-4"
@@ -196,7 +196,7 @@ export default function FilterSidebar({
                         ))}
                     </div>
                 )}
-            </div>
+            </div> */}
 
             {/* Availability Filter */}
             <div className="mb-6 pb-6 border-b border-gray-200">
