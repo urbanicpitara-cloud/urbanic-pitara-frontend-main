@@ -11,6 +11,22 @@ import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import { Loader2, Upload, ShoppingCart, Type, Palette, RotateCcw, Image as ImageIcon, Sticker, Bold, Italic, Trash2, Ruler, Shirt, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
+const CANVAS_SIZE = 600;
+
+// Helper to get natural image dimensions
+const getImageDimensions = (src: string): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+    };
+    img.src = src;
+  });
+};
+
 // Types
 type HoodieSide = "front" | "back" | "left" | "right";
 type ElementType = "image" | "text";
@@ -364,6 +380,14 @@ const DraggableSVGImage = ({
           opacity={element.svgProperties?.opacity ?? 1}
           onClick={onSelect}
           onTap={onSelect}
+          dragBoundFunc={(pos) => {
+            const maxX = CANVAS_SIZE - (element.width * (shapeRef.current?.scaleX() || 1));
+            const maxY = CANVAS_SIZE - (element.height * (shapeRef.current?.scaleY() || 1));
+            return {
+              x: Math.max(0, Math.min(pos.x, maxX)),
+              y: Math.max(0, Math.min(pos.y, maxY)),
+            };
+          }}
           onDragEnd={(e) => onChange({ ...element, x: e.target.x(), y: e.target.y() })}
           onTransformEnd={() => {
             const node = shapeRef.current;
@@ -441,6 +465,14 @@ const URLImage = ({
         height={image.height}
         rotation={image.rotation || 0}
         draggable
+        dragBoundFunc={(pos) => {
+          const maxX = CANVAS_SIZE - (image.width * (shapeRef.current?.scaleX() || 1));
+          const maxY = CANVAS_SIZE - (image.height * (shapeRef.current?.scaleY() || 1));
+          return {
+            x: Math.max(0, Math.min(pos.x, maxX)),
+            y: Math.max(0, Math.min(pos.y, maxY)),
+          };
+        }}
         onClick={onSelect}
         onTap={onSelect}
         onDragEnd={(e) => onChange({ ...image, x: e.target.x(), y: e.target.y() })}
@@ -527,6 +559,17 @@ const URLText = ({
         letterSpacing={element.letterSpacing || 0}
         rotation={element.rotation || 0}
         draggable
+        dragBoundFunc={(pos) => {
+          const node = textRef.current;
+          const w = node ? node.width() * node.scaleX() : 100;
+          const h = node ? node.height() * node.scaleY() : 50;
+          const maxX = CANVAS_SIZE - w;
+          const maxY = CANVAS_SIZE - h;
+          return {
+            x: Math.max(0, Math.min(pos.x, maxX)),
+            y: Math.max(0, Math.min(pos.y, maxY)),
+          };
+        }}
         onClick={onSelect}
         onTap={onSelect}
         onDragEnd={(e) => onChange({ ...element, x: e.target.x(), y: e.target.y() })}
@@ -788,14 +831,22 @@ export default function CustomizerPage() {
     setCustomImageUploading(true);
     try {
       const url = await uploadToCloudinary(file);
+      const { width, height } = await getImageDimensions(url);
+
+      // Calculate scaled dimensions to fit within 200x200 while maintaining ratio
+      const maxDim = 200;
+      const ratio = Math.min(maxDim / width, maxDim / height);
+      const newWidth = Math.round(width * ratio);
+      const newHeight = Math.round(height * ratio);
+
       const newEl: CanvasElement = {
         id: Date.now().toString(),
         type: "image",
         src: url,
-        x: 150,
-        y: 150,
-        width: 150,
-        height: 150,
+        x: (CANVAS_SIZE - newWidth) / 2, // Center it
+        y: (CANVAS_SIZE - newHeight) / 2,
+        width: newWidth,
+        height: newHeight,
       };
       setElementsBySide({ ...elementsBySide, [side]: [...elements, newEl] });
       setSelectedId(newEl.id);
@@ -809,15 +860,23 @@ export default function CustomizerPage() {
     }
   };
 
-  const addArt = (src: string) => {
+  const addArt = async (src: string) => {
+    const { width, height } = await getImageDimensions(src);
+
+    // Calculate scaled dimensions to fit within 150x150
+    const maxDim = 150;
+    const ratio = Math.min(maxDim / width, maxDim / height);
+    const newWidth = Math.round(width * ratio);
+    const newHeight = Math.round(height * ratio);
+
     const newEl: CanvasElement = {
       id: Date.now().toString(),
       type: "image",
       src,
-      x: 150,
-      y: 150,
-      width: 100,
-      height: 100,
+      x: (CANVAS_SIZE - newWidth) / 2,
+      y: (CANVAS_SIZE - newHeight) / 2,
+      width: newWidth,
+      height: newHeight,
     };
     setElementsBySide({ ...elementsBySide, [side]: [...elements, newEl] });
     // Delay selection slightly to ensure SVG is fully rendered (especially for DraggableSVGImage)
@@ -1790,23 +1849,23 @@ export default function CustomizerPage() {
         }}
       >
         {/* Base Grid - Faint & Static */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none opacity-20"
           style={{
-             background: 'radial-gradient(#94a3b8 1px, transparent 1px)',
-             backgroundSize: '24px 24px',
+            background: 'radial-gradient(#94a3b8 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
           }}
         />
 
         {/* Interactive Highlight - Darker dots revealed under cursor */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-60"
           style={{
-             background: 'radial-gradient(#000000 1.5px, transparent 1.5px)',
-             backgroundSize: '24px 24px',
-             // Flashlight effect: Show only near cursor
-             maskImage: 'radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%)',
-             WebkitMaskImage: 'radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%)',
+            background: 'radial-gradient(#000000 1.5px, transparent 1.5px)',
+            backgroundSize: '24px 24px',
+            // Flashlight effect: Show only near cursor
+            maskImage: 'radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%)',
           }}
         />
 
