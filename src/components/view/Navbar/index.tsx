@@ -117,17 +117,17 @@ const Navbar = () => {
                 <Link href="/search?q=traditional">Tradionals</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/search?q=plazzo">Plazzo</Link>
+                <Link href="/search?q=indo-western">Indo-Western</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link
+          {/* <Link
             href={"/products"}
             className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
           >
             Catalog
-          </Link>
+          </Link> */}
 
           <Link
             href={"/customizer"}
@@ -273,12 +273,12 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link
+            {/* <Link
               href={"/products"}
               className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
             >
               Catalog <ChevronDown className="h-4 w-4" />
-            </Link>
+            </Link> */}
 
             <Link
               href={"/customizer"}
