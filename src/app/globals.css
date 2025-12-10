@@ -48,6 +48,42 @@ body {
     --gradient-bottom-left: linear-gradient(315deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
     --gradient-radial: radial-gradient(circle, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
     --gradient-radial: radial-gradient(circle, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+
+    /* SHADCN THEME VARIABLES (Mapped to Premium Theme) */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 21%;
+    /* Jet #353535 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 21%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 21%;
+
+    --primary: 0 0% 0%;
+    /* Black */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 42 48% 56%;
+    /* Gold #C5A059 (approx HSL) */
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 42 48% 56%;
+    /* Gold */
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 42 48% 56%;
+    /* Gold Ring */
+
+    --radius: 0.5rem;
   }
 }
 

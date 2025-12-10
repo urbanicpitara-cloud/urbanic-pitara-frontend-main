@@ -219,7 +219,6 @@ export default function EditProductPage() {
         <Button
           onClick={handleUpdate}
           disabled={saving || uploading}
-          className="bg-black text-white hover:bg-gray-800"
         >
           {saving ? "Saving..." : "Save Changes"}
         </Button>

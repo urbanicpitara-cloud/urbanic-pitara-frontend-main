@@ -5,6 +5,7 @@ import Image from "next/image";
 import { productsAPI } from "@/lib/api";
 import { Product } from "@/types/collections";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export default function TagAddPage() {
   const [name, setName] = useState("");
@@ -120,13 +121,12 @@ export default function TagAddPage() {
     <div className="flex flex-col h-full space-y-4 max-w-5xl mx-auto w-full">
       <div className="flex-none flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Add New Tag</h1>
-        <button
+        <Button
           onClick={handleSubmit}
-          disabled={saving}
-          className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-all font-medium text-sm shadow-sm"
+          disabled={saving || !name}
         >
-          {saving ? "Creating..." : "Create Tag"}
-        </button>
+          {saving ? "Saving..." : "Create Tag"}
+        </Button>
       </div>
 
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">

@@ -179,7 +179,6 @@ export default function AddProductPage() {
         <Button
           onClick={handleSubmit}
           disabled={saving || uploading}
-          className="bg-black text-white hover:bg-gray-800"
         >
           {saving ? "Saving..." : "Save Product"}
         </Button>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Loader2, Image as ImageIcon, Palette } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 
 interface ProductVariant {
@@ -315,9 +316,11 @@ export default function AdminCustomizerPage() {
                                 className="border rounded px-3 py-2 w-32"
                             />
                         </div>
-                        <button onClick={createProduct} className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
-                            <Plus size={16} /> Create Product
-                        </button>
+                        <div className="flex gap-2">
+                            <Button onClick={createProduct} className="flex items-center gap-2">
+                                <Plus className="w-4 h-4" /> Add Product
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Product List */}
@@ -430,9 +433,11 @@ export default function AdminCustomizerPage() {
                                 className="border rounded px-3 py-2 w-64"
                             />
                         </div>
-                        <button onClick={createCategory} className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
-                            <Plus size={16} /> Create Category
-                        </button>
+                        <div className="flex gap-2">
+                            <Button onClick={createCategory} className="flex items-center gap-2">
+                                <Plus className="w-4 h-4" /> Create Category
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Categories List */}
