@@ -175,8 +175,8 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-semibold mb-8">Shopping Cart</h1>
+    <div className="container mx-auto px-4 py-12 md:py-20">
+      <h1 className="text-3xl font-[family-name:var(--font-cinzel)] font-bold mb-8 text-center md:text-left">Shopping Cart</h1>
 
       <div className="grid gap-8 lg:grid-cols-12">
         {/* Cart Items */}

@@ -270,7 +270,7 @@ export default function CollectionPage() {
   if (!collection) return null;
 
   return (
-    <div className="container mx-auto px-4 py-10 min-h-screen mt-5">
+    <div className="container mx-auto px-4 py-12 md:py-20 min-h-screen">
       {/* Collection Header */}
       <div className="mb-12 text-center max-w-4xl mx-auto">
         {collection.imageUrl && (
@@ -284,11 +284,11 @@ export default function CollectionPage() {
               priority
             />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-              <h1 className="text-4xl md:text-5xl font-serif font-bold text-white drop-shadow-md">{collection.title}</h1>
+              <h1 className="text-4xl md:text-5xl font-[family-name:var(--font-cinzel)] font-bold text-white drop-shadow-md">{collection.title}</h1>
             </div>
           </div>
         )}
-        {!collection.imageUrl && <h1 className="text-4xl font-serif font-bold mb-4 text-gray-900">{collection.title}</h1>}
+        {!collection.imageUrl && <h1 className="text-4xl font-[family-name:var(--font-cinzel)] font-bold mb-4 text-gray-900">{collection.title}</h1>}
 
         {collection.description && (
           <p className="mt-2 text-gray-600 text-lg leading-relaxed">{collection.description}</p>
@@ -383,7 +383,7 @@ export default function CollectionPage() {
           ) : (
             <div className="text-center py-20 bg-gray-50 rounded-lg">
               <p className="text-gray-500 text-lg">No products found in this collection matching your filters.</p>
-              <Button variant="link" onClick={handleClearFilters} className="mt-2 text-indigo-600">Clear all filters</Button>
+              <Button variant="link" onClick={handleClearFilters} className="mt-2 text-black underline">Clear all filters</Button>
             </div>
           )}
         </div>

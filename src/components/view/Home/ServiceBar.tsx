@@ -17,8 +17,8 @@ const features = [
     },
     {
         icon: Truck,
-        title: "Worldwide Shipping",
-        description: "Express delivery globally"
+        title: "Pan-India Shipping",
+        description: "Express delivery across India"
     },
     {
         icon: ShieldCheck,

@@ -168,14 +168,14 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto px-4 py-8 pt-12"
+      className="container mx-auto px-4 py-12 md:py-20"
     >
       {/* Breadcrumb */}
       <div className="mb-4">
-        <Link href="/" className="text-gray-600 hover:text-indigo-600">Home</Link>{" / "}
+        <Link href="/" className="text-gray-600 hover:text-black">Home</Link>{" / "}
         {product.collection && (
           <>
-            <Link href={`/products`} className="text-gray-600 hover:text-indigo-600">
+            <Link href={`/products`} className="text-gray-600 hover:text-black">
               {product.collection.title}
             </Link>{" / "}
           </>
@@ -200,7 +200,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                   aria-pressed={selectedIndex === validImages.indexOf(img)}
                   className={cn(
                     "relative shrink-0 h-20 w-20 rounded-lg overflow-hidden border transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                    selectedIndex === validImages.indexOf(img) ? "ring-2 ring-offset-2 ring-indigo-500 border-transparent shadow-md" : "border-gray-200"
+                    selectedIndex === validImages.indexOf(img) ? "ring-2 ring-offset-2 ring-black border-transparent shadow-md" : "border-gray-200"
                   )}
                 >
                   <Image
@@ -268,7 +268,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                         onClick={() => onThumbClick(validImages.indexOf(img))}
                         className={cn(
                           "flex-shrink-0 h-16 w-16 rounded-md overflow-hidden border transition-shadow",
-                          selectedIndex === validImages.indexOf(img) ? "border-indigo-600 shadow-md" : "border-gray-200"
+                          selectedIndex === validImages.indexOf(img) ? "border-black shadow-md" : "border-gray-200"
                         )}
                       >
                         <Image src={img.url} alt={img.altText || "product-image"} width={64} height={64} className="object-cover" />
@@ -308,7 +308,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             {isLongDescription && (
               <button
                 onClick={() => setShowFullDescription(prev => !prev)}
-                className="text-indigo-600 text-sm mt-1 underline"
+                className="text-black text-sm mt-1 underline hover:text-gray-700"
               >
                 {showFullDescription ? "Read less" : "Read more"}
               </button>
@@ -334,11 +334,11 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                     <button
                       key={`${opt.id}-${displayValue}`}
                       className={cn(
-                        "px-3 py-1 border rounded-md",
+                        "px-4 py-2 border text-sm font-medium transition-all duration-200",
                         isSelected
-                          ? "border-indigo-600 bg-indigo-50 text-indigo-600"
-                          : "border-gray-300 text-gray-700 hover:border-gray-400",
-                        !hasVariantWithOption && "opacity-50 cursor-not-allowed"
+                          ? "border-black bg-black text-white"
+                          : "border-gray-200 text-gray-700 hover:border-black hover:text-black",
+                        !hasVariantWithOption && "opacity-50 cursor-not-allowed decoration-slice line-through"
                       )}
                       onClick={() => handleOptionChange(opt.id, displayValue)}
                       disabled={!hasVariantWithOption}
@@ -360,7 +360,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
               id="quantity"
               value={quantity}
               onChange={handleQuantityChange}
-              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
             >
               {Array.from({ length: 10 }, (_, i) => i + 1).map(q => (
                 <option key={`qty-${q}`} value={q}>{q}</option>
@@ -415,7 +415,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                     </div>
                   )}
                 </div>
-                <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition">{related.title}</h3>
+                <h3 className="font-medium text-gray-900 group-hover:underline transition">{related.title}</h3>
               </Link>
             ))}
           </div>

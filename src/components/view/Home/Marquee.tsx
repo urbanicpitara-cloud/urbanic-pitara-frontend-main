@@ -28,7 +28,7 @@ const Marquee = () => {
                         </span>
                         <span className="text-3xl md:text-5xl font-mono opacity-50">✦</span>
                         <span className="text-3xl md:text-5xl font-[family-name:var(--font-cinzel)] font-bold tracking-widest uppercase opacity-90">
-                            Worldwide Shipping
+                            Pan-India Shipping
                         </span>
                         <span className="text-3xl md:text-5xl font-mono opacity-50">✦</span>
                     </motion.div>
