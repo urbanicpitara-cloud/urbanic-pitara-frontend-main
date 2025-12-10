@@ -84,7 +84,7 @@ const Categories = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
             <div className="absolute bottom-0 left-0 p-8 w-full transform transition-transform duration-500 group-hover:-translate-y-2">
               <h3 className="text-2xl font-[family-name:var(--font-cinzel)] text-white mb-2">{categories[0].name}</h3>
-              <p className="text-white/80 text-sm tracking-widest uppercase opacity-70 group-hover:opacity-100 transition-opacity duration-500">
+              <p className="text-gray-400 text-sm tracking-widest uppercase opacity-70 group-hover:opacity-100 transition-opacity duration-500">
                 Timeless Elegance
               </p>
             </div>
@@ -105,7 +105,7 @@ const Categories = () => {
                 <div className="text-center transform transition-transform duration-500 group-hover:-translate-y-2">
                   <h3 className="text-2xl font-[family-name:var(--font-cinzel)] text-white mb-2 drop-shadow-lg">{category.name}</h3>
                   <div className="h-[1px] w-0 bg-white mx-auto group-hover:w-12 transition-all duration-500" />
-                  <p className="text-white/80 text-xs tracking-widest uppercase mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <p className="text-gray-300 text-xs tracking-widest uppercase mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     View Collection
                   </p>
                 </div>

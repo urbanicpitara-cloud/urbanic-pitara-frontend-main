@@ -100,10 +100,10 @@ const Hero: React.FC<HeroProps> = ({
             className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
           >
             <Link
-              href="/collections/bridal"
+              href="/products"
               className="group relative px-10 py-4 bg-white/5 backdrop-blur-sm border border-white/20 text-white overflow-hidden transition-all duration-500 hover:bg-white/10 hover:border-white/40 hover:scale-105"
             >
-              <span className="relative z-10 text-sm tracking-[0.2em] uppercase font-medium">Explore Bridal</span>
+              <span className="relative z-10 text-sm tracking-[0.2em] uppercase font-medium">Explore</span>
               <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[0.16,1,0.3,1]" />
             </Link>
 
