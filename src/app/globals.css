@@ -23,7 +23,8 @@ body {
     --radius: 0.5rem;
 
     /* Theme Colors */
-    --gold: #C5A059; /* Premium Muted Gold */
+    --gold: #C5A059;
+    /* Premium Muted Gold */
 
     /* Colors */
     --jet: #353535;
@@ -46,15 +47,38 @@ body {
     --gradient-top-left: linear-gradient(225deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
     --gradient-bottom-left: linear-gradient(315deg, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
     --gradient-radial: radial-gradient(circle, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+    --gradient-radial: radial-gradient(circle, var(--jet), var(--caribbean-current), var(--white), var(--platinum), var(--indigo-dye));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-cinzel), serif;
   }
 }
 
 /* In your global CSS file like globals.css */
 .scrollbar-hide {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }

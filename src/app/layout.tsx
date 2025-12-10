@@ -62,8 +62,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <Providers>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} ${cinzel.variable} antialiased`} // Added cinzel var
+          className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} ${cinzel.variable} antialiased`}
         >
+          <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]" style={{ backgroundImage: 'url("/noise.png")' }}></div>
           <ThemeProvider>
             <CartProvider>
               {children}

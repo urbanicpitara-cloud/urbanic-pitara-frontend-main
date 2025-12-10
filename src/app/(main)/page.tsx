@@ -94,9 +94,6 @@ export default function HomePage() {
       {/* Scrolling Marquee */}
       <Marquee />
 
-      {/* Decorative Grain Overlay */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100]" style={{ backgroundImage: 'url("/noise.png")' }}></div>
-
       {/* Categories Section (includes Customizer CTA) */}
       <motion.section
         variants={fadeUpVariants}
