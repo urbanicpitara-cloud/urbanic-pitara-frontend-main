@@ -22,6 +22,9 @@ body {
     /* Border radius */
     --radius: 0.5rem;
 
+    /* Theme Colors */
+    --gold: #C5A059; /* Premium Muted Gold */
+
     /* Colors */
     --jet: #353535;
     --caribbean-current: #3c6e71;

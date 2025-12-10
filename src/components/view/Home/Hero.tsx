@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 
 interface HeroProps {
   images?: {
@@ -16,89 +16,123 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({
   images = {
-    fallback: "/34.jpg", // default image if no props are passed
+    fallback: "/34.jpg",
     mobile: "/12.jpg",
     desktop: "/34.jpg",
-    // tablet: "/34.jpg",
   },
 }) => {
-  // Ensure fallback image exists
   const fallback = images.fallback;
-
   const sources = {
     mobile: images.mobile || fallback,
     tablet: images.tablet || images.mobile || fallback,
     desktop: images.desktop || images.tablet || images.mobile || fallback,
   };
 
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 1000], [0, 300]);
+  const opacity = useTransform(scrollY, [0, 500], [1, 0]);
+
   return (
-    <section className="relative w-full h-[90vh] md:h-screen">
-      {/* Responsive background image */}
-      <div className="absolute inset-0">
+    <section className="relative w-full h-screen overflow-hidden">
+      {/* Cinematic Background with Slow Zoom and Parallax */}
+      <motion.div
+        style={{ y, scale: 1.1 }}
+        animate={{ scale: 1.15 }}
+        transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "mirror" }}
+        className="absolute inset-0 z-0"
+      >
         <picture>
           <source media="(min-width: 1024px)" srcSet={sources.desktop} />
           <source media="(min-width: 640px)" srcSet={sources.tablet} />
           <Image
             src={sources.mobile}
-            alt="Bridal Collection"
+            alt="Royal Collection"
             fill
             priority
-            className="object-cover transition-transform duration-[20s] ease-linear scale-100 hover:scale-110 will-change-transform"
+            className="object-cover"
           />
         </picture>
-        <div className="absolute inset-0 bg-black/30" />
-      </div>
+        <div className="absolute inset-0 bg-black/30 md:bg-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+      </motion.div>
 
       {/* Content Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 flex flex-col items-center justify-center text-center px-4 md:px-6 z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col items-center max-w-5xl"
-        >
-          {/* Decorative Top Element */}
+      <motion.div
+        style={{ opacity }}
+        className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 md:px-6"
+      >
+        <div className="flex flex-col items-center max-w-6xl">
 
+          {/* Brand Signature */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <h1 className="text-white text-6xl md:text-8xl lg:text-[10rem] font-medium mb-2 leading-none tracking-tight font-samarkan drop-shadow-2xl">
+              Urbanic Pitara
+            </h1>
+          </motion.div>
 
-          <h1 className={`text-white text-6xl md:text-8xl lg:text-9xl font-medium mb-8 leading-tight uppercase tracking-wider drop-shadow-2xl font-samarkan`}>
-            Urbanic Pitara
-          </h1>
+          {/* Elegant Divider */}
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: "100px" }}
+            transition={{ delay: 0.5, duration: 1, ease: "easeInOut" }}
+            className="h-px bg-[var(--gold)] mb-8 opacity-80"
+          />
 
-          <p className="text-white text-xl md:text-3xl mb-12 max-w-3xl font-light tracking-wide drop-shadow-lg leading-relaxed">
-            Where Tradition Meets Elegance <br />
-            <span className="text-[var(--gold)] italic font-serif mt-2 block text-2xl md:text-4xl">Curated Designer Collections</span>
-          </p>
+          <motion.div
+            initial={{ opacity: 0, filter: "blur(10px)" }}
+            animate={{ opacity: 1, filter: "blur(0px)" }}
+            transition={{ delay: 0.3, duration: 1 }}
+          >
+            <p className="text-gray-100 text-lg md:text-2xl lg:text-3xl mb-12 max-w-2xl font-light tracking-widest uppercase font-[family-name:var(--font-cinzel)]">
+              Where Tradition Meets <span className="text-[var(--gold)] font-semibold">Elegance</span>
+            </p>
+          </motion.div>
 
-          <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
+          {/* Glassmorphic Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
+          >
             <Link
-              href="/search?q=bridal"
-              className="group relative overflow-hidden bg-white/10 backdrop-blur-md border border-white/30 text-white px-10 py-5 font-semibold rounded-none shadow-2xl transition-all hover:bg-white hover:text-black hover:border-white"
+              href="/collections/bridal"
+              className="group relative px-10 py-4 bg-white/5 backdrop-blur-sm border border-white/20 text-white overflow-hidden transition-all duration-500 hover:bg-white/10 hover:border-white/40 hover:scale-105"
             >
-              <span className="relative z-10 uppercase tracking-widest text-sm">Explore Bridal</span>
+              <span className="relative z-10 text-sm tracking-[0.2em] uppercase font-medium">Explore Bridal</span>
+              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[0.16,1,0.3,1]" />
             </Link>
 
             <Link
               href="/customizer"
-              className="group relative overflow-hidden bg-[var(--gold)] text-white px-10 py-5 font-semibold rounded-none shadow-2xl transition-all hover:bg-[#b8860b]"
+              className="group relative px-10 py-4 bg-[var(--gold)] text-white overflow-hidden transition-all duration-500 hover:scale-105 shadow-[0_0_30px_-10px_rgba(184,134,11,0.5)]"
             >
-              <span className="relative z-10 flex items-center gap-3 uppercase tracking-widest text-sm">
+              <span className="relative z-10 text-sm tracking-[0.2em] uppercase font-bold flex items-center gap-2">
                 Design Your Own
+                <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
               </span>
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
             </Link>
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
-      {/* Scroll Indicator */}
+      {/* Elegant Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 1 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/70 animate-bounce"
+        transition={{ delay: 1.5, duration: 1 }}
+        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer z-10"
+        onClick={() => window.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
+        <span className="text-[10px] uppercase tracking-[0.3em] text-white/50">Scroll</span>
+        <div className="w-[1px] h-12 bg-gradient-to-b from-white/0 via-white/50 to-white/0 overflow-hidden">
+          <div className="w-full h-1/2 bg-white/80 animate-scrolldown" />
+        </div>
       </motion.div>
     </section>
   );

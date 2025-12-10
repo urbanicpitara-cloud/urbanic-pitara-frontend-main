@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Cinzel } from "next/font/google"; // Added Cinzel
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "@/providers";
@@ -15,6 +15,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const cinzel = Cinzel({ // Configured Cinzel
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 const samarkan = localFont({
@@ -56,7 +62,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <Providers>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} ${cinzel.variable} antialiased`} // Added cinzel var
         >
           <ThemeProvider>
             <CartProvider>

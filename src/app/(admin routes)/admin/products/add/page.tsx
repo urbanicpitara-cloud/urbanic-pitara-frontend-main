@@ -15,6 +15,7 @@ import { MultiSelect } from "@/components/ui/multi-select-custom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 export default function AddProductPage() {
   const router = useRouter();
