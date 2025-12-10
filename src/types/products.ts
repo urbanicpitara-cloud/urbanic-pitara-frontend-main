@@ -48,7 +48,8 @@ export interface Product {
   options: ProductOption[];
   variants: ProductVariant[];
   tags: string[];
-  collection?: ProductCollection | null;
+  // ✅ Many-to-many relationship to Collections
+  collections?: ProductCollection[];
   minPriceAmount?: string;
   minPriceCurrency?: string;
   maxPriceAmount?: string;

@@ -123,9 +123,22 @@ export default function ProductsTable({
                 </td>
 
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                    {p.collection?.title || "Uncategorized"}
-                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {p.collections?.length > 0 ? (
+                      p.collections.map((col: any) => (
+                        <span
+                          key={col.id}
+                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200"
+                        >
+                          {col.title}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-400 border border-gray-200">
+                        Uncategorized
+                      </span>
+                    )}
+                  </div>
                 </td>
 
                 <td className="px-6 py-4">

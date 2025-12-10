@@ -173,10 +173,10 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       {/* Breadcrumb */}
       <div className="mb-4">
         <Link href="/" className="text-gray-600 hover:text-black">Home</Link>{" / "}
-        {product.collection && (
+        {product.collections && product.collections.length > 0 && (
           <>
             <Link href={`/products`} className="text-gray-600 hover:text-black">
-              {product.collection.title}
+              {product.collections[0].title}
             </Link>{" / "}
           </>
         )}

@@ -22,12 +22,12 @@ export interface Product {
   maxPriceAmount: number;
   minPriceCurrency: string;
 
-  // ✅ Relationship to Collection
-  collection?: {
+  // ✅ Many-to-many relationship to Collections
+  collections?: {
     id: string;
     title: string;
     handle: string;
-  };
+  }[];
 
   // Optional tags and images
   tags?: { id: string; name: string }[];
