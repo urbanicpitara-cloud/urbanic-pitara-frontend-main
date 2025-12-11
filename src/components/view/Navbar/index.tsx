@@ -111,10 +111,10 @@ const Navbar = () => {
                 <Link href="/search?q=lehenga">Lehenga</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/search?q=kurti">Kurti</Link>
+                <Link href="/search?q=suit">Suits</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/search?q=traditional">Tradionals</Link>
+                <Link href="/search?q=traditional">Tradional</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/search?q=indo-western">Indo-Western</Link>
@@ -262,7 +262,7 @@ const Navbar = () => {
                   <Link href="/search?q=lehenga">Lehenga</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/search?q=kurti">Kurti</Link>
+                  <Link href="/search?q=suit">Suits</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/search?q=traditional">Traditional</Link>

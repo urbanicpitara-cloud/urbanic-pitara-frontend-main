@@ -32,6 +32,17 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaults: Record<string, string> = {};
 
+    // Check if product has variants
+    if (!product.variants || product.variants.length === 0) {
+      // No variants - just use first value of each option if options exist
+      product.options?.forEach(opt => {
+        if (opt.values && opt.values.length > 0) {
+          defaults[opt.id] = normalizeOptionValue(opt.values[0]);
+        }
+      });
+      return defaults;
+    }
+
     // Initialize with the first available variant's options
     const defaultVariant = product.variants[0];
     if (defaultVariant) {
@@ -110,6 +121,12 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   // Update selected variant whenever options change
   useEffect(() => {
+    // If no variants exist, set to null
+    if (!product.variants || product.variants.length === 0) {
+      setSelectedVariant(null);
+      return;
+    }
+
     const match = product.variants.find(variant => {
       const variantOptions = variant.selectedOptions;
 
@@ -134,7 +151,14 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   };
 
   const handleAddToCart = async (method: PaymentMethod) => {
-    if (!selectedVariant || addingToCart) return; // prevent rapid clicks
+    if (addingToCart) return; // prevent rapid clicks
+
+    // For products without variants, we can't add to cart
+    if (!selectedVariant) {
+      toast.error("This product has no available variants. Please contact support.");
+      return;
+    }
+
     try {
       setAddingToCart(true);
       await addItem(product.id, quantity, selectedVariant.id);
@@ -155,9 +179,11 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       // setTimeout(() => {
       //   router.push("/cart");
       // }, 500);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Failed to add item to cart");
+      // Extract error message from response
+      const errorMessage = err?.response?.data?.error || err?.message || "Failed to add item to cart";
+      toast.error(errorMessage);
     } finally {
       setAddingToCart(false);
     }
@@ -381,6 +407,15 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                 quantity > (selectedVariant.inventoryQuantity ?? 0)
               }
             />
+          )}
+
+          {/* No variants warning */}
+          {(!product.variants || product.variants.length === 0) && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+              <p className="text-yellow-800 text-sm">
+                ⚠️ This product has no size/variant options available. Please add variants in the admin panel to enable purchasing.
+              </p>
+            </div>
           )}
 
           {selectedVariant && selectedVariant.inventoryQuantity! < 5 && selectedVariant.inventoryQuantity! > 0 && (
