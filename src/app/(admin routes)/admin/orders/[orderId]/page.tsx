@@ -64,6 +64,8 @@ interface Order {
         status: string;
         method: string;
         provider?: string | null;
+        providerOrderId?: string | null;
+        providerPaymentId?: string | null;
         amount: number | string;
         currency: string;
         createdAt?: string;
@@ -204,8 +206,8 @@ export default function AdminOrderDetailPage() {
             }
             const normalized = normalizeOrder(raw);
             setOrder(normalized);
-            // prefill payment status update select with empty (user must choose)
-            setPaymentStatusUpdate("");
+            // prefill payment status update select with current status
+            setPaymentStatusUpdate(normalized.payment?.status || "");
         } catch (err) {
             console.error("Failed to load order:", err);
             setError("Failed to load order details. Please try again.");
@@ -233,7 +235,6 @@ export default function AdminOrderDetailPage() {
             if (!resp.ok) throw new Error(data?.error || "Failed to update payment");
             toast.success("Payment status updated");
             await fetchOrder();
-            setPaymentStatusUpdate("");
         } catch (err: any) {
             console.error("Update payment failed", err);
             toast.error(err?.message || "Failed to update payment status");
@@ -525,27 +526,137 @@ export default function AdminOrderDetailPage() {
                     </div>
 
                     {order.payment && (
-                        <div className="bg-white rounded-lg shadow-sm p-5">
-                            <h4 className="text-sm text-gray-500">Payment</h4>
-                            <div className="mt-3 text-sm text-gray-700 space-y-2">
-                                <div className="flex justify-between"><span>Status</span><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${paymentStatusColors[order.payment.status] || 'bg-gray-50 text-gray-800'}`}>{order.payment.status}</span></div>
-                                <div className="flex justify-between"><span>Method</span><span className="font-medium">{order.payment.method}</span></div>
-                                <div className="flex justify-between"><span>Amount</span><span className="font-medium">{order.payment.currency} {Number(order.payment.amount || 0).toFixed(2)}</span></div>
-                                <div className="text-xs text-gray-400">Recorded at: {order.payment.createdAt ? new Date(order.payment.createdAt).toLocaleString() : "—"}</div>
-
-                                <div className="mt-2 flex gap-2">
-                                    <select value={paymentStatusUpdate} onChange={(e) => setPaymentStatusUpdate(e.target.value)} className="border rounded px-2 py-1 text-sm flex-1">
-                                        <option value=''>Change status…</option>
-                                        <option value='INITIATED'>INITIATED</option>
-                                        <option value='PAID'>PAID</option>
-                                        <option value='FAILED'>FAILED</option>
-                                        <option value='REFUNDED'>REFUNDED</option>
-                                        <option value='NONE'>NONE</option>
-                                    </select>
-                                    <button onClick={handleUpdatePaymentStatus} disabled={updating || !paymentStatusUpdate || paymentStatusUpdate === order.payment.status} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">
-                                        {updating ? 'Updating…' : 'Update'}
-                                    </button>
+                        <div className="bg-white rounded-lg shadow-sm p-5 space-y-4">
+                            <h4 className="text-sm font-semibold text-gray-900">Payment Details</h4>
+                            <div className="space-y-3 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Status</span>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${paymentStatusColors[order.payment.status] || 'bg-gray-50 text-gray-800'}`}>
+                                        {order.payment.status}
+                                    </span>
                                 </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Method</span>
+                                    <span className="font-medium">{order.payment.method}</span>
+                                </div>
+                                {order.payment.provider && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Provider</span>
+                                        <span className="font-medium">{order.payment.provider}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Amount</span>
+                                    <span className="font-medium">{order.payment.currency} {Number(order.payment.amount || 0).toFixed(2)}</span>
+                                </div>
+
+                                {/* Transaction IDs Section */}
+                                {(order.payment as any).providerOrderId && (
+                                    <div className="pt-3 border-t space-y-2">
+                                        <p className="text-xs font-semibold text-gray-500 uppercase">Transaction Details</p>
+                                        <div className="flex justify-between items-center gap-2">
+                                            <span className="text-gray-600 text-xs">Order ID</span>
+                                            <div className="flex items-center gap-2">
+                                                <code className="bg-gray-50 px-2 py-1 rounded text-xs font-mono text-gray-800">
+                                                    {(order.payment as any).providerOrderId}
+                                                </code>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard?.writeText((order.payment as any).providerOrderId);
+                                                        toast.success("Order ID copied");
+                                                    }}
+                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                    title="Copy Order ID"
+                                                >
+                                                    <Copy className="h-3 w-3 text-gray-500" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(order.payment as any).providerPaymentId && (
+                                    <div className="flex justify-between items-center gap-2">
+                                        <span className="text-gray-600 text-xs">Payment ID</span>
+                                        <div className="flex items-center gap-2">
+                                            <code className="bg-gray-50 px-2 py-1 rounded text-xs font-mono text-gray-800">
+                                                {(order.payment as any).providerPaymentId}
+                                            </code>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard?.writeText((order.payment as any).providerPaymentId);
+                                                    toast.success("Payment ID copied");
+                                                }}
+                                                className="p-1 hover:bg-gray-100 rounded"
+                                                title="Copy Payment ID"
+                                            >
+                                                <Copy className="h-3 w-3 text-gray-500" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Verification Link */}
+                                {(order.payment as any).providerPaymentId && order.payment.provider && (
+                                    <a
+                                        href={
+                                            order.payment.provider.toUpperCase() === 'RAZORPAY'
+                                                ? `https://dashboard.razorpay.com/app/payments/${(order.payment as any).providerPaymentId}`
+                                                : order.payment.provider.toUpperCase() === 'STRIPE'
+                                                    ? `https://dashboard.stripe.com/payments/${(order.payment as any).providerPaymentId}`
+                                                    : '#'
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-xs font-medium mt-2"
+                                    >
+                                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                        Verify in {order.payment.provider} Dashboard
+                                    </a>
+                                )}
+
+                                <div className="text-xs text-gray-400 pt-2 border-t">
+                                    Recorded: {order.payment.createdAt ? new Date(order.payment.createdAt).toLocaleString() : "—"}
+                                </div>
+
+                                {/* Update Payment Status */}
+                                <div className="pt-3 border-t">
+                                    <div className="flex gap-2">
+                                        <select
+                                            value={paymentStatusUpdate}
+                                            onChange={(e) => setPaymentStatusUpdate(e.target.value)}
+                                            className="border rounded px-2 py-1 text-sm flex-1"
+                                        >
+                                            <option value=''>Change status…</option>
+                                            <option value='INITIATED'>INITIATED</option>
+                                            <option value='PAID'>PAID</option>
+                                            <option value='FAILED'>FAILED</option>
+                                            <option value='REFUNDED'>REFUNDED</option>
+                                            <option value='NONE'>NONE</option>
+                                        </select>
+                                        <button
+                                            onClick={handleUpdatePaymentStatus}
+                                            disabled={updating || !paymentStatusUpdate || paymentStatusUpdate === order.payment.status}
+                                            className="px-3 py-1 bg-blue-600 text-white rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+                                        >
+                                            {updating ? 'Updating…' : 'Update'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Raw Response (Collapsible) */}
+                                {order.payment.rawResponse && (
+                                    <details className="pt-3 border-t">
+                                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium">
+                                            View Raw Payment Response
+                                        </summary>
+                                        <pre className="mt-2 p-3 bg-gray-50 rounded text-[10px] overflow-auto max-h-64 font-mono">
+                                            {JSON.stringify(order.payment.rawResponse, null, 2)}
+                                        </pre>
+                                    </details>
+                                )}
                             </div>
                         </div>
                     )}

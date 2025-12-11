@@ -64,6 +64,8 @@ interface Order {
     status: string;
     method: string;
     provider?: string;
+    providerOrderId?: string;
+    providerPaymentId?: string;
     amount: number;
     currency: string;
     createdAt: string;
@@ -306,8 +308,8 @@ export default function AdminOrdersPage() {
                 </SelectContent>
               </Select>
               <Button onClick={handleBulkUpdate} disabled={!bulkStatus}>Update</Button>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 size="icon"
                 onClick={handleBulkDelete}
                 title="Delete Selected"
@@ -409,10 +411,18 @@ export default function AdminOrdersPage() {
                     </TableCell>
                     <TableCell>
                       {order.payment ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-1">
                           <Badge variant="outline" className={`font-normal border-0 ${paymentStatusColors[order.payment.status]}`}>
                             {order.payment.status}
                           </Badge>
+                          {order.payment.providerPaymentId && (
+                            <code
+                              className="text-[10px] text-gray-500 font-mono truncate max-w-[120px]"
+                              title={order.payment.providerPaymentId}
+                            >
+                              {order.payment.providerPaymentId.slice(0, 16)}...
+                            </code>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400">—</span>
