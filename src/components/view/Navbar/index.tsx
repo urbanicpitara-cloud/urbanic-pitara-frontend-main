@@ -268,7 +268,7 @@ const Navbar = () => {
                   <Link href="/search?q=traditional">Tradionals</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/search?q=plazzo">Plazzo</Link>
+                  <Link href="/search?q=indo-western">Indo-Western</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
