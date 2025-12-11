@@ -73,6 +73,8 @@ export default function CheckoutPage() {
   const [newAddress, setNewAddress] = useState<Omit<Address, "id" | "isDefault"> | null>(null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [payingWithPhonePe, setPayingWithPhonePe] = useState(false);
+  const [payingWithRazorpay, setPayingWithRazorpay] = useState(false);
+  const [payingWithStripe, setPayingWithStripe] = useState(false);
 
   // Discount states
   const [discountCode, setDiscountCode] = useState("");
@@ -318,7 +320,7 @@ export default function CheckoutPage() {
       const orderRes = await ordersAPI.create({
         cartId: cart.id,
         shippingAddressId: shippingAddress.id,
-        discountCode: appliedDiscount ? appliedDiscount.code : null,
+        discountCode: appliedDiscount?.code || null,
         paymentMethod: "PHONEPE",
         cartSnapshot: cart.items.map((it) => ({
           productId: it.product.id,
@@ -355,12 +357,263 @@ export default function CheckoutPage() {
       }
 
       // Redirect user to PhonePe payment page
-      window.location.href = initRes.data.redirectUrl;
+      if (initRes.data.redirectUrl) {
+        window.location.href = initRes.data.redirectUrl;
+      } else {
+        throw new Error('No redirect URL received from payment gateway');
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err?.response?.data?.error || err.message || 'Payment failed');
     } finally {
       setPayingWithPhonePe(false);
+    }
+  };
+
+  // ------------------ Pay with Razorpay ------------------
+  const handlePayWithRazorpay = async () => {
+    if (!cart || !user) return;
+    setPayingWithRazorpay(true);
+
+    try {
+      let shippingAddress = null;
+
+      if (selectedAddressId) {
+        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
+      }
+
+      if (!shippingAddress && newAddress) {
+        const duplicate = addresses.find(
+          (a) =>
+            a.firstName === newAddress.firstName &&
+            a.lastName === newAddress.lastName &&
+            a.address1 === newAddress.address1 &&
+            a.city === newAddress.city &&
+            a.country === newAddress.country
+        );
+
+        if (duplicate) {
+          shippingAddress = duplicate;
+          setSelectedAddressId(duplicate.id);
+        } else {
+          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
+          shippingAddress = res.data as Address;
+          setAddresses((prev) => [...prev, shippingAddress!]);
+          setSelectedAddressId(shippingAddress!.id);
+        }
+      }
+
+      if (!shippingAddress) throw new Error("No shipping address selected");
+
+      // 1) Create order with RAZORPAY
+      const orderRes = await ordersAPI.create({
+        cartId: cart.id,
+        shippingAddressId: shippingAddress.id,
+        discountCode: appliedDiscount ? appliedDiscount.code : null,
+        paymentMethod: "RAZORPAY",
+        cartSnapshot: cart.items.map((it) => ({
+          productId: it.product.id,
+          variantId: it.variantId || null,
+          quantity: it.quantity,
+          priceAmount: it.priceAmount,
+          priceCurrency: it.currency,
+        })),
+      });
+
+      const orderData = orderRes.data;
+      const orderId = orderData.id;
+      const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
+
+      // 2) Initiate Razorpay payment
+      const initRes = await paymentRepository.initiate({
+        amount,
+        orderId,
+        provider: 'RAZORPAY',
+      });
+
+      if (!initRes || !initRes.success || !initRes.data) {
+        throw new Error(initRes?.error || "Failed to initiate payment");
+      }
+
+      // Check if we're in mock mode (mock key ID)
+      const isMockMode = initRes.data.keyId === 'rzp_test_mock_key_id';
+
+      if (isMockMode) {
+        // Mock mode: Simulate successful payment without Razorpay UI
+        console.log('📌 Razorpay Mock Mode: Simulating successful payment');
+
+        // Simulate payment verification
+        await paymentRepository.verifyRazorpay({
+          razorpay_order_id: initRes.data.orderId || '',
+          razorpay_payment_id: `pay_mock_${Date.now()}`,
+          razorpay_signature: 'mock_signature',
+        });
+
+        toast.success('Payment successful! (Mock Mode)');
+        clearCart();
+        router.push('/orders');
+        return;
+      }
+
+      // Real mode: Load Razorpay script and open checkout
+      if (!(window as any).Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+        await new Promise((resolve) => { script.onload = resolve; });
+      }
+
+      // 4) Open Razorpay checkout
+      const options = {
+        key: initRes.data.keyId,
+        amount: initRes.data.amount,
+        currency: initRes.data.currency,
+        name: 'Urbanic Pitara',
+        description: `Order #${orderId.slice(0, 8)}`,
+        order_id: initRes.data.orderId,
+        prefill: {
+          name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : (shippingAddress ? `${shippingAddress.firstName} ${shippingAddress.lastName}` : ''),
+          email: user?.email || '',
+          contact: shippingAddress?.phone || '',
+        },
+        handler: async function (response: any) {
+          try {
+            // Verify payment
+            await paymentRepository.verifyRazorpay({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            toast.success('Payment successful!');
+            clearCart();
+            router.push('/orders');
+          } catch (err: any) {
+            toast.error('Payment verification failed');
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setPayingWithRazorpay(false);
+          }
+        },
+        theme: {
+          color: '#3B82F6'
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.error || err.message || 'Payment failed');
+      setPayingWithRazorpay(false);
+    }
+  };
+
+  // ------------------ Pay with Stripe ------------------
+  const handlePayWithStripe = async () => {
+    if (!cart || !user) return;
+    setPayingWithStripe(true);
+
+    try {
+      let shippingAddress = null;
+
+      if (selectedAddressId) {
+        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
+      }
+
+      if (!shippingAddress && newAddress) {
+        const duplicate = addresses.find(
+          (a) =>
+            a.firstName === newAddress.firstName &&
+            a.lastName === newAddress.lastName &&
+            a.address1 === newAddress.address1 &&
+            a.city === newAddress.city &&
+            a.country === newAddress.country
+        );
+
+        if (duplicate) {
+          shippingAddress = duplicate;
+          setSelectedAddressId(duplicate.id);
+        } else {
+          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
+          shippingAddress = res.data as Address;
+          setAddresses((prev) => [...prev, shippingAddress!]);
+          setSelectedAddressId(shippingAddress!.id);
+        }
+      }
+
+      if (!shippingAddress) throw new Error("No shipping address selected");
+
+      // 1) Create order with STRIPE
+      const orderRes = await ordersAPI.create({
+        cartId: cart.id,
+        shippingAddressId: shippingAddress.id,
+        discountCode: appliedDiscount ? appliedDiscount.code : null,
+        paymentMethod: "STRIPE",
+        cartSnapshot: cart.items.map((it) => ({
+          productId: it.product.id,
+          variantId: it.variantId || null,
+          quantity: it.quantity,
+          priceAmount: it.priceAmount,
+          priceCurrency: it.currency,
+        })),
+      });
+
+      const orderData = orderRes.data;
+      const orderId = orderData.id;
+      const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
+
+      // 2) Initiate Stripe payment
+      const initRes = await paymentRepository.initiate({
+        amount,
+        orderId,
+        provider: 'STRIPE',
+      });
+
+      if (!initRes || !initRes.success || !initRes.data) {
+        throw new Error(initRes?.error || "Failed to initiate payment");
+      }
+
+      // Check if we're in mock mode (mock publishable key)
+      const isMockMode = initRes.data.publishableKey === 'pk_test_mock_publishable_key';
+
+      if (isMockMode) {
+        // Mock mode: Simulate successful payment without Stripe UI
+        console.log('📌 Stripe Mock Mode: Simulating successful payment');
+
+        // Simulate payment confirmation
+        await paymentRepository.confirmStripe({
+          payment_intent_id: initRes.data.transactionId,
+        });
+
+        toast.success('Payment successful! (Mock Mode)');
+        clearCart();
+        router.push('/orders');
+        return;
+      }
+
+      // Real mode: Store payment intent for status page
+      try {
+        if (typeof window !== 'undefined' && initRes.data.clientSecret && initRes.data.transactionId) {
+          localStorage.setItem('stripePaymentIntent', initRes.data.clientSecret || '');
+          localStorage.setItem('stripeTransactionId', initRes.data.transactionId || '');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // Redirect to payment status (in real mode, would integrate Stripe Elements)
+      toast.success('Redirecting to payment...');
+      clearCart();
+      router.push(`/payment/status?provider=stripe&payment_intent=${initRes.data.transactionId}`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.error || err.message || 'Payment failed');
+    } finally {
+      setPayingWithStripe(false);
     }
   };
 
@@ -421,8 +674,8 @@ export default function CheckoutPage() {
                   <label
                     key={addr.id}
                     className={`flex items-start gap-2 border rounded-md p-3 cursor-pointer ${selectedAddressId === addr.id
-                        ? "border-black bg-gray-50"
-                        : "border-gray-200"
+                      ? "border-black bg-gray-50"
+                      : "border-gray-200"
                       }`}
                   >
                     <input
@@ -531,51 +784,135 @@ export default function CheckoutPage() {
           </div>
 
           {/* Payment Method Selection */}
-          <div className="p-4 border rounded-lg space-y-3">
-            <h2 className="text-lg font-semibold">Payment Method</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Online Payment Option */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {/* PhonePe */}
               <button
+                type="button"
                 onClick={() => setSelectedPaymentMethod("PHONEPE")}
                 className={cn(
-                  "relative p-4 border-2 rounded-lg transition-all duration-200",
+                  "p-4 border-2 rounded-lg transition-all",
                   selectedPaymentMethod === "PHONEPE"
-                    ? "border-green-500 bg-green-50"
-                    : "border-gray-200 bg-white hover:border-green-300"
+                    ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200"
+                    : "border-gray-200 hover:border-purple-300"
                 )}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-sm">Pay Online</span>
+                  <CreditCard className="h-4 w-4 text-purple-600" />
+                  <span className="font-medium text-sm">PhonePe</span>
                 </div>
-                <p className="text-lg font-bold text-green-600">
-                  ₹{calculatePrice(cart.subtotalAmount, "PHONEPE").toFixed(2)}
+                <p className="text-lg font-bold text-purple-600">
+                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "PHONEPE"), "PHONEPE").toFixed(2)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">PhonePe</p>
+                <p className="text-xs text-gray-500 mt-1">UPI, Cards, Wallets</p>
               </button>
 
-              {/* COD Option */}
+              {/* Razorpay */}
               <button
+                type="button"
+                onClick={() => setSelectedPaymentMethod("RAZORPAY")}
+                className={cn(
+                  "p-4 border-2 rounded-lg transition-all",
+                  selectedPaymentMethod === "RAZORPAY"
+                    ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                    : "border-gray-200 hover:border-blue-300"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-sm">Razorpay</span>
+                </div>
+                <p className="text-lg font-bold text-blue-600">
+                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "RAZORPAY"), "RAZORPAY").toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">UPI, Cards, NetBanking</p>
+              </button>
+
+              {/* Stripe */}
+              <button
+                type="button"
+                onClick={() => setSelectedPaymentMethod("STRIPE")}
+                className={cn(
+                  "p-4 border-2 rounded-lg transition-all",
+                  selectedPaymentMethod === "STRIPE"
+                    ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200"
+                    : "border-gray-200 hover:border-indigo-300"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="h-4 w-4 text-indigo-600" />
+                  <span className="font-medium text-sm">Stripe</span>
+                </div>
+                <p className="text-lg font-bold text-indigo-600">
+                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "STRIPE"), "STRIPE").toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Credit/Debit Cards</p>
+              </button>
+
+              {/* COD */}
+              <button
+                type="button"
                 onClick={() => setSelectedPaymentMethod("COD")}
                 className={cn(
-                  "relative p-4 border-2 rounded-lg transition-all duration-200",
+                  "p-4 border-2 rounded-lg transition-all",
                   selectedPaymentMethod === "COD"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 bg-white hover:border-orange-300"
+                    ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
+                    : "border-gray-200 hover:border-orange-300"
                 )}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Truck className="h-4 w-4 text-orange-600" />
-                  <span className="font-medium text-sm">Pay on Delivery</span>
+                  <span className="font-medium text-sm">Cash on Delivery</span>
                 </div>
                 <p className="text-lg font-bold text-orange-600">
-                  ₹{calculatePrice(cart.subtotalAmount, "COD").toFixed(2)}
+                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "COD"), "COD").toFixed(2)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  +₹{getCODSurcharge().toFixed(2)} fee
-                </p>
+                <p className="text-xs text-gray-500 mt-1">+₹{getCODSurcharge()} fee</p>
               </button>
             </div>
+
+            {/* Payment Buttons */}
+            {selectedPaymentMethod === "PHONEPE" && (
+              <Button
+                onClick={handlePayWithPhonePe}
+                disabled={payingWithPhonePe || !selectedAddressId}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
+                {payingWithPhonePe ? "Processing..." : "Pay with PhonePe"}
+              </Button>
+            )}
+
+            {selectedPaymentMethod === "RAZORPAY" && (
+              <Button
+                onClick={handlePayWithRazorpay}
+                disabled={payingWithRazorpay || !selectedAddressId}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {payingWithRazorpay ? "Processing..." : "Pay with Razorpay"}
+              </Button>
+            )}
+
+            {selectedPaymentMethod === "STRIPE" && (
+              <Button
+                onClick={handlePayWithStripe}
+                disabled={payingWithStripe || !selectedAddressId}
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+              >
+                {payingWithStripe ? "Processing..." : "Pay with Stripe"}
+              </Button>
+            )}
+
+            {selectedPaymentMethod === "COD" && (
+              <Button
+                onClick={handlePlaceOrder}
+                disabled={placingOrder || !selectedAddressId}
+                className="w-full bg-orange-600 hover:bg-orange-700"
+              >
+                {placingOrder ? "Placing Order..." : "Place Order (COD)"}
+              </Button>
+            )}
           </div>
 
           {/* Summary */}
@@ -606,24 +943,6 @@ export default function CheckoutPage() {
                 ₹{cart.totalAmount.toFixed(2)} {cart.currency}
               </span>
             </div>
-
-            {selectedPaymentMethod === "PHONEPE" ? (
-              <Button
-                onClick={handlePayWithPhonePe}
-                className="w-full mt-4 bg-green-600 hover:bg-green-700"
-                disabled={payingWithPhonePe || placingOrder || (!selectedAddressId && !newAddress)}
-              >
-                {payingWithPhonePe ? "Redirecting to PhonePe..." : "Pay with PhonePe"}
-              </Button>
-            ) : (
-              <Button
-                onClick={handlePlaceOrder}
-                className="w-full mt-4 bg-orange-600 hover:bg-orange-700"
-                disabled={placingOrder || (!selectedAddressId && !newAddress)}
-              >
-                {placingOrder ? "Placing Order..." : "Place Order (COD)"}
-              </Button>
-            )}
           </div>
         </div>
       </div>
