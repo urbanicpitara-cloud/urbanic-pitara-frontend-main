@@ -34,15 +34,17 @@ export default function AddProductPage() {
     []
   );
   const [published, setPublished] = useState(true);
+  const [vendor, setVendor] = useState("");
 
   // Images
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ url: string; altText: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // SEO
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
+  const [metaKeywords, setMetaKeywords] = useState("");
 
   // Load collections
   useEffect(() => {
@@ -91,10 +93,10 @@ export default function AddProductPage() {
     if (!files) return;
     setUploading(true);
     try {
-      const uploaded: string[] = [];
+      const uploaded: { url: string; altText: string }[] = [];
       for (const file of Array.from(files)) {
         const url = await uploadToCloudinary(file);
-        uploaded.push(url);
+        uploaded.push({ url, altText: title || "Product image" });
       }
       setImages((prev) => [...prev, ...uploaded]);
     } catch (err) {
@@ -115,6 +117,8 @@ export default function AddProductPage() {
       arr.splice(to, 0, moved);
       return arr;
     });
+  const updateImageAlt = (i: number, altText: string) =>
+    setImages((p) => p.map((img, idx) => idx === i ? { ...img, altText } : img));
 
   // Extract text from HTML
   const extractText = (html: string) => {
@@ -136,10 +140,11 @@ export default function AddProductPage() {
       const productData = {
         title,
         handle,
+        vendor: vendor || null,
         collectionIds,
         descriptionHtml: htmlDescription,
         description: textDescription,
-        images: images.map((url) => ({ url })),
+        images: images.map((img) => ({ url: img.url, altText: img.altText })),
         variants: [
           {
             priceAmount: Number(priceAmount) || 0,
@@ -154,6 +159,7 @@ export default function AddProductPage() {
         published,
         metaTitle,
         metaDescription,
+        metaKeywords: metaKeywords || null,
       };
 
       await productsAPI.create(productData);
@@ -213,6 +219,18 @@ export default function AddProductPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   URL handle / slug. If you edit it manually, auto-generation will stop.
+                </p>
+              </div>
+
+              <div>
+                <Label>Vendor/Brand</Label>
+                <Input
+                  value={vendor}
+                  onChange={(e) => setVendor(e.target.value)}
+                  placeholder="e.g. Urbanic, Nike, Adidas"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional. Brand or manufacturer name.
                 </p>
               </div>
 
@@ -293,6 +311,17 @@ export default function AddProductPage() {
                   rows={3}
                 />
               </div>
+              <div>
+                <Label>Meta Keywords</Label>
+                <Input
+                  value={metaKeywords}
+                  onChange={(e) => setMetaKeywords(e.target.value)}
+                  placeholder="e.g. women fashion, kurti, ethnic wear"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional. Comma-separated keywords for SEO.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -304,11 +333,11 @@ export default function AddProductPage() {
               <CardTitle>Product Images</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {images.map((img, idx) => (
                   <div
                     key={idx}
-                    className="relative group border rounded-lg overflow-hidden aspect-square bg-gray-50 flex items-center justify-center"
+                    className="relative group border rounded-lg overflow-hidden bg-gray-50"
                     draggable
                     onDragStart={(e) =>
                       e.dataTransfer.setData("fromIndex", idx.toString())
@@ -320,15 +349,25 @@ export default function AddProductPage() {
                     }}
                     onDragOver={(e) => e.preventDefault()}
                   >
-                    <img src={img} alt={`Product ${idx}`} className="object-cover w-full h-full" />
+                    <div className="aspect-square flex items-center justify-center">
+                      <img src={img.url} alt={img.altText} className="object-cover w-full h-full" />
+                    </div>
                     <button
                       onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-white p-1 rounded-full shadow hover:bg-red-500 hover:text-white"
+                      className="absolute top-2 right-2 bg-white p-1.5 rounded-full shadow hover:bg-red-500 hover:text-white transition"
                     >
                       <X className="w-4 h-4" />
                     </button>
-                    <div className="absolute left-1 top-1 bg-white/80 rounded p-1 cursor-grab">
+                    <div className="absolute left-2 top-2 bg-white/80 rounded p-1 cursor-grab">
                       <GripVertical className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div className="p-2 bg-white border-t">
+                      <Input
+                        value={img.altText}
+                        onChange={(e) => updateImageAlt(idx, e.target.value)}
+                        placeholder="Image description (alt text)"
+                        className="text-xs"
+                      />
                     </div>
                   </div>
                 ))}

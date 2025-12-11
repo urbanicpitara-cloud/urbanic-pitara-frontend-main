@@ -107,7 +107,7 @@ export default function OrdersPage() {
     }
   };
 
-  if (loading) return <div className="max-w-6xl mx-auto"><OrdersPageLoading/></div>;
+  if (loading) return <div className="max-w-6xl mx-auto"><OrdersPageLoading /></div>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
   if (orders.length === 0) return <p className="text-center mt-10 text-gray-600">No orders found.</p>;
 
@@ -159,8 +159,12 @@ export default function OrdersPage() {
                     <td className="px-6 py-4">
                       <div className="flex -space-x-2">
                         {order.items.slice(0, 4).map((item) => {
-                          const imgSrc = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
-                          const imgAlt = item.customProduct?.title || item.product?.featuredImage?.altText || item.product?.title || "item";
+                          const imgSrc = item.customProduct?.previewUrl ||
+                            item.product?.featuredImage?.url ||
+                            (item.product as any)?.featuredImageUrl;
+                          const imgAlt = item.customProduct?.title ||
+                            item.product?.featuredImage?.altText ||
+                            item.product?.title || "item";
                           return imgSrc ? (
                             <Image
                               key={item.id}
@@ -274,8 +278,12 @@ export default function OrdersPage() {
 
               <div className="flex items-center -space-x-2 mb-4">
                 {order.items.slice(0, 3).map((item) => {
-                  const imgSrc = item.customProduct?.previewUrl || item.product?.featuredImage?.url;
-                  const imgAlt = item.customProduct?.title || item.product?.featuredImage?.altText || item.product?.title || "item";
+                  const imgSrc = item.customProduct?.previewUrl ||
+                    item.product?.featuredImage?.url ||
+                    (item.product as any)?.featuredImageUrl;
+                  const imgAlt = item.customProduct?.title ||
+                    item.product?.featuredImage?.altText ||
+                    item.product?.title || "item";
                   return imgSrc ? (
                     <Image
                       key={item.id}
