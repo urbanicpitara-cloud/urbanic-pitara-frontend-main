@@ -24,9 +24,9 @@ export const authRepository = {
       const error = err as ApiErrorResponse;
       throw new Error(
         error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to get user profile"
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get user profile"
       );
     }
   },
@@ -48,9 +48,9 @@ export const authRepository = {
       const error = err as ApiErrorResponse;
       throw new Error(
         error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
-          "Login failed"
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed"
       );
     }
   },
@@ -60,7 +60,8 @@ export const authRepository = {
     email: string,
     password: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
+    phone?: string
   ): Promise<AuthResponse> {
     try {
       const response = await apiClient.post<AuthResponse>("/auth/signup", {
@@ -68,6 +69,7 @@ export const authRepository = {
         password,
         firstName,
         lastName,
+        phone,
       });
 
       if (response.token) {
@@ -79,9 +81,9 @@ export const authRepository = {
       const error = err as ApiErrorResponse;
       throw new Error(
         error.response?.data?.error ||
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to create account"
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create account"
       );
     }
   },

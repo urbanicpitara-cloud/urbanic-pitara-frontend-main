@@ -179,10 +179,11 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       // setTimeout(() => {
       //   router.push("/cart");
       // }, 500);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
+      const error = err as { response?: { data?: { error?: string } }; message?: string };
       // Extract error message from response
-      const errorMessage = err?.response?.data?.error || err?.message || "Failed to add item to cart";
+      const errorMessage = error?.response?.data?.error || error?.message || "Failed to add item to cart";
       toast.error(errorMessage);
     } finally {
       setAddingToCart(false);

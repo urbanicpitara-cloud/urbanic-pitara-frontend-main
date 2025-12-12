@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authRepository } from '@/lib/api/repositories/auth';
 import type { User, AuthContextType, RegisterData, UpdateProfileData } from '@/types/auth';
@@ -33,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await authRepository.login(email, password);
       setUser(response.user);
       return response.user;
-    } catch (err: unknown) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to login';
       setError(message);
       throw err;
@@ -50,11 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data.email,
         data.password,
         data.firstName,
-        data.lastName
+        data.lastName,
+        data.phone
       );
       setUser(response.user);
       return response.user;
-    } catch (err: unknown) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to register';
       setError(message);
       throw err;
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authRepository.logout();
       setUser(null);
-    } catch (err: unknown) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to logout';
       setError(message);
     } finally {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProfile = async (data: UpdateProfileData): Promise<User> => {
-    if(data){
+    if (data) {
       console.log("update profile data available")
     }
     setLoading(true);

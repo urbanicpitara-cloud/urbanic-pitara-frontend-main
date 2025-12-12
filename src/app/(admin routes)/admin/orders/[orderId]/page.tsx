@@ -70,6 +70,10 @@ interface Order {
         currency: string;
         createdAt?: string;
         rawResponse?: any;
+        refundId?: string | null;
+        refundAmount?: number | string | null;
+        refundedAt?: string | null;
+        refundReason?: string | null;
     } | null;
     trackingNumber?: string | null;
     trackingCompany?: string | null;
@@ -162,6 +166,12 @@ export default function AdminOrderDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [paymentStatusUpdate, setPaymentStatusUpdate] = useState<string>("");
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+    // Refund state
+    const [showRefundModal, setShowRefundModal] = useState(false);
+    const [refundAmount, setRefundAmount] = useState('');
+    const [refundReason, setRefundReason] = useState('');
+    const [refunding, setRefunding] = useState(false);
 
     const downloadAssets = async (customProductId: string) => {
         try {
@@ -256,6 +266,58 @@ export default function AdminOrderDetailPage() {
             toast.error("Failed to update order status.");
         } finally {
             setUpdating(false);
+        }
+    };
+
+    const handleInitiateRefund = async () => {
+        if (!order?.payment || !refundAmount) {
+            toast.error('Please enter refund amount');
+            return;
+        }
+
+        const amount = parseFloat(refundAmount);
+        const paymentAmount = Number(order.payment.amount);
+
+        if (amount <= 0 || amount > paymentAmount) {
+            toast.error(`Refund amount must be between 0 and ${paymentAmount}`);
+            return;
+        }
+
+        if (!window.confirm(`Refund ${order.payment.currency} ${amount}? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            setRefunding(true);
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+
+            const resp = await fetch(`${apiBaseUrl}/admin/payment/${order.payment.id}/refund`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    amount: amount,
+                    reason: refundReason || 'Customer requested refund'
+                })
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                throw new Error(data.error || 'Refund failed');
+            }
+
+            toast.success('Refund initiated successfully!');
+            setShowRefundModal(false);
+            setRefundAmount('');
+            setRefundReason('');
+            await fetchOrder(); // Refresh order data
+
+        } catch (error: any) {
+            console.error('Refund error:', error);
+            toast.error(error.message || 'Failed to initiate refund');
+        } finally {
+            setRefunding(false);
         }
     };
 
@@ -646,6 +708,47 @@ export default function AdminOrderDetailPage() {
                                     </div>
                                 </div>
 
+                                {/* Refund Section */}
+                                {order.payment.status === 'PAID' && !order.payment.refundId && (
+                                    <div className="pt-3 border-t">
+                                        <button
+                                            onClick={() => setShowRefundModal(true)}
+                                            className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium transition-colors"
+                                        >
+                                            Initiate Refund
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Show refund details if refunded */}
+                                {order.payment.refundId && (
+                                    <div className="pt-3 border-t space-y-2 bg-red-50 p-3 rounded">
+                                        <p className="text-xs font-semibold text-red-900 uppercase">Refund Details</p>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-red-700">Refund ID</span>
+                                            <code className="bg-white px-2 py-1 rounded font-mono text-red-900">
+                                                {order.payment.refundId}
+                                            </code>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-red-700">Amount</span>
+                                            <span className="font-medium text-red-900">
+                                                {order.payment.currency} {Number(order.payment.refundAmount || 0).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        {order.payment.refundedAt && (
+                                            <div className="text-xs text-red-700">
+                                                Refunded: {new Date(order.payment.refundedAt).toLocaleString()}
+                                            </div>
+                                        )}
+                                        {order.payment.refundReason && (
+                                            <div className="text-xs text-red-700">
+                                                Reason: {order.payment.refundReason}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* Raw Response (Collapsible) */}
                                 {order.payment.rawResponse && (
                                     <details className="pt-3 border-t">
@@ -662,6 +765,76 @@ export default function AdminOrderDetailPage() {
                     )}
                 </aside>
             </div>
+
+            {/* Refund Modal */}
+            {showRefundModal && order?.payment && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4">Initiate Refund</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    Refund Amount ({order.payment.currency})
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    max={Number(order.payment.amount)}
+                                    value={refundAmount}
+                                    onChange={(e) => setRefundAmount(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                    placeholder={`Max: ${Number(order.payment.amount).toFixed(2)}`}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Payment amount: {order.payment.currency} {Number(order.payment.amount).toFixed(2)}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    Reason for Refund
+                                </label>
+                                <textarea
+                                    value={refundReason}
+                                    onChange={(e) => setRefundReason(e.target.value)}
+                                    className="w-full border rounded px-3 py-2"
+                                    rows={3}
+                                    placeholder="e.g., Customer requested cancellation"
+                                />
+                            </div>
+
+                            <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                                <p className="text-xs text-yellow-800">
+                                    ⚠️ This will process a real refund through {order.payment.provider}.
+                                    This action cannot be undone.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => {
+                                    setShowRefundModal(false);
+                                    setRefundAmount('');
+                                    setRefundReason('');
+                                }}
+                                className="flex-1 px-4 py-2 border rounded hover:bg-gray-50"
+                                disabled={refunding}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleInitiateRefund}
+                                disabled={refunding || !refundAmount}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {refunding ? 'Processing...' : 'Confirm Refund'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

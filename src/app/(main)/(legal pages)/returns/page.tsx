@@ -16,9 +16,9 @@ export default function CancellationRefundsPolicy() {
           You can cancel your order anytime before it is shipped. To cancel:
         </p>
         <ul className="list-disc list-inside space-y-2 mb-4 ml-4">
-          <li>Log in to your account and go to "My Orders"</li>
+          <li>Log in to your account and go to &quot;My Orders&quot;</li>
           <li>Select the order you wish to cancel</li>
-          <li>Click on "Cancel Order" and confirm</li>
+          <li>Click on &quot;Cancel Order&quot; and confirm</li>
           <li>You will receive a cancellation confirmation email</li>
         </ul>
         <p className="mb-4">
@@ -125,7 +125,7 @@ export default function CancellationRefundsPolicy() {
           <li>Our team will provide return instructions and pickup details</li>
           <li>Pack the product securely with all original packaging</li>
           <li>Hand over the package to our courier partner</li>
-          <li>Track your return status in "My Orders"</li>
+          <li>Track your return status in &quot;My Orders&quot;</li>
         </ol>
       </section>
 

@@ -10,9 +10,10 @@ import { paymentRepository } from "@/lib/api/repositories/payment";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { useCart } from "@/lib/atoms/cart";
-import { PaymentMethod, calculatePrice, getCODSurcharge } from "@/lib/paymentMethods";
-import { CreditCard, Truck } from "lucide-react";
+import { PaymentMethod, getCODSurcharge } from "@/lib/paymentMethods";
+import { Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 // ------------------ Types ------------------
 interface CartItem {
@@ -71,8 +72,8 @@ export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [newAddress, setNewAddress] = useState<Omit<Address, "id" | "isDefault"> | null>(null);
+  const [useUserPhone, setUseUserPhone] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [payingWithPhonePe, setPayingWithPhonePe] = useState(false);
   const [payingWithRazorpay, setPayingWithRazorpay] = useState(false);
   const [payingWithStripe, setPayingWithStripe] = useState(false);
 
@@ -83,7 +84,7 @@ export default function CheckoutPage() {
   const [validatingDiscount, setValidatingDiscount] = useState(false);
 
   // Payment method state
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("PHONEPE");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("RAZORPAY");
 
   // ------------------ Helpers ------------------
   const mapCartResponse = (apiData: any): Cart => {
@@ -164,8 +165,12 @@ export default function CheckoutPage() {
           province: "",
           zip: "",
           country: "",
-          phone: "",
+          phone: user?.phone || "",
         });
+        // Auto-check the box if user has a phone
+        if (user?.phone) {
+          setUseUserPhone(true);
+        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to load data");
@@ -176,6 +181,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     fetchCartAndAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartId]);
 
   // Update total when discount or payment method changes
@@ -186,6 +192,7 @@ export default function CheckoutPage() {
       setDiscountAmount(discountValue);
       setCart((prev) => (prev ? { ...prev, totalAmount: updatedTotal } : prev));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appliedDiscount, cart?.subtotalAmount, selectedPaymentMethod]);
 
   // ------------------ Discount ------------------
@@ -219,7 +226,47 @@ export default function CheckoutPage() {
   // ------------------ Address + Order ------------------
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!newAddress) return;
-    setNewAddress((prev) => ({ ...prev!, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    // If user manually changes phone, uncheck the "use my phone" option
+    if (name === "phone" && useUserPhone) {
+      setUseUserPhone(false);
+    }
+
+    setNewAddress((prev) => ({ ...prev!, [name]: value }));
+  };
+
+  const handleUseUserPhoneToggle = () => {
+    if (!newAddress || !user) return;
+
+    const newUseUserPhone = !useUserPhone;
+    setUseUserPhone(newUseUserPhone);
+
+    if (newUseUserPhone && user.phone) {
+      setNewAddress((prev) => ({ ...prev!, phone: user.phone || "" }));
+    } else if (!newUseUserPhone) {
+      setNewAddress((prev) => ({ ...prev!, phone: "" }));
+    }
+  };
+
+  // Helper to update user's phone if they don't have one
+  const updateUserPhoneIfNeeded = async (phone: string) => {
+    if (!user || user.phone || !phone) return;
+
+    try {
+      // Update user profile with phone number
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ phone }),
+      });
+    } catch (error) {
+      console.error('Failed to update user phone:', error);
+      // Don't block the order if this fails
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -251,6 +298,11 @@ export default function CheckoutPage() {
           shippingAddress = res.data as Address;
           setAddresses((prev) => [...prev, shippingAddress!]);
           setSelectedAddressId(shippingAddress!.id);
+
+          // Update user's phone if they don't have one
+          if (newAddress.phone) {
+            await updateUserPhoneIfNeeded(newAddress.phone);
+          }
         }
       }
 
@@ -281,94 +333,7 @@ export default function CheckoutPage() {
     }
   };
 
-  // ------------------ Pay with PhonePe ------------------
-  const handlePayWithPhonePe = async () => {
-    if (!cart || !user) return;
-    setPayingWithPhonePe(true);
 
-    try {
-      let shippingAddress = null;
-
-      if (selectedAddressId) {
-        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
-      }
-
-      if (!shippingAddress && newAddress) {
-        const duplicate = addresses.find(
-          (a) =>
-            a.firstName === newAddress.firstName &&
-            a.lastName === newAddress.lastName &&
-            a.address1 === newAddress.address1 &&
-            a.city === newAddress.city &&
-            a.country === newAddress.country
-        );
-
-        if (duplicate) {
-          shippingAddress = duplicate;
-          setSelectedAddressId(duplicate.id);
-        } else {
-          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
-          shippingAddress = res.data as Address;
-          setAddresses((prev) => [...prev, shippingAddress!]);
-          setSelectedAddressId(shippingAddress!.id);
-        }
-      }
-
-      if (!shippingAddress) throw new Error("No shipping address selected");
-
-      // 1) Create order with paymentMethod PHONEPE — backend will create order and mark payment as INITIATED
-      const orderRes = await ordersAPI.create({
-        cartId: cart.id,
-        shippingAddressId: shippingAddress.id,
-        discountCode: appliedDiscount?.code || null,
-        paymentMethod: "PHONEPE",
-        cartSnapshot: cart.items.map((it) => ({
-          productId: it.product.id,
-          variantId: it.variantId || null,
-          quantity: it.quantity,
-          priceAmount: it.priceAmount,
-          priceCurrency: it.currency,
-        })),
-      });
-
-      const orderData = orderRes.data;
-      const orderId = orderData.id;
-      const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
-
-      // 2) Initiate PhonePe payment -> backend returns redirect URL + transactionId
-      const initRes = await paymentRepository.initiate({
-        amount,
-        orderId,
-        redirectUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/payment/status`,
-      });
-
-      if (!initRes || !initRes.success || !initRes.data) {
-        throw new Error(initRes?.error || "Failed to initiate payment");
-      }
-
-      // Store last transaction id so the status page can pick it up
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('lastTransactionId', initRes.data.transactionId);
-        }
-      } catch (e) {
-        console.error(e);
-        // ignore localStorage errors
-      }
-
-      // Redirect user to PhonePe payment page
-      if (initRes.data.redirectUrl) {
-        window.location.href = initRes.data.redirectUrl;
-      } else {
-        throw new Error('No redirect URL received from payment gateway');
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err?.response?.data?.error || err.message || 'Payment failed');
-    } finally {
-      setPayingWithPhonePe(false);
-    }
-  };
 
   // ------------------ Pay with Razorpay ------------------
   const handlePayWithRazorpay = async () => {
@@ -425,14 +390,17 @@ export default function CheckoutPage() {
       const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
 
       // 2) Initiate Razorpay payment
+      console.log('Initiating Razorpay payment...');
       const initRes = await paymentRepository.initiate({
         amount,
         orderId,
         provider: 'RAZORPAY',
       });
 
+      console.log('Razorpay initiate response:', initRes);
+
       if (!initRes || !initRes.success || !initRes.data) {
-        throw new Error(initRes?.error || "Failed to initiate payment");
+        throw new Error(initRes?.error || "Failed to initiate payment with Razorpay");
       }
 
       // Check if we're in mock mode (mock key ID)
@@ -457,14 +425,26 @@ export default function CheckoutPage() {
 
       // Real mode: Load Razorpay script and open checkout
       if (!(window as any).Razorpay) {
+        console.log('Loading Razorpay script...');
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.async = true;
         document.body.appendChild(script);
-        await new Promise((resolve) => { script.onload = resolve; });
+        await new Promise((resolve, reject) => {
+          script.onload = () => {
+            console.log('Razorpay script loaded successfully');
+            resolve(true);
+          };
+          script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+        });
       }
 
       // 4) Open Razorpay checkout
+      console.log('Opening Razorpay checkout with options:', {
+        key: initRes.data.keyId,
+        order_id: initRes.data.orderId
+      });
+
       const options = {
         key: initRes.data.keyId,
         amount: initRes.data.amount,
@@ -478,6 +458,7 @@ export default function CheckoutPage() {
           contact: shippingAddress?.phone || '',
         },
         handler: async function (response: any) {
+          console.log('Razorpay payment success:', response);
           try {
             // Verify payment
             await paymentRepository.verifyRazorpay({
@@ -490,24 +471,30 @@ export default function CheckoutPage() {
             clearCart();
             router.push('/orders');
           } catch (err: any) {
-            toast.error('Payment verification failed');
+            console.error('Verification error:', err);
+            toast.error('Payment verification failed: ' + (err.message || 'Unknown error'));
           }
         },
         modal: {
           ondismiss: function () {
+            console.log('Razorpay modal dismissed');
             setPayingWithRazorpay(false);
           }
         },
         theme: {
-          color: '#3B82F6'
+          color: '#000000' // Matches the new black branding
         }
       };
 
       const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        console.error('Razorpay payment failed:', response.error);
+        toast.error(`Payment failed: ${response.error.description}`);
+      });
       rzp.open();
     } catch (err: any) {
-      console.error(err);
-      toast.error(err?.response?.data?.error || err.message || 'Payment failed');
+      console.error('Razorpay Error:', err);
+      toast.error(err?.response?.data?.error || err.message || 'Payment failed. Check console for details.');
       setPayingWithRazorpay(false);
     }
   };
@@ -704,8 +691,9 @@ export default function CheckoutPage() {
 
                 <div className="text-center text-sm mt-3">
                   <button
-                    className="underline text-gray-600"
-                    onClick={() =>
+                    className="underline text-gray-600 hover:text-black transition-colors"
+                    onClick={() => {
+                      setSelectedAddressId(null);
                       setNewAddress({
                         firstName: "",
                         lastName: "",
@@ -715,9 +703,13 @@ export default function CheckoutPage() {
                         province: "",
                         zip: "",
                         country: "",
-                        phone: "",
-                      })
-                    }
+                        phone: user?.phone || "",
+                      });
+                      // Auto-check if user has phone
+                      if (user?.phone) {
+                        setUseUserPhone(true);
+                      }
+                    }}
                   >
                     + Add New Address
                   </button>
@@ -726,28 +718,107 @@ export default function CheckoutPage() {
             )}
 
             {newAddress && (
-              <div className="space-y-2 mt-3 border-t pt-3">
-                {[
-                  ["firstName", "First Name"],
-                  ["lastName", "Last Name"],
-                  ["address1", "Address 1"],
-                  ["address2", "Address 2"],
-                  ["city", "City"],
-                  ["province", "Province/State"],
-                  ["zip", "ZIP/Postal Code"],
-                  ["country", "Country"],
-                  ["phone", "Phone"],
-                ].map(([key, label]) => (
+              <div className="space-y-3 mt-3 border-t pt-3">
+                <div className="grid grid-cols-2 gap-2">
                   <input
-                    key={key}
                     type="text"
-                    name={key}
-                    value={(newAddress as any)[key]}
+                    name="firstName"
+                    value={newAddress.firstName}
                     onChange={handleInputChange}
-                    placeholder={label}
-                    className="w-full border px-3 py-2 rounded text-sm"
+                    placeholder="First Name"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
                   />
-                ))}
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={newAddress.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Last Name"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                  />
+                </div>
+                <input
+                  type="text"
+                  name="address1"
+                  value={newAddress.address1}
+                  onChange={handleInputChange}
+                  placeholder="Address Line 1"
+                  className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                />
+                <input
+                  type="text"
+                  name="address2"
+                  value={newAddress.address2 || ""}
+                  onChange={handleInputChange}
+                  placeholder="Address Line 2 (Optional)"
+                  className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    name="city"
+                    value={newAddress.city}
+                    onChange={handleInputChange}
+                    placeholder="City"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                  />
+                  <input
+                    type="text"
+                    name="province"
+                    value={newAddress.province || ""}
+                    onChange={handleInputChange}
+                    placeholder="State/Province"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    name="zip"
+                    value={newAddress.zip || ""}
+                    onChange={handleInputChange}
+                    placeholder="ZIP/Postal Code"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                  />
+                  <input
+                    type="text"
+                    name="country"
+                    value={newAddress.country}
+                    onChange={handleInputChange}
+                    placeholder="Country"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black"
+                  />
+                </div>
+
+                {/* Phone field with smart auto-fill */}
+                <div className="space-y-2">
+                  {user?.phone && (
+                    <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-black transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={useUserPhone}
+                        onChange={handleUseUserPhoneToggle}
+                        className="rounded border-gray-300 text-black focus:ring-black"
+                      />
+                      <span>Use my registered phone number ({user.phone})</span>
+                    </label>
+                  )}
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={newAddress.phone || ""}
+                    onChange={handleInputChange}
+                    placeholder="Phone Number"
+                    className="w-full border px-3 py-2 rounded text-sm focus:ring-2 focus:ring-black focus:border-black disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    disabled={useUserPhone}
+                  />
+                  {useUserPhone && (
+                    <p className="text-xs text-gray-500">✓ Using your registered phone number</p>
+                  )}
+                  {!user?.phone && newAddress.phone && (
+                    <p className="text-xs text-blue-600">💡 This phone number will be saved to your profile</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -787,94 +858,119 @@ export default function CheckoutPage() {
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {/* PhonePe */}
-              <button
-                type="button"
-                onClick={() => setSelectedPaymentMethod("PHONEPE")}
-                className={cn(
-                  "p-4 border-2 rounded-lg transition-all",
-                  selectedPaymentMethod === "PHONEPE"
-                    ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200"
-                    : "border-gray-200 hover:border-purple-300"
-                )}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium text-sm">PhonePe</span>
-                </div>
-                <p className="text-lg font-bold text-purple-600">
-                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "PHONEPE"), "PHONEPE").toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">UPI, Cards, Wallets</p>
-              </button>
-
+            <div className="space-y-3 mb-6">
               {/* Razorpay */}
-              <button
-                type="button"
+              <div
                 onClick={() => setSelectedPaymentMethod("RAZORPAY")}
                 className={cn(
-                  "p-4 border-2 rounded-lg transition-all",
+                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
                   selectedPaymentMethod === "RAZORPAY"
-                    ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
-                    : "border-gray-200 hover:border-blue-300"
+                    ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium text-sm">Razorpay</span>
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border flex items-center justify-center transition-colors flex-shrink-0",
+                    selectedPaymentMethod === "RAZORPAY" ? "border-black" : "border-gray-300"
+                  )}>
+                    {selectedPaymentMethod === "RAZORPAY" && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                  </div>
+                  <div>
+                    <div className="relative h-10 w-24">
+                      <Image
+                        src="/razorpay-logo-png_seeklogo-409477.png"
+                        alt="Razorpay"
+                        fill
+                        className="object-cover object-left"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">UPI, Cards, NetBanking, Wallets</p>
+                  </div>
                 </div>
-                <p className="text-lg font-bold text-blue-600">
-                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "RAZORPAY"), "RAZORPAY").toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">UPI, Cards, NetBanking</p>
-              </button>
+                <div className="text-right">
+                  <span className="font-medium text-gray-900">
+                    ₹{getFinalTotal(cart.subtotalAmount, appliedDiscount, "RAZORPAY").toFixed(2)}
+                  </span>
+                </div>
+              </div>
 
               {/* Stripe */}
-              <button
-                type="button"
+              <div
                 onClick={() => setSelectedPaymentMethod("STRIPE")}
                 className={cn(
-                  "p-4 border-2 rounded-lg transition-all",
+                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
                   selectedPaymentMethod === "STRIPE"
-                    ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200"
-                    : "border-gray-200 hover:border-indigo-300"
+                    ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="h-4 w-4 text-indigo-600" />
-                  <span className="font-medium text-sm">Stripe</span>
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border flex items-center justify-center transition-colors flex-shrink-0",
+                    selectedPaymentMethod === "STRIPE" ? "border-black" : "border-gray-300"
+                  )}>
+                    {selectedPaymentMethod === "STRIPE" && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 h-6">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
+                        alt="Stripe"
+                        className="h-6 object-contain"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">International & Domestic Cards</p>
+                  </div>
                 </div>
-                <p className="text-lg font-bold text-indigo-600">
-                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "STRIPE"), "STRIPE").toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Credit/Debit Cards</p>
-              </button>
+                <div className="text-right">
+                  <span className="font-medium text-gray-900">
+                    ₹{getFinalTotal(cart.subtotalAmount, appliedDiscount, "STRIPE").toFixed(2)}
+                  </span>
+                </div>
+              </div>
 
               {/* COD */}
-              <button
-                type="button"
+              <div
                 onClick={() => setSelectedPaymentMethod("COD")}
                 className={cn(
-                  "p-4 border-2 rounded-lg transition-all",
+                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
                   selectedPaymentMethod === "COD"
-                    ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
-                    : "border-gray-200 hover:border-orange-300"
+                    ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <Truck className="h-4 w-4 text-orange-600" />
-                  <span className="font-medium text-sm">Cash on Delivery</span>
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border flex items-center justify-center transition-colors flex-shrink-0",
+                    selectedPaymentMethod === "COD" ? "border-black" : "border-gray-300"
+                  )}>
+                    {selectedPaymentMethod === "COD" && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 h-6">
+                      <Truck className="h-5 w-5 text-gray-900" />
+                      <span className="font-bold text-gray-900">Cash on Delivery</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">Pay in cash when order arrives</p>
+                  </div>
                 </div>
-                <p className="text-lg font-bold text-orange-600">
-                  ₹{calculatePrice(getFinalTotal(cart.subtotalAmount, appliedDiscount, "COD"), "COD").toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">+₹{getCODSurcharge()} fee</p>
-              </button>
+                <div className="text-right flex flex-col items-end">
+                  <span className="font-medium text-gray-900">
+                    ₹{getFinalTotal(cart.subtotalAmount, appliedDiscount, "COD").toFixed(2)}
+                  </span>
+                  {getCODSurcharge() > 0 && (
+                    <span className="text-xs text-orange-600 font-medium">
+                      +₹{getCODSurcharge()} COD Fee
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Payment Buttons */}
-            {selectedPaymentMethod === "PHONEPE" && (
+            {/* PhonePe - Commented out */}
+            {/* {selectedPaymentMethod === "PHONEPE" && (
               <Button
                 onClick={handlePayWithPhonePe}
                 disabled={payingWithPhonePe || !selectedAddressId}
@@ -882,7 +978,7 @@ export default function CheckoutPage() {
               >
                 {payingWithPhonePe ? "Processing..." : "Pay with PhonePe"}
               </Button>
-            )}
+            )} */}
 
             {selectedPaymentMethod === "RAZORPAY" && (
               <Button

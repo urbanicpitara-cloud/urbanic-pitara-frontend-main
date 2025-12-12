@@ -3,6 +3,7 @@ export interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
   isAdmin?: boolean;
 }
 
@@ -14,6 +15,7 @@ export interface LoginCredentials {
 export interface RegisterData extends LoginCredentials {
   firstName?: string;
   lastName?: string;
+  phone?: string;
 }
 
 export interface AuthResponse {
