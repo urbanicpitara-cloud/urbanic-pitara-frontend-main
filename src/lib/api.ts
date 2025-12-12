@@ -63,11 +63,11 @@ export const authAPI = {
   getProfile: () => api.get('/auth/me'),
   updateProfile: (data: Record<string, any>) => api.put('/auth/me', data),
   changePassword: (data: Record<string, any>) => api.put('/auth/change-password', data),
-   // 🆕 Forgot / Reset Password
+  // 🆕 Forgot / Reset Password
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (data: { token: string; newPassword: string }) =>
     api.post('/auth/reset-password', data),
-  getAllUsers:()=> api.get('/auth/admin/all/users'),
+  getAllUsers: () => api.get('/auth/admin/all/users'),
 };
 
 
@@ -75,15 +75,15 @@ export const authAPI = {
 
 // ----------------- Products API -----------------
 export const productsAPI = {
-  getAll: (params?: Record<string,any> ) => api.get('/products', { params }),
+  getAll: (params?: Record<string, any>) => api.get('/products', { params }),
   getByHandle: (handle: string) => api.get(`/products/${handle}`),
   getRelated: (handle: string, limit: number = 4) => api.get(`/products/${handle}/related`, { params: { limit } }),
   create: (data: Record<string, any>) => api.post('/products', data),
   update: (id: string, data: Record<string, any>) => api.put(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
   deleteMany: (ids: string[]) => api.delete('/products/bulk-delete', { data: { ids } }),
-    // 🧩 Bulk Update (new)
- updateMany: (ids: string[], updates: Record<string, any>) =>
+  // 🧩 Bulk Update (new)
+  updateMany: (ids: string[], updates: Record<string, any>) =>
     api.put('/products/bulk-update', { ids, updates }),
 };
 
@@ -118,7 +118,7 @@ export const cartAPI = {
   get: () => api.get('/cart'),
   addItem: (data: Record<string, any>) => api.post('/cart/lines', data),
   updateItem: (lineId: string, data: Record<string, any>) => api.put(`/cart/lines/${lineId}`, data),
-  removeItem: (lineId: string) => api.delete(`/cart/lines/${lineId}`),
+  removeItem: (lineId: string, cartId?: string) => api.delete(`/cart/lines/${lineId}`, { params: cartId ? { cartId } : {} }),
 };
 
 // ----------------- Orders API -----------------

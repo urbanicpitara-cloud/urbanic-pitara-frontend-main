@@ -28,7 +28,7 @@ export default function CancellationRefundsPolicy() {
         <h3 className="text-xl font-semibold mt-6 mb-3">2. Cancellation After Shipment</h3>
         <p className="mb-4">
           Orders cannot be cancelled once shipped. However, you may refuse delivery or initiate a return
-          once you receive the product (subject to our Returns Policy).
+          once you receive the product.
         </p>
       </section>
 

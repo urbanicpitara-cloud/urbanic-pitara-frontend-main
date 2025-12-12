@@ -115,7 +115,7 @@ export default function AboutPage() {
           Experience fashion that tells a story — yours.
         </p>
         <Link
-          href="/collections/all"
+          href="/products"
           className="inline-block bg-jet text-white px-10 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-jet transition"
         >
           Shop Now

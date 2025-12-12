@@ -21,7 +21,7 @@ interface CartContextType extends CartState {
   refreshCart: () => Promise<void>;
   addItem: (productId: string, quantity?: number, variantId?: string) => Promise<void>;
   updateItem: (lineId: string, quantity: number) => Promise<void>;
-  removeItem: (lineId: string) => Promise<void>;
+  removeItem: (lineId: string, cartId?: string) => Promise<void>;
   clearCart: () => void;
 }
 
