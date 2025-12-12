@@ -3,7 +3,7 @@
  * Handles pricing calculations for different payment methods
  */
 
-export type PaymentMethod = "PHONEPE" | "RAZORPAY" | "STRIPE" | "COD";
+export type PaymentMethod = "PHONEPE" | "RAZORPAY" | "COD";
 
 // COD markup configuration (can be adjusted)
 const COD_MARKUP_AMOUNT = 100; // Fixed ₹100 surcharge for COD
@@ -43,8 +43,6 @@ export const getPaymentMethodLabel = (method: PaymentMethod): string => {
       return "PhonePe";
     case "RAZORPAY":
       return "Razorpay";
-    case "STRIPE":
-      return "Stripe";
     case "COD":
       return "Cash on Delivery";
   }
@@ -61,8 +59,6 @@ export const getPaymentMethodDescription = (method: PaymentMethod): string => {
       return "UPI, Cards, Wallets";
     case "RAZORPAY":
       return "UPI, Cards, NetBanking, Wallets";
-    case "STRIPE":
-      return "Credit/Debit Cards";
     case "COD":
       return `COD surcharge of ₹${COD_MARKUP_AMOUNT} will be added`;
   }
@@ -79,8 +75,6 @@ export const getPaymentMethodIcon = (method: PaymentMethod): string => {
       return "phonepe";
     case "RAZORPAY":
       return "razorpay";
-    case "STRIPE":
-      return "stripe";
     case "COD":
       return "truck";
   }

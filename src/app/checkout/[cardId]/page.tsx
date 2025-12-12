@@ -75,7 +75,7 @@ export default function CheckoutPage() {
   const [useUserPhone, setUseUserPhone] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [payingWithRazorpay, setPayingWithRazorpay] = useState(false);
-  const [payingWithStripe, setPayingWithStripe] = useState(false);
+
 
   // Discount states
   const [discountCode, setDiscountCode] = useState("");
@@ -499,110 +499,7 @@ export default function CheckoutPage() {
     }
   };
 
-  // ------------------ Pay with Stripe ------------------
-  const handlePayWithStripe = async () => {
-    if (!cart || !user) return;
-    setPayingWithStripe(true);
 
-    try {
-      let shippingAddress = null;
-
-      if (selectedAddressId) {
-        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
-      }
-
-      if (!shippingAddress && newAddress) {
-        const duplicate = addresses.find(
-          (a) =>
-            a.firstName === newAddress.firstName &&
-            a.lastName === newAddress.lastName &&
-            a.address1 === newAddress.address1 &&
-            a.city === newAddress.city &&
-            a.country === newAddress.country
-        );
-
-        if (duplicate) {
-          shippingAddress = duplicate;
-          setSelectedAddressId(duplicate.id);
-        } else {
-          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
-          shippingAddress = res.data as Address;
-          setAddresses((prev) => [...prev, shippingAddress!]);
-          setSelectedAddressId(shippingAddress!.id);
-        }
-      }
-
-      if (!shippingAddress) throw new Error("No shipping address selected");
-
-      // 1) Create order with STRIPE
-      const orderRes = await ordersAPI.create({
-        cartId: cart.id,
-        shippingAddressId: shippingAddress.id,
-        discountCode: appliedDiscount ? appliedDiscount.code : null,
-        paymentMethod: "STRIPE",
-        cartSnapshot: cart.items.map((it) => ({
-          productId: it.product.id,
-          variantId: it.variantId || null,
-          quantity: it.quantity,
-          priceAmount: it.priceAmount,
-          priceCurrency: it.currency,
-        })),
-      });
-
-      const orderData = orderRes.data;
-      const orderId = orderData.id;
-      const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
-
-      // 2) Initiate Stripe payment
-      const initRes = await paymentRepository.initiate({
-        amount,
-        orderId,
-        provider: 'STRIPE',
-      });
-
-      if (!initRes || !initRes.success || !initRes.data) {
-        throw new Error(initRes?.error || "Failed to initiate payment");
-      }
-
-      // Check if we're in mock mode (mock publishable key)
-      const isMockMode = initRes.data.publishableKey === 'pk_test_mock_publishable_key';
-
-      if (isMockMode) {
-        // Mock mode: Simulate successful payment without Stripe UI
-        console.log('📌 Stripe Mock Mode: Simulating successful payment');
-
-        // Simulate payment confirmation
-        await paymentRepository.confirmStripe({
-          payment_intent_id: initRes.data.transactionId,
-        });
-
-        toast.success('Payment successful! (Mock Mode)');
-        clearCart();
-        router.push('/orders');
-        return;
-      }
-
-      // Real mode: Store payment intent for status page
-      try {
-        if (typeof window !== 'undefined' && initRes.data.clientSecret && initRes.data.transactionId) {
-          localStorage.setItem('stripePaymentIntent', initRes.data.clientSecret || '');
-          localStorage.setItem('stripeTransactionId', initRes.data.transactionId || '');
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      // Redirect to payment status (in real mode, would integrate Stripe Elements)
-      toast.success('Redirecting to payment...');
-      clearCart();
-      router.push(`/payment/status?provider=stripe&payment_intent=${initRes.data.transactionId}`);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err?.response?.data?.error || err.message || 'Payment failed');
-    } finally {
-      setPayingWithStripe(false);
-    }
-  };
 
   // ------------------ Render ------------------
   if (loading) return <p className="p-8 text-center">Loading checkout...</p>;
@@ -895,40 +792,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Stripe */}
-              <div
-                onClick={() => setSelectedPaymentMethod("STRIPE")}
-                className={cn(
-                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
-                  selectedPaymentMethod === "STRIPE"
-                    ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                )}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border flex items-center justify-center transition-colors flex-shrink-0",
-                    selectedPaymentMethod === "STRIPE" ? "border-black" : "border-gray-300"
-                  )}>
-                    {selectedPaymentMethod === "STRIPE" && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 h-6">
-                      <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
-                        alt="Stripe"
-                        className="h-6 object-contain"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">International & Domestic Cards</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="font-medium text-gray-900">
-                    ₹{getFinalTotal(cart.subtotalAmount, appliedDiscount, "STRIPE").toFixed(2)}
-                  </span>
-                </div>
-              </div>
+
 
               {/* COD */}
               <div
@@ -990,15 +854,7 @@ export default function CheckoutPage() {
               </Button>
             )}
 
-            {selectedPaymentMethod === "STRIPE" && (
-              <Button
-                onClick={handlePayWithStripe}
-                disabled={payingWithStripe || !selectedAddressId}
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
-              >
-                {payingWithStripe ? "Processing..." : "Pay with Stripe"}
-              </Button>
-            )}
+
 
             {selectedPaymentMethod === "COD" && (
               <Button
