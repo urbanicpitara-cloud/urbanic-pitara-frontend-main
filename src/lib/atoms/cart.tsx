@@ -51,7 +51,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (productId: string, quantity = 1, variantId?: string) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        const result = await cartAPI.addItem({ productId, quantity, variantId });
+        // Send cartId if we have one
+        const cartId = state.cart?.id;
+        const result = await cartAPI.addItem({ productId, quantity, variantId, cartId });
         setState({ cart: result.data, loading: false, error: null });
       } catch (err) {
         console.error("❌ Failed to add item:", err);
@@ -64,7 +66,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await fetchCart();
       }
     },
-    [fetchCart]
+    [fetchCart, state.cart?.id]
   );
 
   /** ✏️ Update item */
@@ -72,7 +74,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (lineId: string, quantity: number) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        const result = await cartAPI.updateItem(lineId, { quantity });
+        const cartId = state.cart?.id;
+        const result = await cartAPI.updateItem(lineId, { quantity, cartId });
         console.log('✅ Item updated, response:', result.data);
         setState({ cart: result.data, loading: false, error: null });
       } catch (err) {
@@ -84,7 +87,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }));
       }
     },
-    []
+    [state.cart?.id]
   );
 
   /** ❌ Remove item */
@@ -92,7 +95,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (lineId: string) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        const result = await cartAPI.removeItem(lineId);
+        const cartId = state.cart?.id;
+        const result = await cartAPI.removeItem(lineId, cartId);
         console.log('✅ Item removed, response:', result.data);
         setState({ cart: result.data, loading: false, error: null });
       } catch (err) {
@@ -104,7 +108,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }));
       }
     },
-    []
+    [state.cart?.id]
   );
 
   /** 🧹 Clear local cart state */

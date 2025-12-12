@@ -104,14 +104,18 @@ export const cartAPI = {
   create: () =>
     request<Cart>('/cart', { method: 'POST' }),
 
-  addItem: (data: { productId: string; variantId?: string; quantity: number; customProductId?: string }) =>
+  addItem: (data: { productId: string; variantId?: string; quantity: number; customProductId?: string; cartId?: string }) =>
     request<Cart>(`/cart/lines`, { method: 'POST', body: data }),
 
-  updateItem: (lineId: string, data: { quantity: number }) =>
+  updateItem: (lineId: string, data: { quantity: number; cartId?: string }) =>
     request<Cart>(`/cart/lines/${lineId}`, { method: 'PUT', body: data }),
 
-  removeItem: (lineId: string) =>
-    request<Cart>(`/cart/lines/${lineId}`, { method: 'DELETE' })
+  removeItem: (lineId: string, cartId?: string) => {
+    return request<Cart>(`/cart/lines/${lineId}`, {
+      method: 'DELETE',
+      ...(cartId && { params: { cartId } })
+    });
+  }
 };
 
 export const ordersAPI = {
