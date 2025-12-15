@@ -75,6 +75,7 @@ export default function CheckoutPage() {
   const [useUserPhone, setUseUserPhone] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [payingWithRazorpay, setPayingWithRazorpay] = useState(false);
+  const [payingWithPhonePe, setPayingWithPhonePe] = useState(false);
 
 
   // Discount states
@@ -499,6 +500,90 @@ export default function CheckoutPage() {
     }
   };
 
+  // ------------------ Pay with PhonePe ------------------
+  const handlePayWithPhonePe = async () => {
+    if (!cart || !user) return;
+    setPayingWithPhonePe(true);
+
+    try {
+      let shippingAddress = null;
+
+      if (selectedAddressId) {
+        shippingAddress = addresses.find((a) => a.id === selectedAddressId) || null;
+      }
+
+      if (!shippingAddress && newAddress) {
+        const duplicate = addresses.find(
+          (a) =>
+            a.firstName === newAddress.firstName &&
+            a.lastName === newAddress.lastName &&
+            a.address1 === newAddress.address1 &&
+            a.city === newAddress.city &&
+            a.country === newAddress.country
+        );
+
+        if (duplicate) {
+          shippingAddress = duplicate;
+          setSelectedAddressId(duplicate.id);
+        } else {
+          const res = await addressesAPI.create({ ...newAddress, isDefault: false });
+          shippingAddress = res.data as Address;
+          setAddresses((prev) => [...prev, shippingAddress!]);
+          setSelectedAddressId(shippingAddress!.id);
+        }
+      }
+
+      if (!shippingAddress) throw new Error("No shipping address selected");
+
+      // 1) Create order with PHONEPE
+      const orderRes = await ordersAPI.create({
+        cartId: cart.id,
+        shippingAddressId: shippingAddress.id,
+        discountCode: appliedDiscount ? appliedDiscount.code : null,
+        paymentMethod: "PHONEPE",
+        cartSnapshot: cart.items.map((it) => ({
+          productId: it.product.id,
+          variantId: it.variantId || null,
+          quantity: it.quantity,
+          priceAmount: it.priceAmount,
+          priceCurrency: it.currency,
+        })),
+      });
+
+      const orderData = orderRes.data;
+      const orderId = orderData.id;
+      const amount = parseFloat(orderData.totalAmount || orderData.total || cart.totalAmount.toString());
+
+      // 2) Initiate PhonePe payment
+      const initRes = await paymentRepository.initiate({
+        amount,
+        orderId,
+        provider: 'PHONEPE',
+        redirectUrl: `${window.location.origin}/payment/status`,
+      });
+
+      if (!initRes || !initRes.success || !initRes.data?.redirectUrl) {
+        throw new Error(initRes?.error || "Failed to initiate payment with PhonePe");
+      }
+
+      // 2.5) Save transaction ID for status page
+      if (initRes.data?.transactionId) {
+        localStorage.setItem('lastTransactionId', initRes.data.transactionId);
+      }
+
+      // 3) Redirect to PhonePe
+      window.location.href = initRes.data.redirectUrl;
+
+    } catch (err: any) {
+      console.error('PhonePe Error:', err);
+      toast.error(err?.response?.data?.error || err.message || 'Payment initiation failed');
+    } finally {
+      // Don't set false if redirecting, but effectively we are navigating away
+      // If error, we stop loading
+      setPayingWithPhonePe(false);
+    }
+  };
+
 
 
   // ------------------ Render ------------------
@@ -756,6 +841,37 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
 
             <div className="space-y-3 mb-6">
+              {/* PhonePe */}
+              <div
+                onClick={() => setSelectedPaymentMethod("PHONEPE")}
+                className={cn(
+                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
+                  selectedPaymentMethod === "PHONEPE"
+                    ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                )}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border flex items-center justify-center transition-colors flex-shrink-0",
+                    selectedPaymentMethod === "PHONEPE" ? "border-black" : "border-gray-300"
+                  )}>
+                    {selectedPaymentMethod === "PHONEPE" && <div className="w-2.5 h-2.5 rounded-full bg-black" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 h-6">
+                      {/* Using a text label or icon if available */}
+                      <span className="font-bold text-gray-900 text-lg">PhonePe</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">UPI, Credit/Debit Cards, Wallets</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="font-medium text-gray-900">
+                    ₹{getFinalTotal(cart.subtotalAmount, appliedDiscount, "PHONEPE").toFixed(2)}
+                  </span>
+                </div>
+              </div>
               {/* Razorpay */}
               <div
                 onClick={() => setSelectedPaymentMethod("RAZORPAY")}
@@ -776,7 +892,7 @@ export default function CheckoutPage() {
                   <div>
                     <div className="relative h-10 w-24">
                       <Image
-                        src="/razorpay-logo-png_seeklogo-409477.png"
+                        src="/rzrpay.png"
                         alt="Razorpay"
                         fill
                         className="object-cover object-left"
@@ -833,16 +949,16 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment Buttons */}
-            {/* PhonePe - Commented out */}
-            {/* {selectedPaymentMethod === "PHONEPE" && (
+
+            {selectedPaymentMethod === "PHONEPE" && (
               <Button
                 onClick={handlePayWithPhonePe}
                 disabled={payingWithPhonePe || !selectedAddressId}
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                className="w-full bg-[#5f259f] hover:bg-[#4f1f85]" // PhonePe Brand Color
               >
                 {payingWithPhonePe ? "Processing..." : "Pay with PhonePe"}
               </Button>
-            )} */}
+            )}
 
             {selectedPaymentMethod === "RAZORPAY" && (
               <Button

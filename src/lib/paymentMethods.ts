@@ -6,7 +6,7 @@
 export type PaymentMethod = "PHONEPE" | "RAZORPAY" | "COD";
 
 // COD markup configuration (can be adjusted)
-const COD_MARKUP_AMOUNT = 100; // Fixed ₹100 surcharge for COD
+const COD_MARKUP_AMOUNT = 50; // Fixed ₹50 surcharge for COD
 
 /**
  * Calculate the final price based on payment method
