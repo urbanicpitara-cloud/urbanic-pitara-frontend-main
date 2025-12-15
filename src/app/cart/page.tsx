@@ -182,34 +182,52 @@ export default function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-8 space-y-4">
           {cart.items.map((item) => (
-            <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
-              <div className="relative h-24 w-24 flex-shrink-0">
-                <Image
-                  src={item.product.featuredImageUrl || "/placeholder.png"}
-                  alt={item.product.featuredImageAlt || item.product.title}
-                  fill
-                  sizes="100px"
-                  className="object-cover rounded"
-                />
+            <div key={item.id} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg bg-white shadow-sm">
+              <div className="flex gap-4 flex-1">
+                <div className="relative h-24 w-24 flex-shrink-0">
+                  <Image
+                    src={item.product.featuredImageUrl || "/placeholder.png"}
+                    alt={item.product.featuredImageAlt || item.product.title}
+                    fill
+                    sizes="100px"
+                    className="object-cover rounded-md border border-gray-100"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 truncate">{item.product.title}</h3>
+                  <p className="text-sm text-gray-500 truncate">{item.title}</p>
+
+                  {/* Mobile Price Display */}
+                  <div className="sm:hidden mt-2 font-medium text-gray-900">
+                    {item.priceAmount * item.quantity} {item.currency}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex-1">
-                <h3 className="font-medium">{item.product.title}</h3>
-                <p className="text-sm text-gray-500">{item.title}</p>
+              {/* Controls & Desktop Price */}
+              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-4 border-t sm:border-t-0 pt-4 sm:pt-0 mt-2 sm:mt-0">
+                <div className="hidden sm:block text-right">
+                  <p className="font-medium text-gray-900">
+                    {item.priceAmount * item.quantity} {item.currency}
+                  </p>
+                </div>
 
-                <div className="mt-2 flex items-center gap-4">
-                  <div className="flex items-center border rounded">
+                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="flex items-center border rounded-md shadow-sm">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="px-3 py-1"
+                      className="px-3 py-1 hover:bg-gray-50 transition-colors"
                       disabled={item.quantity <= 1}
+                      aria-label="Decrease quantity"
                     >
                       -
                     </button>
-                    <span className="px-3 py-1 border-x">{item.quantity}</span>
+                    <span className="px-3 py-1 border-x text-sm">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-3 py-1"
+                      className="px-3 py-1 hover:bg-gray-50 transition-colors"
+                      aria-label="Increase quantity"
                     >
                       +
                     </button>
@@ -217,17 +235,11 @@ export default function CartPage() {
 
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="text-sm text-red-500"
+                    className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors"
                   >
                     Remove
                   </button>
                 </div>
-              </div>
-
-              <div className="text-right">
-                <p className="font-medium">
-                  {item.priceAmount * item.quantity} {item.currency}
-                </p>
               </div>
             </div>
           ))}

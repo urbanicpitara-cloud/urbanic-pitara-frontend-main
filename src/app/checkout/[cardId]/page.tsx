@@ -140,6 +140,23 @@ export default function CheckoutPage() {
     return total;
   };
 
+  const isAddressReady = () => {
+    if (selectedAddressId) return true;
+    if (newAddress) {
+      return (
+        !!newAddress.firstName?.trim() &&
+        !!newAddress.lastName?.trim() &&
+        !!newAddress.address1?.trim() &&
+        !!newAddress.city?.trim() &&
+        !!newAddress.province?.trim() &&
+        !!newAddress.zip?.trim() &&
+        !!newAddress.country?.trim() &&
+        !!newAddress.phone?.trim()
+      );
+    }
+    return false;
+  };
+
   // ------------------ Fetch Data ------------------
   const fetchCartAndAddresses = async () => {
     setLoading(true);
@@ -603,28 +620,35 @@ export default function CheckoutPage() {
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
 
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="flex flex-col-reverse gap-8 lg:grid lg:grid-cols-12">
         {/* ------------------ Cart Summary ------------------ */}
         <div className="lg:col-span-8 space-y-4">
           {cart.items.map((item) => (
-            <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
-              {item.product.featuredImageUrl && (
-                <div className="relative h-24 w-24 flex-shrink-0">
-                  <img
-                    src={item.product.featuredImageUrl}
-                    alt={item.product.featuredImageAlt || item.product.title}
-                    className="h-full w-full object-cover rounded"
-                  />
+            <div key={item.id} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg bg-white">
+              <div className="flex gap-4 flex-1">
+                {item.product.featuredImageUrl && (
+                  <div className="relative h-20 w-20 flex-shrink-0">
+                    <img
+                      src={item.product.featuredImageUrl}
+                      alt={item.product.featuredImageAlt || item.product.title}
+                      className="h-full w-full object-cover rounded-md border border-gray-100"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 line-clamp-2">{item.product.title}</h3>
+                  {item.title && <p className="text-sm text-gray-500 truncate">{item.title}</p>}
+                  <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity}</p>
+
+                  {/* Mobile Price */}
+                  <div className="sm:hidden mt-2 font-medium text-gray-900">
+                    {item.priceAmount * item.quantity} {item.currency}
+                  </div>
                 </div>
-              )}
-              <div className="flex-1">
-                <h3 className="font-medium">{item.product.title}</h3>
-                {item.title && <p className="text-sm text-gray-500">{item.title}</p>}
-                <p>
-                  {item.priceAmount} {item.currency} × {item.quantity}
-                </p>
               </div>
-              <div className="text-right font-medium">
+
+              {/* Desktop Price */}
+              <div className="hidden sm:block text-right font-medium text-gray-900">
                 {item.priceAmount * item.quantity} {item.currency}
               </div>
             </div>
@@ -842,11 +866,11 @@ export default function CheckoutPage() {
 
             <div className="space-y-3 mb-6">
               {/* PhonePe */}
-             {/* 
+              {/* 
               <div
                 onClick={() => setSelectedPaymentMethod("PHONEPE")}
                 className={cn(
-                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
+                  "relative flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4 border rounded-xl cursor-pointer transition-all duration-200",
                   selectedPaymentMethod === "PHONEPE"
                     ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -875,12 +899,12 @@ export default function CheckoutPage() {
                 </div>
               </div> 
              */}
-              
+
               {/* Razorpay */}
               <div
                 onClick={() => setSelectedPaymentMethod("RAZORPAY")}
                 className={cn(
-                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
+                  "relative flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4 border rounded-xl cursor-pointer transition-all duration-200",
                   selectedPaymentMethod === "RAZORPAY"
                     ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -918,7 +942,7 @@ export default function CheckoutPage() {
               <div
                 onClick={() => setSelectedPaymentMethod("COD")}
                 className={cn(
-                  "relative flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all duration-200",
+                  "relative flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4 border rounded-xl cursor-pointer transition-all duration-200",
                   selectedPaymentMethod === "COD"
                     ? "border-black ring-1 ring-black bg-gray-50/50 shadow-sm"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -957,7 +981,7 @@ export default function CheckoutPage() {
             {selectedPaymentMethod === "PHONEPE" && (
               <Button
                 onClick={handlePayWithPhonePe}
-                disabled={payingWithPhonePe || !selectedAddressId}
+                disabled={payingWithPhonePe || !isAddressReady()}
                 className="w-full bg-[#5f259f] hover:bg-[#4f1f85]" // PhonePe Brand Color
               >
                 {payingWithPhonePe ? "Processing..." : "Pay with PhonePe"}
@@ -967,7 +991,7 @@ export default function CheckoutPage() {
             {selectedPaymentMethod === "RAZORPAY" && (
               <Button
                 onClick={handlePayWithRazorpay}
-                disabled={payingWithRazorpay || !selectedAddressId}
+                disabled={payingWithRazorpay || !isAddressReady()}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 {payingWithRazorpay ? "Processing..." : "Pay with Razorpay"}
@@ -979,7 +1003,7 @@ export default function CheckoutPage() {
             {selectedPaymentMethod === "COD" && (
               <Button
                 onClick={handlePlaceOrder}
-                disabled={placingOrder || !selectedAddressId}
+                disabled={placingOrder || !isAddressReady()}
                 className="w-full bg-orange-600 hover:bg-orange-700"
               >
                 {placingOrder ? "Placing Order..." : "Place Order (COD)"}
