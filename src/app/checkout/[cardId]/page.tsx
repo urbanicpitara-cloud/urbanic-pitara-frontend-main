@@ -866,7 +866,6 @@ export default function CheckoutPage() {
 
             <div className="space-y-3 mb-6">
               {/* PhonePe */}
-              {/* 
               <div
                 onClick={() => setSelectedPaymentMethod("PHONEPE")}
                 className={cn(
@@ -885,8 +884,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 h-6">
-                      Using a text label or icon if available 
-                    
+                      {/* Using a text label or icon if available */}
                       <span className="font-bold text-gray-900 text-lg">PhonePe</span>
                     </div>
                     <p className="text-sm text-gray-500 mt-1">UPI, Credit/Debit Cards, Wallets</p>
@@ -897,8 +895,7 @@ export default function CheckoutPage() {
                     ₹{getFinalTotal(cart.subtotalAmount, appliedDiscount, "PHONEPE").toFixed(2)}
                   </span>
                 </div>
-              </div> 
-             */}
+              </div>
 
               {/* Razorpay */}
               <div
