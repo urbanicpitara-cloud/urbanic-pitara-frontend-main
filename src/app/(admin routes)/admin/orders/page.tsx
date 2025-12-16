@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ordersAPI } from "@/lib/api";
+import { exportToCSV } from "@/lib/export";
 import Image from "next/image";
 import { toast } from "sonner";
 import { OrdersPageLoading } from "@/components/ui/loading-states";
@@ -229,6 +230,34 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleExport = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("No orders to export");
+      return;
+    }
+
+    const csvData = filteredOrders.map((order) => {
+      const names = [];
+      if (order.user?.firstName) names.push(order.user.firstName);
+      if (order.user?.lastName) names.push(order.user.lastName);
+
+      return {
+        "Order ID": order._id || order.id || "",
+        "Customer Name": names.join(" ") || "Guest",
+        "Customer Email": order.user?.email || "",
+        "Total Amount": order.total || order.totalAmount || order.subtotal || 0,
+        "Status": order.status || "PENDING",
+        "Payment Status": order.payment?.status || "PENDING",
+        "Payment ID": order.payment?.providerPaymentId || "",
+        "Date": order.createdAt ? new Date(order.createdAt).toISOString().split("T")[0] : "",
+        "Item Count": order.items?.length || 0,
+      };
+    });
+
+    exportToCSV(csvData, `orders-export-${new Date().toISOString().split("T")[0]}`);
+    toast.success("Orders exported successfully");
+  };
+
   if (loading)
     return <OrdersPageLoading />;
 
@@ -247,7 +276,7 @@ export default function AdminOrdersPage() {
           <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
           <p className="text-gray-500 mt-1">Manage and track your customer orders.</p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleExport}>
           <FileDown className="mr-2 h-4 w-4" /> Export
         </Button>
       </div>

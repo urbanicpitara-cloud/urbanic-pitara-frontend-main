@@ -3,6 +3,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { productsAPI, ordersAPI, authAPI } from "@/lib/api";
+import { exportToCSV } from "@/lib/export";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AdminDashboardLoading } from "@/components/ui/loading-states";
 import {
@@ -154,17 +156,26 @@ export default function AdminDashboardPageImproved() {
 
   // sales chart aggregated by day
   const salesData = useMemo(() => {
-    const map: Record<string, number> = {};
+    const map: Record<string, { total: number; count: number }> = {};
     // Sort orders by date first to ensure chart is chronological
     const sortedOrders = [...orders].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    sortedOrders.forEach(o => {
-      const d = new Date(o.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-      map[d] = (map[d] || 0) + toNumber(o.totalAmount ?? o.total ?? o.amount ?? o.subtotal);
+    sortedOrders.forEach((o) => {
+      // Use full date for export, but short for chart if needed. 
+      // Actually, let's keep the key standard and format purely for display.
+      // But preserving existing logic:
+      const d = new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+
+      if (!map[d]) {
+        map[d] = { total: 0, count: 0 };
+      }
+      map[d].total += toNumber(o.totalAmount || o.total || o.amount || o.subtotal);
+      map[d].count += 1;
     });
 
-    // Take last 7-14 entries if too many
-    return Object.entries(map).map(([date, total]) => ({ date, total }));
+    // Take last 7-14 entries if too many? The existing code didn't slice but the comment said so.
+    // Let's return all for the chart/export.
+    return Object.entries(map).map(([date, { total, count }]) => ({ date, total, count }));
   }, [orders]);
 
   if (loading) return <AdminDashboardLoading />
@@ -176,6 +187,23 @@ export default function AdminDashboardPageImproved() {
     </div>
   )
 
+  const handleDownloadReport = () => {
+    if (salesData.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const reportData = salesData.map((day) => ({
+      "Date": day.date,
+      "Orders Count": day.count,
+      "Total Revenue": day.total,
+      "Average Order Value": day.count > 0 ? (day.total / day.count).toFixed(2) : 0
+    }));
+
+    exportToCSV(reportData, `daily-sales-report-${new Date().toISOString().split("T")[0]}`);
+    toast.success("Daily sales report downloaded");
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
@@ -186,7 +214,7 @@ export default function AdminDashboardPageImproved() {
             <Clock className="mr-2 h-4 w-4" />
             Last 30 Days
           </Button>
-          <Button>Download Report</Button>
+          <Button onClick={handleDownloadReport}>Download Report</Button>
         </div>
       </div>
 
