@@ -36,7 +36,7 @@ export default function AdminLayout({
       <Sidebar mobileNavOpen={mobileNavOpen} setMobileNavOpen={setMobileNavOpen} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header onMobileNavOpen={() => setMobileNavOpen(true)} />
-        <main className="flex-1 p-6 bg-gray-50 overflow-x-hidden overflow-y-auto">{children}</main>
+        <main className="flex-1 p-4 md:p-6 bg-gray-50 overflow-x-auto overflow-y-auto">{children}</main>
       </div>
     </div>
   );

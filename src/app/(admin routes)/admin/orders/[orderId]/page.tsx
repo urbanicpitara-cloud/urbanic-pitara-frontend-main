@@ -354,8 +354,8 @@ export default function AdminOrderDetailPage() {
 
     return (
         <div className="p-6 max-w-6xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                     <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
                         <ArrowLeft size={16} /> Back
                     </button>
@@ -380,7 +380,7 @@ export default function AdminOrderDetailPage() {
                         <CreditCard size={16} /> Resend Invoice
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-gray-900 break-all">
                             Order <span className="text-indigo-600">#{order._id ?? order.id}</span>
                         </h1>
                         <p className="text-sm text-gray-500">
@@ -390,15 +390,15 @@ export default function AdminOrderDetailPage() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusColors[order.status ?? "PENDING"]}`}>
+                <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap ${statusColors[order.status ?? "PENDING"]}`}>
                         {order.status}
                     </span>
                     <select
                         value={order.status ?? "PENDING"}
                         onChange={(e) => updateStatus(e.target.value as StatusType)}
                         disabled={updating}
-                        className="border rounded-md px-3 py-1 text-sm"
+                        className="border rounded-md px-3 py-1 text-sm bg-white"
                     >
                         <option value="PENDING">Pending</option>
                         <option value="PROCESSING">Processing</option>
@@ -410,9 +410,9 @@ export default function AdminOrderDetailPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {/* Items + Notes (left) */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="md:col-span-2 xl:col-span-2 space-y-6">
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <h2 className="font-semibold text-lg mb-4">Items ({order.items?.length || 0})</h2>
                         <ul className="space-y-4">
@@ -424,7 +424,7 @@ export default function AdminOrderDetailPage() {
                                 const title = isCustom ? item.customProduct?.title : item.product?.title;
 
                                 return (
-                                    <li key={item._id ?? item.id ?? idx} className="flex items-start gap-4 p-4 rounded-md hover:bg-gray-50 transition border">
+                                    <li key={item._id ?? item.id ?? idx} className="flex flex-wrap sm:flex-nowrap items-start gap-4 p-4 rounded-md hover:bg-gray-50 transition border">
                                         {imgUrl ? (
                                             <div className="w-20 h-20 relative rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                                                 <Image src={imgUrl} alt={alt || "product"} fill sizes="80px" className="object-cover" />
@@ -433,12 +433,12 @@ export default function AdminOrderDetailPage() {
                                             <div className="w-20 h-20 rounded-md bg-gray-100 flex items-center justify-center text-sm text-gray-500 flex-shrink-0">No image</div>
                                         )}
 
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start gap-4">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="font-medium text-gray-800">{title ?? "Unknown product"}</p>
-                                                        {isCustom && <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded">Custom Design</span>}
+                                        <div className="flex-1 min-w-0 w-full sm:w-auto">
+                                            <div className="flex flex-wrap sm:flex-nowrap justify-between items-start gap-4">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <p className="font-medium text-gray-800 break-words">{title ?? "Unknown product"}</p>
+                                                        {isCustom && <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded whitespace-nowrap">Custom Design</span>}
                                                     </div>
 
                                                     {isCustom && item.customProduct && (
@@ -638,8 +638,8 @@ export default function AdminOrderDetailPage() {
                                         <p className="text-xs font-semibold text-gray-500 uppercase">Transaction Details</p>
                                         <div className="flex justify-between items-center gap-2">
                                             <span className="text-gray-600 text-xs">Order ID</span>
-                                            <div className="flex items-center gap-2">
-                                                <code className="bg-gray-50 px-2 py-1 rounded text-xs font-mono text-gray-800">
+                                            <div className="flex items-center gap-2 max-w-full">
+                                                <code className="bg-gray-50 px-2 py-1 rounded text-xs font-mono text-gray-800 break-all">
                                                     {(order.payment as any).providerOrderId}
                                                 </code>
                                                 <button
@@ -660,8 +660,8 @@ export default function AdminOrderDetailPage() {
                                 {(order.payment as any).providerPaymentId && (
                                     <div className="flex justify-between items-center gap-2">
                                         <span className="text-gray-600 text-xs">Payment ID</span>
-                                        <div className="flex items-center gap-2">
-                                            <code className="bg-gray-50 px-2 py-1 rounded text-xs font-mono text-gray-800">
+                                        <div className="flex items-center gap-2 max-w-full">
+                                            <code className="bg-gray-50 px-2 py-1 rounded text-xs font-mono text-gray-800 break-all">
                                                 {(order.payment as any).providerPaymentId}
                                             </code>
                                             <button

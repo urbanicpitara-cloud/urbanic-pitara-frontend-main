@@ -42,7 +42,7 @@ export default function ProductsToolbar({
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         {/* Search Bar */}
         <div className="relative w-full sm:w-96">
           <form onSubmit={handleSearchSubmit}>

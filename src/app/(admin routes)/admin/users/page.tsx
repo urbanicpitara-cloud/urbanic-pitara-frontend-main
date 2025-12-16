@@ -178,23 +178,23 @@ export default function AdminUsersPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Admin Users</h1>
 
-      <div className="flex justify-between mb-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4">
         <input
           type="text"
           placeholder="Search by name or email"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded w-1/3"
+          className="border p-2 rounded w-full sm:w-1/3"
         />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1 sm:flex-none whitespace-nowrap"
             onClick={() => setShowEmailModal(true)}
           >
             Send Email {selectedUsers.size > 0 ? `(${selectedUsers.size})` : "(All)"}
           </button>
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50 flex-1 sm:flex-none whitespace-nowrap"
             onClick={handleBulkDelete}
             disabled={selectedUsers.size === 0}
           >

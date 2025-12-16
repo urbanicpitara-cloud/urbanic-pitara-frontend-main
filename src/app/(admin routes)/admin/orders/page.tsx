@@ -254,7 +254,7 @@ export default function AdminOrdersPage() {
 
       {/* Filters & Actions Bar */}
       <Card>
-        <CardContent className="p-4 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+        <CardContent className="p-4 space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:justify-between gap-4">
           <div className="flex flex-col md:flex-row gap-4 flex-1">
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
