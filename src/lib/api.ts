@@ -166,6 +166,8 @@ export const ordersAPI = {
 
   bulkDeleteAdmin: (orderIds: string[]) =>
     api.delete('/orders/admin/bulk-delete', { data: { orderIds } }), // Bulk delete orders
+
+  resendInvoice: (id: string) => api.post(`/orders/admin/${id}/invoice`), // Resend invoice email
 };
 
 export const usersAPI = {
@@ -188,6 +190,10 @@ export const usersAPI = {
 
   // Reset user password (admin)
   resetPassword: (id: string) => api.put(`/users/${id}/reset-password`),
+
+  // Send custom email (admin)
+  sendEmail: (data: { userIds?: string[]; selectAll?: boolean; subject: string; message: string; isHtml?: boolean }) =>
+    api.post('/users/admin/email', data),
 };
 
 

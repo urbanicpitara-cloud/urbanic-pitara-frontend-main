@@ -359,6 +359,26 @@ export default function AdminOrderDetailPage() {
                     <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
                         <ArrowLeft size={16} /> Back
                     </button>
+                    <button
+                        onClick={async () => {
+                            if (!orderId) return;
+                            if (!confirm("Resend invoice to customer?")) return;
+                            try {
+                                setUpdating(true);
+                                await ordersAPI.resendInvoice(orderId);
+                                toast.success("Invoice sent successfully");
+                            } catch (error) {
+                                console.error(error);
+                                toast.error("Failed to send invoice");
+                            } finally {
+                                setUpdating(false);
+                            }
+                        }}
+                        disabled={updating}
+                        className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                    >
+                        <CreditCard size={16} /> Resend Invoice
+                    </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
                             Order <span className="text-indigo-600">#{order._id ?? order.id}</span>

@@ -24,9 +24,53 @@ export default function AdminUsersPage() {
   const [pageSize] = useState(10); // Number of users per page
   const [totalUsers, setTotalUsers] = useState(0);
 
+  // Email Modal State
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [isHtml, setIsHtml] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
   useEffect(() => {
     fetchUsers();
   }, [page, search]);
+
+  const handleSendEmail = async () => {
+    if (!emailSubject || !emailMessage) {
+      toast.error("Subject and message are required");
+      return;
+    }
+
+    const confirmMessage =
+      selectedUsers.size > 0
+        ? `Send email to ${selectedUsers.size} users?`
+        : "Send email to ALL users?";
+
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      setSendingEmail(true);
+      const res = await usersAPI.sendEmail({
+        userIds: Array.from(selectedUsers),
+        selectAll: selectedUsers.size === 0, // If none selected, send to ALL
+        subject: emailSubject,
+        message: emailMessage,
+        isHtml,
+      });
+      // Use message from backend (e.g., "Email queuing for 1 users.")
+      toast.success(res.data?.message || "Email process started");
+      setShowEmailModal(false);
+      setEmailSubject("");
+      setEmailMessage("");
+      setIsHtml(false);
+      setSelectedUsers(new Set()); // Clear selection after action
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to send emails");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -142,13 +186,21 @@ export default function AdminUsersPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="border p-2 rounded w-1/3"
         />
-        <button
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          onClick={handleBulkDelete}
-          disabled={selectedUsers.size === 0}
-        >
-          Delete Selected ({selectedUsers.size})
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={() => setShowEmailModal(true)}
+          >
+            Send Email {selectedUsers.size > 0 ? `(${selectedUsers.size})` : "(All)"}
+          </button>
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            onClick={handleBulkDelete}
+            disabled={selectedUsers.size === 0}
+          >
+            Delete Selected ({selectedUsers.size})
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto bg-white border border-gray-300 rounded mb-4">
@@ -308,6 +360,72 @@ export default function AdminUsersPage() {
           </button>
         </div>
       </div>
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+            <h3 className="text-lg font-bold mb-4">Send Custom Email</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Sending to:{" "}
+              <span className="font-semibold">
+                {selectedUsers.size > 0 ? `${selectedUsers.size} Selected Users` : "All Users"}
+              </span>
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium">Subject</label>
+                <input
+                  type="text"
+                  className="w-full border rounded p-2"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Enter email subject"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Message (Supports HTML)</label>
+                <textarea
+                  className="w-full border rounded p-2 h-32"
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  placeholder="Enter your message here..."
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isHtml"
+                  checked={isHtml}
+                  onChange={(e) => setIsHtml(e.target.checked)}
+                />
+                <label htmlFor="isHtml" className="text-sm">
+                  Send as HTML?
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                className="px-4 py-2 border rounded hover:bg-gray-100"
+                onClick={() => setShowEmailModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                onClick={handleSendEmail}
+                disabled={sendingEmail}
+              >
+                {sendingEmail ? "Sending..." : "Send Email"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
