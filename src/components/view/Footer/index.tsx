@@ -88,7 +88,8 @@ export default function Footer() {
             <li><Link href="/about" className="hover:text-caribbean-current">About Us</Link></li>
             <li><Link href="/contact" className="hover:text-caribbean-current">Contact</Link></li>
             <li><Link href="/faq" className="hover:text-caribbean-current">FAQs</Link></li>
-            <li><Link href="/shipping" className="hover:text-caribbean-current">Shipping & Returns</Link></li>
+            <li><Link href="/shipping" className="hover:text-caribbean-current">Shipping Policy</Link></li>
+
           </ul>
         </div>
 
@@ -126,6 +127,7 @@ export default function Footer() {
           <div className="flex gap-6 mt-3 md:mt-0">
             <Link href="/privacy" className="hover:text-caribbean-current">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-caribbean-current">Terms of Service</Link>
+            <Link href="/returns" className="hover:text-caribbean-current">Returns & Refunds Policy</Link>
           </div>
         </div>
       </div>
