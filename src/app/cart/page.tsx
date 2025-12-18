@@ -67,7 +67,7 @@ export default function CartPage() {
           variantId: line.variant?.id || "",
           title: line.customProduct
             ? `Custom ${line.customProduct.color} - Size: ${line.customProduct.size || 'L'}`
-            : (line.variant?.selectedOptions?.size ? `Size: ${line.variant.selectedOptions.size}` : ""),
+            : (line.variant?.selectedOptions?.Size || line.variant?.selectedOptions?.size ? `Size: ${line.variant.selectedOptions.Size || line.variant.selectedOptions.size}` : ""),
           quantity: line.quantity,
           priceAmount: parseFloat(line.price.amount),
           currency: line.price.currencyCode,

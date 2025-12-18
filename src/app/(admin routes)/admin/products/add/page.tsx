@@ -16,6 +16,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { X, GripVertical, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -35,6 +38,7 @@ export default function AddProductPage() {
   );
   const [published, setPublished] = useState(true);
   const [vendor, setVendor] = useState("");
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
   // Images
   const [images, setImages] = useState<{ url: string; altText: string }[]>([]);
@@ -129,14 +133,46 @@ export default function AddProductPage() {
 
   // Submit
   const handleSubmit = async () => {
+    // Validate inputs
     if (!title) {
       toast.info("Title is required.");
+      return;
+    }
+
+    if (!priceAmount || Number(priceAmount) <= 0) {
+      toast.error("Price must be greater than 0.");
+      return;
+    }
+
+    if (selectedSizes.length === 0) {
+      toast.error("Please select at least one size.");
       return;
     }
 
     setSaving(true);
     try {
       const textDescription = extractText(htmlDescription);
+
+      // Construct variants based on selected sizes
+      const variants = selectedSizes.map(size => ({
+        priceAmount: Number(priceAmount),
+        compareAmount: compareAmount ? Number(compareAmount) : null,
+        inventoryQuantity: Number(stock) || 0,
+        priceCurrency: "INR",
+        availableForSale: true,
+        selectedOptions: {
+          size: size.toLowerCase(), // Store as lowercase to match seeded products
+        }
+      }));
+
+      // Construct options
+      const options = [
+        {
+          name: "Size",
+          values: selectedSizes.map(size => ({ name: size }))
+        }
+      ];
+
       const productData = {
         title,
         handle,
@@ -145,14 +181,8 @@ export default function AddProductPage() {
         descriptionHtml: htmlDescription,
         description: textDescription,
         images: images.map((img) => ({ url: img.url, altText: img.altText })),
-        variants: [
-          {
-            priceAmount: Number(priceAmount) || 0,
-            compareAmount: compareAmount ? Number(compareAmount) : null,
-            inventoryQuantity: Number(stock) || 0,
-            priceCurrency: "INR",
-          },
-        ],
+        options,
+        variants,
         tags: tags
           ? tags.split(",").map((t) => t.trim().toLowerCase().replace(/\s+/g, "-"))
           : [],
@@ -285,6 +315,36 @@ export default function AddProductPage() {
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                 />
+              </div>
+
+              <div className="col-span-2 space-y-3">
+                <Label>Sizes</Label>
+                <div className="flex flex-wrap gap-4">
+                  {STANDARD_SIZES.map((size) => (
+                    <div key={size} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`size-${size}`}
+                        checked={selectedSizes.includes(size)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedSizes([...selectedSizes, size]);
+                          } else {
+                            setSelectedSizes(selectedSizes.filter(s => s !== size));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`size-${size}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {size}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {selectedSizes.length === 0 && (
+                  <p className="text-xs text-red-500">At least one size is required.</p>
+                )}
               </div>
             </CardContent>
           </Card>
