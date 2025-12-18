@@ -30,6 +30,11 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     });
   }
 
+  // Add cache-busting timestamp for GET requests in development
+  if ((!init.method || init.method === 'GET') && process.env.NODE_ENV !== 'production') {
+    url.searchParams.append('_t', Date.now().toString());
+  }
+
   // Prepare headers with minimal configuration for cookie-based auth
   const defaultHeaders = {
     'Content-Type': 'application/json',

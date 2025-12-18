@@ -39,7 +39,7 @@ export default function ProductCard({ product, idx }: ProductCardProps) {
   const firstImage =
     product.images && product.images[0]?.url
       ? product.images[0].url
-      : product.featuredImageUrl;
+      : product.featuredImageUrl || '/placeholder-product.png';
   const secondImage =
     product.images && product.images[1]?.url
       ? product.images[1].url

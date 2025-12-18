@@ -57,6 +57,7 @@ export function useProducts(): UseProductsResult {
         page: overridePage || pagination.page,
         all: true,
         limit: pagination.limit,
+        _t: Date.now(), // Cache-busting timestamp
         ...filters,
       };
 

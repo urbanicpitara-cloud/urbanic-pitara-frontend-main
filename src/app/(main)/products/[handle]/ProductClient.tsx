@@ -73,10 +73,18 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   const validImages = [
     ...new Map(
-      [{ url: product.featuredImageUrl, altText: product.featuredImageAlt }, ...product.images]
-        .filter(img => img?.url)
-        .map(img => [img.url, { url: img.url, altText: img.altText ?? product.featuredImageAlt }])
+      [
+        product.featuredImageUrl ? { url: product.featuredImageUrl, altText: product.featuredImageAlt } : null,
+        ...(product.images || [])
+      ]
+        .filter(img => img?.url) // Filter out null/undefined
+        .map(img => [img!.url, { url: img!.url, altText: img!.altText ?? product.featuredImageAlt }])
     ).values()
+  ];
+
+  // Fallback if no images at all
+  const displayImages = validImages.length > 0 ? validImages : [
+    { url: '/placeholder-product.png', altText: product.title }
   ];
 
   // Embla carousel
@@ -218,16 +226,16 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             <div
               ref={thumbRef as EmblaViewportRefType}
               className="order-2 mt-3 gap-3 overflow-x-auto px-1 hidden lg:order-1 lg:mt-0 lg:block lg:overflow-visible"
-              aria-hidden={validImages.length <= 1}
+              aria-hidden={displayImages.length <= 1}
             >
-              {validImages.map(img => (
+              {displayImages.map(img => (
                 <button
                   key={`thumb-${img.url}`}
-                  onClick={() => onThumbClick(validImages.indexOf(img))}
-                  aria-pressed={selectedIndex === validImages.indexOf(img)}
+                  onClick={() => onThumbClick(displayImages.indexOf(img))}
+                  aria-pressed={selectedIndex === displayImages.indexOf(img)}
                   className={cn(
                     "relative shrink-0 h-20 w-20 rounded-lg overflow-hidden border transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                    selectedIndex === validImages.indexOf(img) ? "ring-2 ring-offset-2 ring-black border-transparent shadow-md" : "border-gray-200"
+                    selectedIndex === displayImages.indexOf(img) ? "ring-2 ring-offset-2 ring-black border-transparent shadow-md" : "border-gray-200"
                   )}
                 >
                   <Image
@@ -246,15 +254,15 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             <div className="relative order-1 lg:order-2">
               <div className="relative w-full overflow-hidden rounded-lg" ref={mainRef as EmblaViewportRefType}>
                 <div className="flex touch-pan-y">
-                  {validImages.map(img => (
+                  {displayImages.map(img => (
                     <div key={`main-${img.url}`} className="min-w-full flex items-center justify-center bg-white">
                       <Image
                         src={img.url}
                         alt={img.altText ?? "product-image"}
                         width={1200}
                         height={900}
-                        priority={validImages.indexOf(img) === 0}
-                        loading={validImages.indexOf(img) === 0 ? "eager" : "lazy"}
+                        priority={displayImages.indexOf(img) === 0}
+                        loading={displayImages.indexOf(img) === 0 ? "eager" : "lazy"}
                         className="w-full max-h-[70vh] object-contain"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
                       />
@@ -264,7 +272,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
               </div>
 
               {/* Desktop nav */}
-              {validImages.length > 1 && (
+              {displayImages.length > 1 && (
                 <>
                   <Button
                     variant="outline"
@@ -289,13 +297,13 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
                   {/* Mobile thumbnails */}
                   <div className="flex gap-2 overflow-x-auto mt-2 lg:hidden">
-                    {validImages.map(img => (
+                    {displayImages.map(img => (
                       <button
                         key={`mobile-thumb-${img.url}`}
-                        onClick={() => onThumbClick(validImages.indexOf(img))}
+                        onClick={() => onThumbClick(displayImages.indexOf(img))}
                         className={cn(
                           "flex-shrink-0 h-16 w-16 rounded-md overflow-hidden border transition-shadow",
-                          selectedIndex === validImages.indexOf(img) ? "border-black shadow-md" : "border-gray-200"
+                          selectedIndex === displayImages.indexOf(img) ? "border-black shadow-md" : "border-gray-200"
                         )}
                       >
                         <Image src={img.url} alt={img.altText || "product-image"} width={64} height={64} className="object-cover" />

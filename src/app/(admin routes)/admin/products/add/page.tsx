@@ -194,6 +194,7 @@ export default function AddProductPage() {
 
       await productsAPI.create(productData);
       toast.success("✅ Product created!");
+      router.refresh(); // Force refresh to clear Next.js cache
       router.push("/admin/products");
     } catch (err) {
       console.error(err);

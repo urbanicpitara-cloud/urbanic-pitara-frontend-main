@@ -76,7 +76,7 @@ export default function EditProductPage() {
       try {
         const [{ data: allCollections }, { data: product }] = await Promise.all([
           collectionsAPI.getAll(),
-          productsAPI.getByHandle(handlename),
+          productsAPI.getByHandle(handlename + `?_t=${Date.now()}`), // Cache-busting
         ]);
 
         setCollections(allCollections);
@@ -269,6 +269,7 @@ export default function EditProductPage() {
 
       await productsAPI.update(productId, productData);
       toast.success("✅ Product updated successfully!");
+      router.refresh(); // Force refresh to clear Next.js cache
       router.push("/admin/products");
     } catch (err) {
       console.error(err);
