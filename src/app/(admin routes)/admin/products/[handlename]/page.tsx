@@ -64,6 +64,7 @@ export default function EditProductPage() {
 
   const [metafields, setMetafields] = useState({
     color: "",
+    colorValue: "", // 🎨 Added colorValue
     fabric: "",
     targetGender: "",
   });
@@ -115,6 +116,7 @@ export default function EditProductPage() {
 
           setMetafields({
             color: product.metafields?.color || "",
+            colorValue: product.metafields?.colorValue || "", // 🎨 Load colorValue
             fabric: product.metafields?.fabric || "",
             targetGender: product.metafields?.targetGender || "",
           });
@@ -224,6 +226,12 @@ export default function EditProductPage() {
     // Check if we have sizes but no variants (shouldn't happen with sync logic, but safety)
     if (variants.length === 0) {
       toast.error("Product must have at least one size variant.");
+      return;
+    }
+
+    // Validate Color Value if Color is present
+    if (metafields.color && !metafields.colorValue) {
+      toast.error("Please select a Color Value if Color Name is provided.");
       return;
     }
 
@@ -509,42 +517,75 @@ export default function EditProductPage() {
             <CardHeader>
               <CardTitle>Product Attributes</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Color</Label>
-                <Input
-                  value={metafields.color}
-                  onChange={(e) =>
-                    setMetafields((prev) => ({ ...prev, color: e.target.value }))
-                  }
-                />
+            <CardContent className="grid grid-cols-1 gap-4">
+              {/* 🎨 Color & Color Value */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Color Name</Label>
+                  <Input
+                    value={metafields.color}
+                    onChange={(e) =>
+                      setMetafields((prev) => ({ ...prev, color: e.target.value }))
+                    }
+                    placeholder="e.g. Red"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Color Value</Label>
+                  <div className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <Input
+                        value={metafields.colorValue}
+                        onChange={(e) =>
+                          setMetafields((prev) => ({ ...prev, colorValue: e.target.value }))
+                        }
+                        placeholder="#000000"
+                      />
+                      <div
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-gray-200"
+                        style={{ backgroundColor: metafields.colorValue || 'transparent' }}
+                      />
+                    </div>
+                    <input
+                      type="color"
+                      value={metafields.colorValue || "#000000"}
+                      onChange={(e) =>
+                        setMetafields((prev) => ({ ...prev, colorValue: e.target.value }))
+                      }
+                      className="h-10 w-10 p-0 border-0 rounded cursor-pointer"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label>Fabric</Label>
-                <Input
-                  value={metafields.fabric}
-                  onChange={(e) =>
-                    setMetafields((prev) => ({ ...prev, fabric: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Target Gender</Label>
-                <select
-                  value={metafields.targetGender}
-                  onChange={(e) =>
-                    setMetafields((prev) => ({
-                      ...prev,
-                      targetGender: e.target.value,
-                    }))
-                  }
-                  className="border rounded-md p-2 w-full"
-                >
-                  <option value="">Select</option>
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="unisex">Unisex</option>
-                </select>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Fabric</Label>
+                  <Input
+                    value={metafields.fabric}
+                    onChange={(e) =>
+                      setMetafields((prev) => ({ ...prev, fabric: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Target Gender</Label>
+                  <select
+                    value={metafields.targetGender}
+                    onChange={(e) =>
+                      setMetafields((prev) => ({
+                        ...prev,
+                        targetGender: e.target.value,
+                      }))
+                    }
+                    className="border rounded-md p-2 w-full"
+                  >
+                    <option value="">Select</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="unisex">Unisex</option>
+                  </select>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -34,12 +34,20 @@ export default function BulkEditProductsModal({
     compareAmount?: string;
     tags?: string[];
     published?: boolean;
+    color?: string;
+    colorValue?: string;
+    stockValue?: string;
+    stockOperation?: 'add' | 'subtract';
   }>({
     title: "",
     priceAmount: "",
     compareAmount: "",
     tags: [],
     published: undefined,
+    color: "",
+    colorValue: "#000000",
+    stockValue: "",
+    stockOperation: 'add',
   });
 
   // 🆕 local textarea text (so user typing isn't disrupted)
@@ -50,6 +58,12 @@ export default function BulkEditProductsModal({
   };
 
   const handleSubmit = async () => {
+    // 🛑 Validation: Cannot have Color Name without Color Value
+    if (updates.color?.trim() && !updates.colorValue) {
+      alert("Please select a Color Value for the Color Name.");
+      return;
+    }
+
     const cleanUpdates: Record<string, any> = {};
 
     if (updates.title?.trim()) cleanUpdates.title = updates.title.trim();
@@ -67,6 +81,22 @@ export default function BulkEditProductsModal({
 
     if (typeof updates.published === "boolean")
       cleanUpdates.published = updates.published;
+
+    // ✅ Add color name
+    if (updates.color?.trim()) {
+      cleanUpdates.color = updates.color.trim();
+    }
+
+    // ✅ Add color value (hex) - Allow plain colorValue or paired with name
+    if (updates.colorValue) {
+      cleanUpdates.colorValue = updates.colorValue;
+    }
+
+    // ✅ Add stock adjustment
+    if (updates.stockValue && Number(updates.stockValue) !== 0) {
+      const value = Number(updates.stockValue);
+      cleanUpdates.stockAdjustment = updates.stockOperation === 'subtract' ? -value : value;
+    }
 
     await onSave(cleanUpdates);
     onClose();
@@ -112,6 +142,68 @@ export default function BulkEditProductsModal({
                 placeholder="e.g. 699"
               />
             </div>
+          </div>
+
+          {/* Color */}
+          <div className="space-y-1">
+            <Label>Color (optional)</Label>
+            <div className="flex gap-2">
+              <Input
+                value={updates.color}
+                onChange={(e) => handleChange("color", e.target.value)}
+                placeholder="e.g. Red, Blue"
+                className="flex-1"
+              />
+              <div className="flex items-center gap-2 border rounded-md px-2 bg-gray-50">
+                <span className="text-xs text-gray-500">Value:</span>
+                <input
+                  type="color"
+                  value={updates.colorValue}
+                  onChange={(e) => handleChange("colorValue", e.target.value)}
+                  className="h-8 w-8 cursor-pointer bg-transparent border-none"
+                  title="Pick a color value"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stock Adjustment */}
+          <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+            <Label>Stock Adjustment (optional)</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={updates.stockValue}
+                onChange={(e) => handleChange("stockValue", e.target.value)}
+                placeholder="e.g. 20"
+                className="flex-1"
+              />
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  variant={updates.stockOperation === 'add' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleChange("stockOperation", 'add')}
+                  className="px-3"
+                >
+                  Add
+                </Button>
+                <Button
+                  type="button"
+                  variant={updates.stockOperation === 'subtract' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleChange("stockOperation", 'subtract')}
+                  className="px-3"
+                >
+                  Subtract
+                </Button>
+              </div>
+            </div>
+            {updates.stockValue && Number(updates.stockValue) > 0 && (
+              <p className="text-xs text-gray-600">
+                ℹ️ Will <strong>{updates.stockOperation === 'add' ? 'add' : 'subtract'} {updates.stockValue}</strong> {updates.stockOperation === 'add' ? 'to' : 'from'} stock of all variants in selected products
+              </p>
+            )}
           </div>
 
           {/* Tags */}

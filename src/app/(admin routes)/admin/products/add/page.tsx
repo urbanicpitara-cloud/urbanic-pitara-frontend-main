@@ -40,6 +40,10 @@ export default function AddProductPage() {
   const [vendor, setVendor] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
+  // 🎨 Color
+  const [color, setColor] = useState("");
+  const [colorValue, setColorValue] = useState("");
+
   // Images
   const [images, setImages] = useState<{ url: string; altText: string }[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -149,6 +153,11 @@ export default function AddProductPage() {
       return;
     }
 
+    if (color && !colorValue) {
+      toast.error("Please select a Color Value if Color Name is provided.");
+      return;
+    }
+
     setSaving(true);
     try {
       const textDescription = extractText(htmlDescription);
@@ -190,6 +199,11 @@ export default function AddProductPage() {
         metaTitle,
         metaDescription,
         metaKeywords: metaKeywords || null,
+        // 🎨 Pass color info in metafields
+        metafields: {
+          color: color,
+          colorValue: colorValue,
+        },
       };
 
       await productsAPI.create(productData);
@@ -263,6 +277,40 @@ export default function AddProductPage() {
                 <p className="text-xs text-gray-500 mt-1">
                   Optional. Brand or manufacturer name.
                 </p>
+              </div>
+
+              {/* 🎨 Color & Color Value */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Color Name</Label>
+                  <Input
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    placeholder="e.g. Red"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Color Value</Label>
+                  <div className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <Input
+                        value={colorValue}
+                        onChange={(e) => setColorValue(e.target.value)}
+                        placeholder="#000000"
+                      />
+                      <div
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-gray-200"
+                        style={{ backgroundColor: colorValue || 'transparent' }}
+                      />
+                    </div>
+                    <input
+                      type="color"
+                      value={colorValue || "#000000"}
+                      onChange={(e) => setColorValue(e.target.value)}
+                      className="h-10 w-10 p-0 border-0 rounded cursor-pointer"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
