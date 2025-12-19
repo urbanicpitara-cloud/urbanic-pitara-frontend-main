@@ -351,35 +351,63 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
           </div>
 
           {/* 🆕 Color Variants from Group */}
-          {product.variantGroup?.products && product.variantGroup.products.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Color: {(product.metafields?.color as string) || 'Selected'}</h3>
-              <div className="flex flex-wrap gap-2">
-                {product.variantGroup.products.map((p: Product) => {
-                  const isSelected = p.handle === product.handle;
-                  const color = (p.metafields?.color as string) || p.title;
-                  const colorValue = (p.metafields?.colorValue as string) || "#ccc"; // Default gray if missing
+          {product.variantGroup?.products && product.variantGroup.products.length > 1 && (() => {
+            // Check if at least one product has color information
+            const hasColorInfo = product.variantGroup.products.some(p =>
+              p.metafields?.color || p.metafields?.colorValue
+            );
 
-                  return (
-                    <Link
-                      key={p.id}
-                      href={`/products/${p.handle}`}
-                      className={cn(
-                        "relative h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all",
-                        isSelected ? "border-black ring-1 ring-black ring-offset-1" : "border-transparent hover:border-gray-300"
-                      )}
-                      title={color}
-                    >
-                      <span
-                        className="h-8 w-8 rounded-full border border-black/10 shadow-sm"
-                        style={{ backgroundColor: colorValue }}
-                      />
-                    </Link>
-                  );
-                })}
+            // Only show variant group if there are multiple products
+            if (!hasColorInfo && product.variantGroup.products.length <= 1) return null;
+
+            return (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-900 mb-2">
+                  {hasColorInfo ? `Color: ${(product.metafields?.color as string) || 'Selected'}` : 'Available Variants'}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.variantGroup.products.map((p: Product) => {
+                    const isSelected = p.handle === product.handle;
+                    const color = (p.metafields?.color as string) || p.title;
+                    const colorValue = p.metafields?.colorValue as string;
+                    const hasImage = p.images && p.images.length > 0;
+
+                    return (
+                      <Link
+                        key={p.id}
+                        href={`/products/${p.handle}`}
+                        className={cn(
+                          "relative h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all overflow-hidden",
+                          isSelected ? "border-black ring-1 ring-black ring-offset-1" : "border-gray-300 hover:border-gray-400"
+                        )}
+                        title={color}
+                      >
+                        {colorValue ? (
+                          // Show color swatch if colorValue exists
+                          <span
+                            className="h-8 w-8 rounded-full border border-black/10 shadow-sm"
+                            style={{ backgroundColor: colorValue }}
+                          />
+                        ) : hasImage ? (
+                          // Show product thumbnail if no color but has image
+                          <img
+                            src={p.images[0].url}
+                            alt={color}
+                            className="h-full w-full object-cover rounded-full"
+                          />
+                        ) : (
+                          // Show first letter of title as fallback
+                          <span className="text-xs font-medium text-gray-600">
+                            {p.title.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Product Options */}
           {product.options.map(opt => (
