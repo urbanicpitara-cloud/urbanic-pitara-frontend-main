@@ -262,7 +262,7 @@ export default function CartPage() {
             </div>
 
             <Link
-              href={user ? cart.checkoutUrl : "/auth"}
+              href={user ? cart.checkoutUrl : "/auth?redirect=/cart"}
               className="mt-6 block"
             >
               <Button className="w-full h-12 text-base shadow-md hover:shadow-lg transition-shadow">Proceed to Checkout</Button>

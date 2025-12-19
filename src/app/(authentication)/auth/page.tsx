@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +10,10 @@ import { Mail, Lock, User, Phone, ArrowRight, Loader2 } from "lucide-react";
 export default function AuthPage() {
   const { user, loading, login, register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get("redirect") || null;
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -37,10 +41,11 @@ export default function AuthPage() {
   // Redirect user based on role if already logged in
   useEffect(() => {
     if (!loading && user) {
-      const targetRoute = user.isAdmin ? "/admin" : "/";
+      // Use redirect param if available, otherwise default routes
+      const targetRoute = redirectTo || (user.isAdmin ? "/admin" : "/");
       router.replace(targetRoute);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,7 +66,8 @@ export default function AuthPage() {
         });
       }
 
-      const targetRoute = loggedInUser?.isAdmin ? "/admin" : "/";
+      // Use redirect param if available, otherwise default routes
+      const targetRoute = redirectTo || (loggedInUser?.isAdmin ? "/admin" : "/");
       router.push(targetRoute);
     } catch (err) {
       console.error("Auth error:", err);
