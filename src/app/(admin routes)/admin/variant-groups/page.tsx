@@ -21,7 +21,7 @@ export default function VariantGroupsPage() {
             await variantGroupsAPI.delete(id);
             toast.success("Group deleted successfully");
             refresh();
-        } catch (err: any) {
+        } catch {
             toast.error("Failed to delete group");
         } finally {
             setDeletingId(null);

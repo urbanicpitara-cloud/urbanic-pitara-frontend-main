@@ -83,7 +83,7 @@ export interface Product {
   variants: ProductVariant[];
   published: boolean;
   publishedAt?: string;
-  metafields?: Record<string, any>;
+  metafields?: Record<string, unknown>;
   variantGroup?: VariantGroup | null;
   variantGroupId?: string | null;
   minPriceAmount: string;

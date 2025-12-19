@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { variantGroupsAPI, productsAPI } from "@/lib/api";
 import { toast } from "sonner";
-import { VariantGroup } from "@/types/api";
+import { VariantGroup, Product } from "@/types/api";
 import { Loader2, X, Search, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 

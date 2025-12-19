@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { productsAPI, collectionsAPI } from "@/lib/api";
+import { productsAPI, collectionsAPI, variantGroupsAPI } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 
 import { Input } from "@/components/ui/input";
@@ -224,6 +224,25 @@ export default function EditProductPage() {
   };
 
   // ---------- Update ----------
+  const handleCreateGroup = async () => {
+    try {
+      if (!newGroupName.trim()) return;
+      const res = await variantGroupsAPI.create({
+        name: newGroupName,
+        description: `Group created from product editor`
+      });
+      const newGroup = res.data;
+      setAvailableGroups(prev => [...prev, newGroup]);
+      setVariantGroupId(newGroup.id);
+      setIsCreatingGroup(false);
+      setNewGroupName("");
+      toast.success("Variant group created");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create group");
+    }
+  };
+
   const handleUpdate = async () => {
     if (!title) {
       toast.info("Title is required.");
@@ -278,7 +297,7 @@ export default function EditProductPage() {
         metafields,
         published,
         metaTitle,
-        metaTitle,
+
         metaDescription,
         variantGroupId, // 🆕
       };

@@ -48,7 +48,7 @@ export interface Product {
   options: ProductOption[];
   variants: ProductVariant[];
   tags: string[];
-  // ✅ Many-to-many relationship to Collections
+  // ✅ many-to-many relationship to Collections
   collections?: ProductCollection[];
   minPriceAmount?: string;
   minPriceCurrency?: string;
@@ -59,4 +59,18 @@ export interface Product {
   compareMaxAmount?: string;
   compareMaxCurrency?: string;
   createdAt?: string; // ISO date string
+
+  // 🆕 Variant Groups & Metafields
+  variantGroup?: VariantGroup | null;
+  variantGroupId?: string | null;
+  metafields?: Record<string, unknown>;
+}
+
+export interface VariantGroup {
+  id: string;
+  name: string;
+  description?: string;
+  products?: Product[];
+  createdAt: string;
+  updatedAt: string;
 }

@@ -353,12 +353,12 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
           {/* 🆕 Color Variants from Group */}
           {product.variantGroup?.products && product.variantGroup.products.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Color: {product.metafields?.color || 'Selected'}</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Color: {(product.metafields?.color as string) || 'Selected'}</h3>
               <div className="flex flex-wrap gap-2">
                 {product.variantGroup.products.map((p: Product) => {
                   const isSelected = p.handle === product.handle;
-                  const color = p.metafields?.color || p.title;
-                  const colorValue = p.metafields?.colorValue || "#ccc"; // Default gray if missing
+                  const color = (p.metafields?.color as string) || p.title;
+                  const colorValue = (p.metafields?.colorValue as string) || "#ccc"; // Default gray if missing
 
                   return (
                     <Link
