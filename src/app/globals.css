@@ -64,26 +64,31 @@ body {
     /* Black */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 42 48% 56%;
-    /* Gold #C5A059 (approx HSL) */
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 42 48% 56%;
-    /* Gold */
-    --accent-foreground: 0 0% 0%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 42 48% 56%;
-    /* Gold Ring */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
 
     --radius: 0.5rem;
+  }
+
+  .theme-gold {
+    --secondary: 42 48% 56%;
+    --secondary-foreground: 0 0% 0%;
+    --accent: 42 48% 56%;
+    --accent-foreground: 0 0% 0%;
+    --ring: 42 48% 56%;
   }
 }
 

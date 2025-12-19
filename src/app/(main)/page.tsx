@@ -77,7 +77,7 @@ const AnimatedText = ({
 
 export default function HomePage() {
   return (
-    <>
+    <div className="theme-gold">
       {/* Hero Section */}
       <motion.section
         variants={fadeUpVariants}
@@ -199,6 +199,6 @@ export default function HomePage() {
       >
         <Testimonials />
       </motion.section>
-    </>
+    </div>
   );
 }
