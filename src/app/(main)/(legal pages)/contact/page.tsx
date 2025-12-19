@@ -37,9 +37,8 @@ export default function ContactPage() {
           <h2 className="text-3xl font-semibold mb-5">Registered Office</h2>
           <p className="text-gray-700">
             Urbanic Pitara <br />
-            84 Neshvilla Road, Opp. Church <br />
-            Dehradun, Uttarakhand, Pin: 248001 <br />
-            India
+            84, Dehradun Neshvilla Road <br />
+            Dehradun, Uttarakhand, India. Pincode - 248001
           </p>
         </div>
       </section>

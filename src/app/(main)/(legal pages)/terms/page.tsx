@@ -13,7 +13,7 @@ export default function TermsOfService() {
         <p><strong>Urbanic Pitara</strong></p>
         <p>Registered Enterprise under Udyam Registration</p>
         <p>Udhyam-Uk: 05-0004488</p>
-        <p className="capitalize">Registered Office: 84 neshvilla road, opp. church Dehradun uttarakhand, Pin : 248001</p>
+        <p>Registered Office: 84, Dehradun Neshvilla Road, Dehradun, Uttarakhand, India. Pincode - 248001</p>
       </div>
 
       {/* Intro */}
@@ -75,7 +75,7 @@ export default function TermsOfService() {
           </h2>
           <p className="text-xl md:text-2xl text-gray-700">
             These terms are governed by the laws of India. Any disputes will be subject to the
-            jurisdiction of courts in Mumbai, Maharashtra.
+            jurisdiction of courts in Dehradun, Uttarakhand.
           </p>
         </div>
 

@@ -63,9 +63,9 @@ export default function CancellationRefundsPolicy() {
         </p>
         <ul className="list-disc list-inside space-y-2 mb-4 ml-4">
           <li>Customized or made-to-order products</li>
-          <li>Innerwear and intimate apparel</li>
+
           <li>Products purchased during clearance sales (unless defective)</li>
-          <li>Accessories and jewelry (unless defective)</li>
+
           <li>Products without original packaging or tags</li>
         </ul>
       </section>
@@ -147,7 +147,7 @@ export default function CancellationRefundsPolicy() {
           <p className="mb-2"><strong>Email:</strong> support@urbanicpitara.com</p>
           <p className="mb-2"><strong>Phone/WhatsApp:</strong> +91-9927775655</p>
           <p className="mb-2"><strong>Hours:</strong> Monday - Saturday, 10:00 AM - 7:00 PM (IST)</p>
-          <p className="mb-2"><strong>Address:</strong> 84 Neshvilla Road, Opp. Church, Dehradun, Uttarakhand - 248001</p>
+          <p className="mb-2"><strong>Address:</strong> 84, Dehradun Neshvilla Road, Dehradun, Uttarakhand, India. Pincode - 248001</p>
         </div>
       </section>
 
