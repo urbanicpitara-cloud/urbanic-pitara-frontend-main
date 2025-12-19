@@ -25,7 +25,7 @@ interface FormData {
 export default function VariantGroupForm({ group }: Props) {
     const router = useRouter();
     const isEdit = !!group;
-    const { register, handleSubmit, setValue } = useForm<FormData>({
+    const { register, handleSubmit } = useForm<FormData>({
         defaultValues: {
             name: group?.name || "",
             description: group?.description || "",
@@ -39,7 +39,7 @@ export default function VariantGroupForm({ group }: Props) {
 
     // Product Search State
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchResults, setSearchResults] = useState<Product[]>([]);
     const [searching, setSearching] = useState(false);
     const [productTitles, setProductTitles] = useState<Record<string, { title: string, image?: string }>>({});
 
@@ -72,8 +72,8 @@ export default function VariantGroupForm({ group }: Props) {
                 setSearchResults(items);
 
                 // Update titles map
-                const newMap: Record<string, any> = {};
-                items.forEach((p: any) => {
+                const newMap: Record<string, { title: string, image?: string }> = {};
+                items.forEach((p: Product) => {
                     newMap[p.id] = {
                         title: p.title,
                         image: p.featuredImageUrl || (p.images && p.images[0]?.url)
@@ -108,8 +108,9 @@ export default function VariantGroupForm({ group }: Props) {
             }
             router.push("/admin/variant-groups");
             router.refresh();
-        } catch (err: any) {
-            toast.error(err.message || "Failed to save group");
+        } catch (err: unknown) {
+            const error = err as Error;
+            toast.error(error.message || "Failed to save group");
         } finally {
             setLoading(false);
         }
@@ -238,8 +239,8 @@ export default function VariantGroupForm({ group }: Props) {
                                                 key={product.id}
                                                 onClick={() => toggleProduct(product.id)}
                                                 className={`flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all ${isSelected
-                                                        ? "border-blue-500 bg-blue-50/30 ring-1 ring-blue-500"
-                                                        : "border-gray-100 hover:border-gray-300 hover:bg-gray-50"
+                                                    ? "border-blue-500 bg-blue-50/30 ring-1 ring-blue-500"
+                                                    : "border-gray-100 hover:border-gray-300 hover:bg-gray-50"
                                                     }`}
                                             >
                                                 <div className="relative w-14 h-14 rounded-lg bg-white overflow-hidden border border-gray-100 flex-shrink-0">

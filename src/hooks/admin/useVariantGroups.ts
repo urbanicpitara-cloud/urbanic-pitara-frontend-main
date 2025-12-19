@@ -17,9 +17,10 @@ export function useVariantGroups() {
             // The API uses 'q' for search
             const res = await variantGroupsAPI.getAll({ q: search });
             setGroups(res.data);
-        } catch (err: any) {
-            console.error("Failed to fetch variant groups:", err);
-            setError(err.message || "Failed to load groups");
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Failed to fetch variant groups:", error);
+            setError(error.message || "Failed to load groups");
         } finally {
             setLoading(false);
         }

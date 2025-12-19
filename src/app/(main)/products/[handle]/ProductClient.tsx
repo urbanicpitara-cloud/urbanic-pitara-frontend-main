@@ -355,7 +355,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-900 mb-2">Color: {product.metafields?.color || 'Selected'}</h3>
               <div className="flex flex-wrap gap-2">
-                {product.variantGroup.products.map((p: any) => {
+                {product.variantGroup.products.map((p: Product) => {
                   const isSelected = p.handle === product.handle;
                   const color = p.metafields?.color || p.title;
                   const colorValue = p.metafields?.colorValue || "#ccc"; // Default gray if missing

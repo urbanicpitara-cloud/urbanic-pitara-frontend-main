@@ -49,6 +49,15 @@ export interface Tag {
   name: string;
 }
 
+export interface VariantGroup {
+  id: string;
+  name: string;
+  description?: string;
+  products?: Product[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Product {
   id: string;
   handle: string;
@@ -56,11 +65,16 @@ export interface Product {
   description?: string;
   descriptionHtml?: string;
   vendor?: string;
-  collection: {
+  collection?: {
     id: string;
     handle: string;
     title: string;
   };
+  collections?: Array<{
+    id: string;
+    handle: string;
+    title: string;
+  }>;
   tags: Tag[];
   featuredImageUrl?: string;
   featuredImageAlt?: string;
@@ -69,7 +83,9 @@ export interface Product {
   variants: ProductVariant[];
   published: boolean;
   publishedAt?: string;
-  metafields?: Record<string, unknown>;
+  metafields?: Record<string, any>;
+  variantGroup?: VariantGroup | null;
+  variantGroupId?: string | null;
   minPriceAmount: string;
   minPriceCurrency: string;
   maxPriceAmount: string;
@@ -146,13 +162,4 @@ export interface Menu {
   id: string;
   handle: string;
   items: MenuItem[];
-}
-
-export interface VariantGroup {
-  id: string;
-  name: string;
-  description?: string;
-  products?: Product[]; // For simple listing
-  createdAt: string;
-  updatedAt: string;
 }

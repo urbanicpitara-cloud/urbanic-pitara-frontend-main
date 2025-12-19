@@ -18,8 +18,9 @@ export default function EditVariantGroupPage() {
             try {
                 const res = await variantGroupsAPI.getById(id as string);
                 setGroup(res.data);
-            } catch (err: any) {
-                setError(err.message || "Failed to load group");
+            } catch (err: unknown) {
+                const error = err as Error;
+                setError(error.message || "Failed to load group");
             } finally {
                 setLoading(false);
             }
