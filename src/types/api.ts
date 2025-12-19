@@ -147,3 +147,12 @@ export interface Menu {
   handle: string;
   items: MenuItem[];
 }
+
+export interface VariantGroup {
+  id: string;
+  name: string;
+  description?: string;
+  products?: Product[]; // For simple listing
+  createdAt: string;
+  updatedAt: string;
+}

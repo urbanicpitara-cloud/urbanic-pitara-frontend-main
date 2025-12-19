@@ -350,6 +350,37 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             )}
           </div>
 
+          {/* 🆕 Color Variants from Group */}
+          {product.variantGroup?.products && product.variantGroup.products.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Color: {product.metafields?.color || 'Selected'}</h3>
+              <div className="flex flex-wrap gap-2">
+                {product.variantGroup.products.map((p: any) => {
+                  const isSelected = p.handle === product.handle;
+                  const color = p.metafields?.color || p.title;
+                  const colorValue = p.metafields?.colorValue || "#ccc"; // Default gray if missing
+
+                  return (
+                    <Link
+                      key={p.id}
+                      href={`/products/${p.handle}`}
+                      className={cn(
+                        "relative h-10 w-10 rounded-full border-2 flex items-center justify-center transition-all",
+                        isSelected ? "border-black ring-1 ring-black ring-offset-1" : "border-transparent hover:border-gray-300"
+                      )}
+                      title={color}
+                    >
+                      <span
+                        className="h-8 w-8 rounded-full border border-black/10 shadow-sm"
+                        style={{ backgroundColor: colorValue }}
+                      />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Product Options */}
           {product.options.map(opt => (
             <div key={opt.id} className="mb-4">

@@ -293,3 +293,14 @@ export const customiserAPI = {
   // Delete custom product
   deleteProduct: (id: string) => api.delete(`/customizer/product/${id}`),
 };
+
+// ----------------- Variant Group API -----------------
+export const variantGroupsAPI = {
+  getAll: (params?: { q?: string }) => api.get('/variant-groups/search', { params }),
+  getById: (id: string) => api.get(`/variant-groups/${id}`),
+  create: (data: { name: string; description?: string; productIds?: string[] }) =>
+    api.post('/variant-groups', data),
+  update: (id: string, data: { name?: string; description?: string; productIds?: string[] }) =>
+    api.put(`/variant-groups/${id}`, data),
+  delete: (id: string) => api.delete(`/variant-groups/${id}`),
+};

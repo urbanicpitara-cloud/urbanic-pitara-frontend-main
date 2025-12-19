@@ -52,6 +52,9 @@ export default function EditProductPage() {
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [productId, setProductId] = useState<string | null>(null);
+  const [variantGroupId, setVariantGroupId] = useState<string | null>(null); // 🆕
+  const [availableGroups, setAvailableGroups] = useState<{ id: string; name: string }[]>([]); // 🆕
+
 
   const [variants, setVariants] = useState<
     { id?: string; size: string; price: string; compare: string; stock: string }[]
@@ -61,6 +64,11 @@ export default function EditProductPage() {
   const [globalPrice, setGlobalPrice] = useState("");
   const [globalStock, setGlobalStock] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+
+  // Create Group State
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+
 
   const [metafields, setMetafields] = useState({
     color: "",
@@ -82,8 +90,18 @@ export default function EditProductPage() {
 
         setCollections(allCollections);
 
+        // 🆕 Fetch Variant Groups
+        const groupsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/variant-groups/search?q=`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+        if (groupsRes.ok) {
+          const groups = await groupsRes.json();
+          setAvailableGroups(groups);
+        }
+
         if (product) {
           setProductId(product.id);
+          setVariantGroupId(product.variantGroupId || null); // 🆕
           setTitle(product.title || "");
           setHandle(product.handle || "");
           setHtmlDescription(product.descriptionHtml || "");
@@ -260,7 +278,9 @@ export default function EditProductPage() {
         metafields,
         published,
         metaTitle,
+        metaTitle,
         metaDescription,
+        variantGroupId, // 🆕
       };
 
       // 🛠️ Construct options from variants (specifically for Size)
@@ -587,6 +607,47 @@ export default function EditProductPage() {
                   </select>
                 </div>
               </div>
+
+              {/* 🆕 Variant Group Selector */}
+              <div className="pt-4 border-t">
+                <Label>Variant Group (Color Siblings)</Label>
+                <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-2">
+                    {!isCreatingGroup ? (
+                      <>
+                        <select
+                          value={variantGroupId || ""}
+                          onChange={(e) => setVariantGroupId(e.target.value === "none" ? null : e.target.value)}
+                          className="border rounded-md p-2 w-full"
+                        >
+                          <option value="none">None</option>
+                          {availableGroups.map((g: any) => (
+                            <option key={g.id} value={g.id}>
+                              {g.name} ({g.products?.length || 0} products)
+                            </option>
+                          ))}
+                        </select>
+                        <Button variant="outline" onClick={() => setIsCreatingGroup(true)}>+</Button>
+                      </>
+                    ) : (
+                      <div className="flex gap-2 w-full">
+                        <Input
+                          value={newGroupName}
+                          onChange={e => setNewGroupName(e.target.value)}
+                          placeholder="Group Name"
+                          className="bg-white"
+                        />
+                        <Button onClick={handleCreateGroup} disabled={!newGroupName.trim()}>Save</Button>
+                        <Button variant="ghost" onClick={() => setIsCreatingGroup(false)}>X</Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Group products together to show them as color options.
+                </p>
+              </div>
+
             </CardContent>
           </Card>
         </div>
@@ -666,6 +727,6 @@ export default function EditProductPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

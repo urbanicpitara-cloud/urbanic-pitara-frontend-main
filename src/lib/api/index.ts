@@ -4,7 +4,8 @@ import type {
   Cart,
   Order,
   Menu,
-  PaginatedResponse
+  PaginatedResponse,
+  VariantGroup
 } from '@/types/api';
 
 const getBaseUrl = () => {
@@ -159,4 +160,18 @@ export const searchAPI = {
 
   autocomplete: (query: string) =>
     request<{ products: Product[]; collections: Collection[] }>('/search/autocomplete', { params: { query } })
+};
+
+export const variantGroupsAPI = {
+  getAll: (params?: { q?: string }) => request<VariantGroup[]>('/variant-groups/search', { params }),
+
+  getById: (id: string) => request<VariantGroup>(`/variant-groups/${id}`),
+
+  create: (data: { name: string; description?: string; productIds?: string[] }) =>
+    request<VariantGroup>('/variant-groups', { method: 'POST', body: data }),
+
+  update: (id: string, data: { name?: string; description?: string; productIds?: string[] }) =>
+    request<VariantGroup>(`/variant-groups/${id}`, { method: 'PUT', body: data }),
+
+  delete: (id: string) => request(`/variant-groups/${id}`, { method: 'DELETE' })
 };

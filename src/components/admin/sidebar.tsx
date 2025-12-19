@@ -28,6 +28,7 @@ const navItems = [
   { href: "/admin/collections", label: "Collections", icon: Shirt },
   { href: "/admin/tags", label: "Tags", icon: Tag },
   { href: "/admin/customizer", label: "Customizer", icon: Palette },
+  { href: "/admin/variant-groups", label: "Variant Groups", icon: Package }, // Reusing Package or similar
   { href: "/admin/discounts", label: "Discounts", icon: BadgeIndianRupee },
   { href: "/admin/users", label: "Customers", icon: Users },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },

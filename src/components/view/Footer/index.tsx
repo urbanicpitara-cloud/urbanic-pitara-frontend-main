@@ -128,6 +128,7 @@ export default function Footer() {
             <Link href="/privacy" className="hover:text-caribbean-current">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-caribbean-current">Terms of Service</Link>
             <Link href="/returns" className="hover:text-caribbean-current">Returns & Refunds Policy</Link>
+            <Link href="/shipping" className="hover:text-caribbean-current">Shipping Policy</Link>
           </div>
         </div>
       </div>
