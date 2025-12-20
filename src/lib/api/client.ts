@@ -86,10 +86,11 @@ export const apiClient = {
     });
   },
 
-  delete<T>(url: string, options: RequestOptions = {}) {
+  delete<T>(url: string, body?: any, options: RequestOptions = {}) {
     return this.request<T>(url, {
       ...options,
       method: "DELETE",
+      body: body ? JSON.stringify(body) : undefined,
     });
   },
 };

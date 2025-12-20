@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { subscribersRepository } from "@/lib/api/repositories/subscribers";
@@ -27,6 +27,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminSubscribersPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -36,19 +45,36 @@ export default function AdminSubscribersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
 
+  // New features state
+  const [selectedSubscribers, setSelectedSubscribers] = useState<Set<string>>(new Set());
+  const [filterVerified, setFilterVerified] = useState<string>("all"); // "all", "true", "false"
+
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailIsHtml, setEmailIsHtml] = useState(false);
+
   useEffect(() => {
     loadSubscribers();
-  }, [page]);
+  }, [page, filterVerified]);
 
   const loadSubscribers = async () => {
     try {
-      const response = await subscribersRepository.getAll(page);
+      setLoading(true);
+      let verified: boolean | undefined = undefined;
+      if (filterVerified === "true") verified = true;
+      if (filterVerified === "false") verified = false;
+
+      const response = await subscribersRepository.getAll(page, 10, verified);
       setSubscribers(response.data);
       setTotalPages(response.pagination.totalPages);
-      setLoading(false);
     } catch (error) {
       console.error("Error loading subscribers:", error);
       toast.error("Failed to load subscribers");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,6 +83,12 @@ export default function AdminSubscribersPage() {
       await subscribersRepository.delete(id);
       toast.success("Subscriber deleted successfully");
       loadSubscribers();
+      // Remove from selection if deleted
+      if (selectedSubscribers.has(id)) {
+        const newSet = new Set(selectedSubscribers);
+        newSet.delete(id);
+        setSelectedSubscribers(newSet);
+      }
     } catch (error) {
       console.error("Error deleting subscriber:", error);
       toast.error("Failed to delete subscriber");
@@ -95,6 +127,84 @@ export default function AdminSubscribersPage() {
     }
   };
 
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      // Select all currently visible subscribers
+      const allIds = subscribers.map(s => s.id);
+      setSelectedSubscribers(new Set(allIds));
+    } else {
+      setSelectedSubscribers(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSet = new Set(selectedSubscribers);
+    if (checked) {
+      newSet.add(id);
+    } else {
+      newSet.delete(id);
+    }
+    setSelectedSubscribers(newSet);
+  };
+
+  // Email handlers
+  const handleOpenEmailModal = () => {
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailSubject.trim() || !emailMessage.trim()) {
+      toast.error("Subject and message are required");
+      return;
+    }
+
+    try {
+      setSendingEmail(true);
+
+      const payload = {
+        subject: emailSubject,
+        message: emailMessage,
+        isHtml: emailIsHtml,
+        ids: Array.from(selectedSubscribers),
+        selectAll: selectedSubscribers.size === 0 && subscribers.length > 0, // If none selected specifically, assume "send to all matched by current filter" or just handle explicitly
+        filterVerified: filterVerified !== "all" ? filterVerified : undefined
+      };
+
+      // If nothing selected and we want to send to current view's results equivalent
+      // The requirement "send mail just like we can in the users one" usually implies:
+      // if specific users selected -> send to them
+      // if NO users selected -> prompt "Send to ALL?"
+
+      if (selectedSubscribers.size === 0) {
+        if (!confirm(`Send email to ALL ${filterVerified === 'all' ? '' : filterVerified + ' '}subscribers?`)) {
+          setSendingEmail(false);
+          return;
+        }
+        payload.selectAll = true;
+      } else {
+        if (!confirm(`Send email to ${selectedSubscribers.size} selected subscribers?`)) {
+          setSendingEmail(false);
+          return;
+        }
+        payload.selectAll = false;
+      }
+
+      const res = await subscribersRepository.sendEmail(payload);
+      toast.success(res.message || "Email process started");
+
+      setShowEmailModal(false);
+      setEmailSubject("");
+      setEmailMessage("");
+      setSelectedSubscribers(new Set());
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error("Failed to send email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const filteredSubscribers = subscribers.filter(subscriber =>
     subscriber.email.toLowerCase().includes(search.toLowerCase())
   );
@@ -130,55 +240,50 @@ export default function AdminSubscribersPage() {
                   />
                 </svg>
               </div>
+
+              {/* Verified Filter */}
+              <Select value={filterVerified} onValueChange={(val: string) => { setFilterVerified(val); setPage(1); }}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Subscribers</SelectItem>
+                  <SelectItem value="true">Verified Only</SelectItem>
+                  <SelectItem value="false">Unverified Only</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Send Email Button */}
+              <Button
+                onClick={handleOpenEmailModal}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Send Email {selectedSubscribers.size > 0 ? `(${selectedSubscribers.size})` : "(All)"}
+              </Button>
+
               <Button
                 onClick={handleExport}
                 variant="outline"
                 className="w-full sm:w-auto"
                 disabled={isExporting}
               >
-                {isExporting ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="mr-2 h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    Export CSV
-                  </>
-                )}
+                {isExporting ? "Exporting..." : "Export CSV"}
               </Button>
             </div>
           </div>
-          
+
           <div className="rounded-lg border bg-card overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
+                  <TableHead className="w-12 text-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300"
+                      checked={subscribers.length > 0 && selectedSubscribers.size === subscribers.length}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                    />
+                  </TableHead>
                   <TableHead className="font-semibold text-slate-900">Email</TableHead>
                   <TableHead className="font-semibold text-slate-900">Source</TableHead>
                   <TableHead className="font-semibold text-slate-900">Date</TableHead>
@@ -189,41 +294,16 @@ export default function AdminSubscribersPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32">
+                    <TableCell colSpan={6} className="h-32">
                       <div className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin h-5 w-5 text-gray-500"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
+                        <span className="text-gray-500">Loading...</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : filteredSubscribers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32">
+                    <TableCell colSpan={6} className="h-32">
                       <div className="flex flex-col items-center justify-center text-center">
-                        <svg
-                          className="h-8 w-8 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                          />
-                        </svg>
                         <p className="mt-2 text-sm text-gray-500">No subscribers found</p>
                       </div>
                     </TableCell>
@@ -231,6 +311,14 @@ export default function AdminSubscribersPage() {
                 ) : (
                   filteredSubscribers.map((subscriber) => (
                     <TableRow key={subscriber.id} className="hover:bg-slate-50">
+                      <TableCell className="text-center">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300"
+                          checked={selectedSubscribers.has(subscriber.id)}
+                          onChange={(e) => handleSelectOne(subscriber.id, e.target.checked)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{subscriber.email}</TableCell>
                       <TableCell className="text-gray-500">{subscriber.source || "Website"}</TableCell>
                       <TableCell className="text-gray-500">
@@ -255,6 +343,7 @@ export default function AdminSubscribersPage() {
                               size="sm"
                               className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                             >
+                              <span className="sr-only">Delete</span>
                               <svg
                                 className="h-4 w-4"
                                 fill="none"
@@ -308,19 +397,6 @@ export default function AdminSubscribersPage() {
                   onClick={() => setPage(p => p - 1)}
                   disabled={page === 1}
                 >
-                  <svg
-                    className="h-4 w-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
                   Previous
                 </Button>
                 <Button
@@ -330,25 +406,57 @@ export default function AdminSubscribersPage() {
                   disabled={page === totalPages}
                 >
                   Next
-                  <svg
-                    className="h-4 w-4 ml-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
                 </Button>
               </div>
             </div>
           )}
         </div>
       </Card>
+
+      {/* Email Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Send Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Subject</label>
+              <Input
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="Email subject..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Message</label>
+              <Textarea
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                placeholder="Type your message here..."
+                className="h-32"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="html-mode"
+                checked={emailIsHtml}
+                onCheckedChange={setEmailIsHtml}
+              />
+              <label htmlFor="html-mode" className="text-sm font-medium">Send as HTML</label>
+            </div>
+            <div className="text-sm text-gray-500">
+              Sending to: <span className="font-semibold text-gray-900">{selectedSubscribers.size > 0 ? `${selectedSubscribers.size} selected` : `All ${filterVerified === 'all' ? '' : filterVerified} subscribers`}</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEmailModal(false)}>Cancel</Button>
+            <Button onClick={handleSendEmail} disabled={sendingEmail}>
+              {sendingEmail ? "Sending..." : "Send Email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

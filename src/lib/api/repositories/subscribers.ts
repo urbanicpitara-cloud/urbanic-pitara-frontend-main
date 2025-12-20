@@ -7,13 +7,16 @@ const getBaseUrl = () => {
 };
 
 export const subscribersRepository = {
-  /** Get all subscribers with pagination */
-  async getAll(page = 1, limit = 10): Promise<SubscriberResponse> {
-    const params = new URLSearchParams({ 
-      page: page.toString(), 
-      limit: limit.toString() 
-    }).toString();
-    const response = await apiClient.get<SubscriberResponse>(`/subscriptions?${params}`);
+  /** Get all subscribers with pagination and optional filter */
+  async getAll(page = 1, limit = 10, verified?: boolean): Promise<SubscriberResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    if (verified !== undefined) {
+      params.append('verified', verified.toString());
+    }
+    const response = await apiClient.get<SubscriberResponse>(`/subscriptions?${params.toString()}`);
     return response;
   },
 
@@ -22,10 +25,14 @@ export const subscribersRepository = {
     await apiClient.delete(`/subscriptions/${id}`);
   },
 
+  async deleteMany(ids: string[]): Promise<void> {
+    await apiClient.delete("/subscriptions", { ids });
+  },
+
   /** Export subscribers list */
   async export(): Promise<Blob> {
     const response = await fetch(`${getBaseUrl()}/subscriptions/export`, {
-      headers: { 
+      headers: {
         Accept: "application/octet-stream",
         Authorization: `Bearer ${localStorage.getItem("auth_token")}`
       }
@@ -42,6 +49,12 @@ export const subscribersRepository = {
       `/subscriptions/${id}/verify`,
       {}
     );
+    return response;
+  },
+
+  /** Send bulk email to subscribers */
+  async sendEmail(data: { ids?: string[], subject: string, message: string, isHtml: boolean, selectAll?: boolean, filterVerified?: string }): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>("/subscriptions/admin/email", data);
     return response;
   }
 };
