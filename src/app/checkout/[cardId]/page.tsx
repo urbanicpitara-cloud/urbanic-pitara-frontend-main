@@ -59,6 +59,59 @@ interface Discount {
   value: number;
 }
 
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayError {
+  error: {
+    code: string;
+    description: string;
+    source: string;
+    step: string;
+    reason: string;
+    metadata: {
+      order_id: string;
+      payment_id: string;
+    };
+  };
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+interface RazorpayOptions {
+  key: string | undefined;
+  amount: number | undefined;
+  currency: string | undefined;
+  name: string;
+  description: string;
+  order_id: string | undefined;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  handler: (response: RazorpayResponse) => void;
+  modal: {
+    ondismiss: () => void;
+  };
+  theme: {
+    color: string;
+  };
+}
+
+interface RazorpayInstance {
+  on: (event: string, handler: (response: RazorpayError) => void) => void;
+  open: () => void;
+}
+
+
 // ------------------ Component ------------------
 export default function CheckoutPage() {
   const { cartId } = useParams();
@@ -475,7 +528,7 @@ export default function CheckoutPage() {
           email: user?.email || '',
           contact: shippingAddress?.phone || '',
         },
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           console.log('Razorpay payment success:', response);
           try {
             // Verify payment
@@ -488,9 +541,10 @@ export default function CheckoutPage() {
             toast.success('Payment successful!');
             clearCart();
             router.push('/orders');
-          } catch (err: any) {
+          } catch (err) {
             console.error('Verification error:', err);
-            toast.error('Payment verification failed: ' + (err.message || 'Unknown error'));
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+            toast.error('Payment verification failed: ' + errorMessage);
           }
         },
         modal: {
@@ -504,15 +558,16 @@ export default function CheckoutPage() {
         }
       };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', function (response: any) {
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response: RazorpayError) {
         console.error('Razorpay payment failed:', response.error);
         toast.error(`Payment failed: ${response.error.description}`);
       });
       rzp.open();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Razorpay Error:', err);
-      toast.error(err?.response?.data?.error || err.message || 'Payment failed. Check console for details.');
+      const errorMessage = err instanceof Error ? err.message : 'Payment failed. Check console for details.';
+      toast.error(errorMessage);
       setPayingWithRazorpay(false);
     }
   };
@@ -576,24 +631,20 @@ export default function CheckoutPage() {
         amount,
         orderId,
         provider: 'PHONEPE',
-        redirectUrl: `${window.location.origin}/payment/status`,
+        redirectUrl: `${window.location.origin}/checkout/phonepe-callback`,
       });
 
       if (!initRes || !initRes.success || !initRes.data?.redirectUrl) {
         throw new Error(initRes?.error || "Failed to initiate payment with PhonePe");
       }
 
-      // 2.5) Save transaction ID for status page
-      if (initRes.data?.transactionId) {
-        localStorage.setItem('lastTransactionId', initRes.data.transactionId);
-      }
-
       // 3) Redirect to PhonePe
       window.location.href = initRes.data.redirectUrl;
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('PhonePe Error:', err);
-      toast.error(err?.response?.data?.error || err.message || 'Payment initiation failed');
+      const errorMessage = err instanceof Error ? err.message : 'Payment initiation failed';
+      toast.error(errorMessage);
     } finally {
       // Don't set false if redirecting, but effectively we are navigating away
       // If error, we stop loading
