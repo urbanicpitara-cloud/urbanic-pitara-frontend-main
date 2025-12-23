@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { paymentRepository } from '@/lib/api/repositories/payment';
 import { useCart } from '@/lib/atoms/cart';
 import { toast } from 'sonner';
 
-export default function PhonePeCallbackPage() {
+function PhonePeCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { clearCart } = useCart();
@@ -174,5 +174,44 @@ export default function PhonePeCallbackPage() {
                 </div>
             </Card>
         </div>
+    );
+}
+
+export default function PhonePeCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+                <Card className="w-full max-w-lg p-8">
+                    <div className="flex flex-col items-center text-center space-y-6">
+                        <svg
+                            className="h-12 w-12 text-blue-500 animate-spin"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                            />
+                            <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                        </svg>
+                        <h1 className="text-2xl font-semibold text-gray-900">
+                            Loading...
+                        </h1>
+                        <p className="text-gray-600">Please wait...</p>
+                    </div>
+                </Card>
+            </div>
+        }>
+            <PhonePeCallbackContent />
+        </Suspense>
     );
 }

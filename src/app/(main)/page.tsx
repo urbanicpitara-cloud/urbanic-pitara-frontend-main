@@ -147,6 +147,7 @@ export default function HomePage() {
           </h2>
         </div>
 
+
         <div className="relative z-10 pb-12 md:pb-20">
           <div className="py-12 md:py-20 text-center bg-transparent">
             <AnimatedText
