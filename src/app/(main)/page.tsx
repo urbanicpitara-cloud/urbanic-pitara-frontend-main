@@ -120,7 +120,7 @@ export default function HomePage() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        className="bg-gray-50 py-8 md:py-4"
+        className="bg-white py-8 md:py-4"
       >
         <div className="text-center mb-10">
           <AnimatedText

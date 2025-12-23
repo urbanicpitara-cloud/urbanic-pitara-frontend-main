@@ -40,7 +40,7 @@ const CategoryCard = ({
 
 const Categories = () => {
   return (
-    <section className="py-16 md:py-24 px-4 md:px-8 bg-gray-50/50">
+    <section className="py-16 md:py-24 px-4 md:px-8 bg-white">
       <div className="max-w-7xl mx-auto flex flex-col gap-4 md:gap-6">
 
         {/* Row 1: Customizer (2/3) + Bridal (1/3) */}
