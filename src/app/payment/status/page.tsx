@@ -49,12 +49,24 @@ export default function PaymentStatusPage() {
     };
 
     checkPaymentStatus();
-  }, []);
+  }, [router]); // Added router dependency
+
+  // Auto-redirect on success
+  useEffect(() => {
+    if (status === 'PAID' || status === 'SUCCESS' || status === 'PAYMENT_SUCCESS') {
+      const timer = setTimeout(() => {
+        router.push('/orders');
+      }, 2000); // 2 second delay to show success message
+      return () => clearTimeout(timer);
+    }
+  }, [status, router]);
 
   const getStatusDisplay = () => {
     // Our backend maps provider states to: INITIATED, PAID, FAILED, REFUNDED, NONE
     switch (status) {
       case 'PAID':
+      case 'SUCCESS':
+      case 'PAYMENT_SUCCESS':
         return {
           title: 'Payment Successful',
           message: 'Your payment has been processed successfully.',
