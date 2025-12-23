@@ -91,7 +91,7 @@ export default function EditProductPage() {
         setCollections(allCollections);
 
         // 🆕 Fetch Variant Groups
-        const groupsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/variant-groups/search?q=`, {
+        const groupsRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000"}/variant-groups/search?q=`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
         if (groupsRes.ok) {

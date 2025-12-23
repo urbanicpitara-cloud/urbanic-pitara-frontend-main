@@ -273,7 +273,7 @@ export default function CheckoutPage() {
 
     try {
       // Update user profile with phone number
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/me`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
