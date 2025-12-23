@@ -88,6 +88,8 @@ const statusColors: Record<string, string> = {
 const paymentStatusColors: Record<string, string> = {
   INITIATED: "bg-yellow-50 text-yellow-700 border-yellow-200",
   PAID: "bg-green-50 text-green-700 border-green-200",
+  SUCCESS: "bg-green-50 text-green-700 border-green-200",
+  PAYMENT_SUCCESS: "bg-green-50 text-green-700 border-green-200",
   FAILED: "bg-red-50 text-red-700 border-red-200",
   REFUNDED: "bg-purple-50 text-purple-700 border-purple-200",
   NONE: "bg-gray-50 text-gray-700 border-gray-200",

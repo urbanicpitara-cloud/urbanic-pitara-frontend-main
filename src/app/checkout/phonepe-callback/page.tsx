@@ -32,25 +32,35 @@ function PhonePeCallbackContent() {
                 // Check payment status from backend
                 const response = await paymentRepository.checkStatus(transactionId);
 
+                console.log('PhonePe Payment Status Response:', {
+                    success: response.success,
+                    data: response.data,
+                    status: response.data?.status,
+                    fullResponse: response
+                });
+
                 if (!response.success) {
                     throw new Error(response.error || 'Failed to fetch payment status');
                 }
 
-                const paymentStatus = response.data?.status;
+                const paymentStatus = response.data?.status?.toUpperCase();
 
-                if (paymentStatus === 'PAID') {
+                console.log('Normalized Payment Status:', paymentStatus);
+
+                if (paymentStatus === 'PAID' || paymentStatus === 'SUCCESS' || paymentStatus === 'PAYMENT_SUCCESS') {
                     // Payment successful
                     setStatus('success');
                     toast.success('Payment successful!');
                     clearCart();
                     setTimeout(() => router.push('/orders'), 1500);
-                } else if (paymentStatus === 'FAILED') {
+                } else if (paymentStatus === 'FAILED' || paymentStatus === 'PAYMENT_FAILED') {
                     // Payment failed
                     setStatus('failed');
                     toast.error('Payment failed. Please try again.');
                     setTimeout(() => router.push('/'), 3000);
                 } else {
                     // Pending or other status
+                    console.warn('Unexpected payment status:', paymentStatus, '- treating as pending');
                     setStatus('pending');
                     toast.info('Payment is being processed. Please check your orders.');
                     setTimeout(() => router.push('/orders'), 3000);

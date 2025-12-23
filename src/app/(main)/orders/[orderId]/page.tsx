@@ -272,7 +272,7 @@ export default function OrderDetailsPage() {
                     </div>
                   </div>
                   <div>
-                    {order.payment.status !== 'PAID' && order.payment.method === 'PHONEPE' && status !== 'CANCELED' ? (
+                    {!['PAID', 'SUCCESS', 'PAYMENT_SUCCESS'].includes(order.payment.status) && order.payment.method === 'PHONEPE' && status !== 'CANCELED' ? (
                       <Button onClick={handlePayNow}>Pay Now</Button>
                     ) : (
                       <span className="text-sm text-gray-600">{order.payment.status}</span>
