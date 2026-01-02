@@ -92,6 +92,8 @@ const statusColors: Record<StatusType, string> = {
 const paymentStatusColors: Record<string, string> = {
     INITIATED: "bg-yellow-50 text-yellow-800",
     PAID: "bg-green-50 text-green-800",
+    SUCCESS: "bg-green-50 text-green-800",
+    PAYMENT_SUCCESS: "bg-green-50 text-green-800",
     FAILED: "bg-red-50 text-red-800",
     REFUNDED: "bg-purple-50 text-purple-800",
     NONE: "bg-gray-50 text-gray-800",
@@ -714,6 +716,8 @@ export default function AdminOrderDetailPage() {
                                             <option value=''>Change status…</option>
                                             <option value='INITIATED'>INITIATED</option>
                                             <option value='PAID'>PAID</option>
+                                            <option value='SUCCESS'>SUCCESS</option>
+                                            <option value='PAYMENT_SUCCESS'>PAYMENT_SUCCESS</option>
                                             <option value='FAILED'>FAILED</option>
                                             <option value='REFUNDED'>REFUNDED</option>
                                             <option value='NONE'>NONE</option>
@@ -729,7 +733,7 @@ export default function AdminOrderDetailPage() {
                                 </div>
 
                                 {/* Refund Section */}
-                                {order.payment.status === 'PAID' && !order.payment.refundId && (
+                                {['PAID', 'SUCCESS', 'PAYMENT_SUCCESS'].includes(order.payment.status) && !order.payment.refundId && (
                                     <div className="pt-3 border-t">
                                         <button
                                             onClick={() => setShowRefundModal(true)}

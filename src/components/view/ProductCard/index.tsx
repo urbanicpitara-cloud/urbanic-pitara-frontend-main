@@ -116,8 +116,8 @@ export default function ProductCard({ product, idx }: ProductCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
-          {/* Quick Add Overlay - Appears at bottom of image on hover */}
-          <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
+          {/* Quick Add Overlay - Always visible on mobile, appears on hover on desktop */}
+          <div className="absolute inset-x-0 bottom-0 p-4 translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
             <Button
               size="sm"
               variant="default"

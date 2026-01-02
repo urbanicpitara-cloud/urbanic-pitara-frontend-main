@@ -120,7 +120,7 @@ export default function HomePage() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        className="bg-gray-50 py-8 md:py-4"
+        className="bg-white py-8 md:py-4"
       >
         <div className="text-center mb-10">
           <AnimatedText
@@ -146,6 +146,7 @@ export default function HomePage() {
             Royal Edition
           </h2>
         </div>
+
 
         <div className="relative z-10 pb-12 md:pb-20">
           <div className="py-12 md:py-20 text-center bg-transparent">
