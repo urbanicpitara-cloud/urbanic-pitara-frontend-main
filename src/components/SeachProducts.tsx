@@ -124,7 +124,7 @@ useEffect(() => {
             {results.map((product) => (
               <li key={product.id}>
                 <Link
-                  href={`/product/${product.handle}`}
+                  href={`/products/${product.handle}`}
                   className="flex items-center px-2 py-2 hover:bg-gray-100 rounded-md"
                   onClick={handleResultClick}
                 >
