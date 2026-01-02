@@ -12,8 +12,10 @@ interface Product {
   handle: string;
   featuredImageUrl?: string;
 }
-
-export default function SearchProducts() {
+interface closeSearchBox {
+   onOpenChange: (open: boolean) => void;
+}
+export default function SearchProducts({onOpenChange}:closeSearchBox ) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,13 +73,15 @@ useEffect(() => {
   };
 
   const handleResultClick = () => {
+  
     setQuery("");
     setResults([]);
     setFocused(false);
+    onOpenChange(false);
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative p-2 w-full">
       <form onSubmit={handleSubmit} className="relative">
         <input
           ref={inputRef}

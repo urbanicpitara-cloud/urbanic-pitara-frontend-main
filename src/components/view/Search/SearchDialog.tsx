@@ -4,9 +4,6 @@ import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  // DialogClose,
 } from "@/components/ui/dialog";
 import SearchProducts from "@/components/SeachProducts"; // <-- new component
 import { cn } from "@/lib/utils";
@@ -45,15 +42,12 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "max-w-[600px] w-[90%] h-[50vh] p-0 overflow-hidden rounded-2xl border border-gray-200 shadow-xl",
+          "max-w-[600px]  w-[90%] h-[50vh] p-0 overflow-hidden rounded-2xl border border-gray-200 shadow-xl",
           "bg-white"
         )}
       >
-        <DialogHeader className="flex justify-between items-center px-4 pt-4">
-          <DialogTitle className="sr-only">Search Products</DialogTitle>
-        </DialogHeader>
-        <div className="px-4 py-4">
-          <SearchProducts />
+        <div className="px-4 py-8 ">
+          <SearchProducts  onOpenChange={onOpenChange} />
         </div>
       </DialogContent>
     </Dialog>
