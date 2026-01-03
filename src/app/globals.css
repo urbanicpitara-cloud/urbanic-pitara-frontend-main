@@ -23,7 +23,10 @@ body {
     --radius: 0.5rem;
 
     /* Theme Colors */
-    --gold: #C5A059;
+    --sage: #9CAF88;
+    --gold: #9CAF88;
+    /* Alias for backward compatibility during migration */
+    /* Sage Green */
     /* Premium Muted Gold */
 
     /* Colors */
