@@ -10,9 +10,9 @@ import NewArrivals from "@/components/view/Home/NewArrivals";
 import Testimonials from "@/components/view/Home/Testimonials";
 import FeaturedProducts from "@/components/view/Home/FeaturedProducts";
 import SectionHeader from "@/components/shared/SectionHeader";
-import { Geist } from "next/font/google";
+// import { Geist } from "next/font/google";
 
-const geist = Geist({ subsets: ["latin"], weight: ["400", "600", "700"] });
+// const geist = Geist({ subsets: ["latin"], weight: ["400", "600", "700"] });
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -27,54 +27,54 @@ const fadeUpVariants = {
 };
 
 // Update AnimatedText viewport settings
-const AnimatedText = ({
-  text,
-  className = "",
-}: {
-  text: string;
-  className?: string;
-}) => {
-  const letters = Array.from(text);
+// const AnimatedText = ({
+//   text,
+//   className = "",
+// }: {
+//   text: string;
+//   className?: string;
+// }) => {
+//   const letters = Array.from(text);
 
-  const container = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.05,
-      },
-    },
-  };
+//   const container = {
+//     hidden: { opacity: 0 },
+//     visible: {
+//       opacity: 1,
+//       transition: {
+//         delayChildren: 0.05,
+//       },
+//     },
+//   };
 
-  const child = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: easeOut },
-    },
-  };
+//   const child = {
+//     hidden: { opacity: 0, y: 20 },
+//     visible: {
+//       opacity: 1,
+//       y: 0,
+//       transition: { duration: 0.5, ease: easeOut },
+//     },
+//   };
 
-  return (
-    <motion.h2
-      variants={container}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}  // Changed from 0.5
-      className={`inline-block text-center leading-snug ${geist.className} ${className}`}
-    >
-      {letters.map((char, index) => (
-        <motion.span
-          key={index}
-          variants={child}
-          className="inline-block align-middle"
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
-    </motion.h2>
-  );
-};
+//   return (
+//     <motion.h2
+//       variants={container}
+//       initial="hidden"
+//       whileInView="visible"
+//       viewport={{ once: true, amount: 0.2 }}  // Changed from 0.5
+//       className={`inline-block text-center leading-snug ${geist.className} ${className}`}
+//     >
+//       {letters.map((char, index) => (
+//         <motion.span
+//           key={index}
+//           variants={child}
+//           className="inline-block align-middle"
+//         >
+//           {char === " " ? "\u00A0" : char}
+//         </motion.span>
+//       ))}
+//     </motion.h2>
+//   );
+// };
 
 export default function HomePage() {
   return (

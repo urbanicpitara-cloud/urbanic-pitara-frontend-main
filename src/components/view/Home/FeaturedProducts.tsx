@@ -1,10 +1,9 @@
 // src/components/view/Home/FeaturedProducts.tsx
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Zap } from "lucide-react";
 
 const featuredProducts = [
     {
