@@ -1,7 +1,8 @@
 // ... (imports remain similar but ensuring FilterSidebar is used)
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -23,8 +24,11 @@ import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/view/ProductCard";
 import FilterSidebar, { FilterState } from "@/components/view/FilterSidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function SearchContent() {
+  const capitalizeFirst = (text: string) =>
+    text.charAt(0).toUpperCase() + text.slice(1);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -368,21 +372,55 @@ function SearchContent() {
 
           <TabsContent value="collections">
             {collections.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {collections.map((collection) => (
                   <Link
                     key={collection.id}
                     href={`/collections/${collection.handle}`}
-                    className="group block bg-gray-50 rounded-lg p-6 shadow-sm hover:shadow-md transition"
+                    className="group w-80"
                   >
-                    <h3 className="font-serif font-medium text-lg mb-2 group-hover:text-indigo-600">
-                      {collection.title}
-                    </h3>
-                    {collection.description && (
-                      <p className="text-gray-600 line-clamp-2 text-sm">
-                        {collection.description}
-                      </p>
-                    )}
+                    <Card className="h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                      {/* Image */}
+                      <div className="relative aspect-[3/2] w-full bg-gray-100">
+                        {collection.imageUrl ? (
+                          <Image
+                            src={collection.imageUrl}
+                            alt={collection.imageAlt || collection.title}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                            No image
+                          </div>
+                        )}
+
+                        {/* Product count badge */}
+                        <div className="absolute top-3 right-3">
+                          <Badge variant="secondary" className="text-xs">
+                            {collection.productCount} Products
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <CardHeader className="space-y-1 p-4">
+                        <CardTitle className="text-base font-serif font-medium tracking-tight group-hover:text-indigo-600">
+                          {capitalizeFirst(collection.title)}
+                        </CardTitle>
+
+                        <p className="text-xs text-gray-500">
+                          {collection.productCount} items available
+                        </p>
+                      </CardHeader>
+
+                      {collection.description && (
+                        <CardContent className="p-4 pt-0">
+                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                            {collection.description}
+                          </p>
+                        </CardContent>
+                      )}
+                    </Card>
                   </Link>
                 ))}
               </div>
