@@ -60,6 +60,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta
+          name="google-site-verification"
+          content="oDHM7r4eT6IyyvfUaaSxH6f23MYhdL1K0GGVSLv0y9k"
+        />
+      </head>
       <Providers>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${samarkan.variable} ${cinzel.variable} antialiased`}
