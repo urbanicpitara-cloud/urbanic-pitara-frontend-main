@@ -1,78 +1,131 @@
 "use client";
 
-import React from "react";
-import { UserCircle2 } from "lucide-react"; // Lucide user icon
+import React, { useState, useEffect } from "react";
+import { Star, ChevronLeft, ChevronRight, Quote, User } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 
 const testimonials = [
 	{
-		name: "Ayesha",
-		text: "My wedding lehenga from Urbanic Pitara was pure perfection! Everyone complimented me.",
-		image: "",
+		name: "Ayesha Verma",
+		location: "Mumbai",
+		text: "My wedding lehenga from Urbanic Pitara was pure perfection! Everyone complimented the intricate details.",
+		image: "/avatars/ayesha.jpg", // Placeholder path
 	},
 	{
-		name: "Ritika",
-		text: "The Indo-Western gown I bought was stunning. Premium quality and elegant design.",
-		image: "",
+		name: "Ritika Singh",
+		location: "Delhi",
+		text: "The Indo-Western gown I bought was stunning. Premium quality and elegant design that feels truly unique.",
+		image: "/avatars/ritika.jpg",
 	},
 	{
-		name: "Sneha",
-		text: "I loved the bridal collection – fits perfectly and looks majestic!",
-		image: "", // No image provided
+		name: "Sneha Kapoor",
+		location: "Bangalore",
+		text: "I loved the bridal collection – it fits perfectly and looks majestic! A truly seamless shopping experience.",
+		image: "", // Fallback to icon
+	},
+	{
+		name: "Mira Rajput",
+		location: "Jaipur",
+		text: "Authentic craftsmanship at its finest. The fabric quality blew me away. Highly recommended!",
+		image: "",
 	},
 ];
 
 const Testimonials = () => {
+	const [current, setCurrent] = useState(0);
+
+	useEffect(() => {
+		const timer = setInterval(() => {
+			setCurrent((prev) => (prev + 1) % testimonials.length);
+		}, 5000);
+		return () => clearInterval(timer);
+	}, []);
+
+	const next = () => setCurrent((prev) => (prev + 1) % testimonials.length);
+	const prev = () => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+
 	return (
-		<section className="py-24 px-4 md:px-8 bg-white relative overflow-hidden">
-			{/* Decorative Background Elements */}
-			<div className="absolute top-0 left-0 w-64 h-64 bg-[var(--gold)]/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-			<div className="absolute bottom-0 right-0 w-96 h-96 bg-[var(--gold)]/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+		<div className="w-full relative">
+			{/* Abstract Background Element - Reduced opacity */}
+			<div className="absolute top-0 right-0 w-64 h-64 bg-[var(--gold)] opacity-5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
-			<div className="max-w-7xl mx-auto relative z-10">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-					{testimonials.map((t, idx) => (
-						<div
-							key={idx}
-							className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
-						>
-							<div className="flex items-center justify-center mb-6">
-								{t.image ? (
-									<Image
-										src={t.image}
-										alt={t.name}
-										width={80}
-										height={80}
-										className="rounded-full object-cover border-4 border-gray-50"
-									/>
-								) : (
-									<div className="w-20 h-20 flex items-center justify-center rounded-full bg-[var(--gold)]/10 text-[var(--gold)]">
-										<UserCircle2 className="w-10 h-10" />
-									</div>
-								)}
-							</div>
+			<div className="max-w-4xl mx-auto relative z-10">
+				<div className="relative bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-gray-100 flex flex-col items-center text-center">
 
-							<div className="flex justify-center mb-4 text-[var(--gold)]">
-								{[...Array(5)].map((_, i) => (
-									<svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-									</svg>
-								))}
-							</div>
-
-							<blockquote className="text-gray-600 text-center mb-6 italic leading-relaxed">
-								&ldquo;{t.text}&rdquo;
-							</blockquote>
-
-							<div className="text-center">
-								<h4 className="font-serif text-lg font-semibold text-gray-900">{t.name}</h4>
-								<p className="text-sm text-gray-400 uppercase tracking-wider mt-1">Happy Customer</p>
+					{/* Avatar / Icon Container */}
+					<div className="mb-6 relative">
+						<div className="w-20 h-20 rounded-full bg-gray-50 border-2 border-[var(--gold)]/20 p-1 flex items-center justify-center overflow-hidden shadow-inner">
+							<div className="w-full h-full flex items-center justify-center bg-[var(--gold)]/10 text-[var(--gold)] font-serif text-2xl font-bold tracking-widest">
+								{testimonials[current].name
+									.split(" ")
+									.map((n) => n[0])
+									.join("")
+									.substring(0, 2)}
 							</div>
 						</div>
-					))}
+						{/* Small Quote Icon Badge */}
+						<div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow-md border border-gray-100">
+							<Quote size={12} className="text-[var(--gold)] fill-current" />
+						</div>
+					</div>
+
+					<div className="relative w-full min-h-[160px] flex items-center justify-center overflow-hidden">
+						<AnimatePresence mode="wait">
+							<motion.div
+								key={current}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -20 }}
+								transition={{ duration: 0.4 }}
+								className="absolute inset-0 flex flex-col items-center justify-center p-2"
+							>
+								{/* Stars */}
+								<div className="flex gap-1 mb-4 text-[var(--gold)]">
+									{[...Array(5)].map((_, i) => (
+										<Star key={i} size={14} fill="currentColor" strokeWidth={0} />
+									))}
+								</div>
+
+								<blockquote className="text-xl md:text-2xl font-[family-name:var(--font-cinzel)] text-gray-800 leading-relaxed mb-4">
+									&ldquo;{testimonials[current].text}&rdquo;
+								</blockquote>
+
+								<cite className="not-italic">
+									<span className="block text-sm font-bold text-gray-900 uppercase tracking-widest mb-1">
+										{testimonials[current].name}
+									</span>
+									<span className="block text-xs text-gray-500 font-serif italic">
+										— {testimonials[current].location}
+									</span>
+								</cite>
+							</motion.div>
+						</AnimatePresence>
+					</div>
+
+					{/* Controls */}
+					<div className="flex gap-4 mt-6 z-20">
+						<button onClick={prev} className="p-2 rounded-full border border-gray-200 hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors" aria-label="Previous testimonial">
+							<ChevronLeft size={20} />
+						</button>
+						<div className="flex gap-2 items-center">
+							{testimonials.map((_, idx) => (
+								<button
+									key={idx}
+									onClick={() => setCurrent(idx)}
+									className={`w-2 h-2 rounded-full transition-all duration-300 ${current === idx ? "w-6 bg-[var(--gold)]" : "bg-gray-300 hover:bg-gray-400"}`}
+									aria-label={`Go to testimonial ${idx + 1}`}
+								/>
+							))}
+						</div>
+						<button onClick={next} className="p-2 rounded-full border border-gray-200 hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors" aria-label="Next testimonial">
+							<ChevronRight size={20} />
+						</button>
+					</div>
+
 				</div>
 			</div>
-		</section>
+		</div>
 	);
 };
 

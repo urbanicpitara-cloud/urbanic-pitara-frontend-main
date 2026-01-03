@@ -24,7 +24,7 @@ const WhatsAppButton = ({ phoneNumber = "919927775655" }) => {
           href={`https://wa.me/${phoneNumber}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center w-13 h-13 bg-green-500 text-white rounded-full shadow-[#998888] hover:shadow-black  shadow-md group-hover:shadow-4xl transition-all duration-300 hover:scale-110"
+          className="flex items-center justify-center w-13 h-13 bg-green-500 text-white rounded-full shadow-[#202020] hover:shadow-black  shadow-md group-hover:shadow-4xl transition-all duration-300 hover:scale-110"
         >
           <FaWhatsapp className="text-5xl" />
         </a>

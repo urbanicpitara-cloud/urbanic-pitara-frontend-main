@@ -203,7 +203,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto px-4 py-12 md:py-20"
+      className="container mx-auto px-4 "
     >
       {/* Breadcrumb */}
       <div className="mb-4">

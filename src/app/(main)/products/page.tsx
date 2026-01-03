@@ -233,7 +233,7 @@ export default function ProductsPage() {
   const activeCount = filters.sizes.length + filters.colors.length + filters.availability.length + (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice ? 1 : 0);
 
   return (
-    <div className="bg-gray-50 min-h-screen mt-5">
+    <div className="bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-8">

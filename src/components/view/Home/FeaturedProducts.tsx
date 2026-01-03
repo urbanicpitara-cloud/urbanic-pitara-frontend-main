@@ -1,58 +1,97 @@
 // src/components/view/Home/FeaturedProducts.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ShoppingCart, Zap } from "lucide-react";
 
 const featuredProducts = [
-  { name: "Premium Branded Quality Kurtis Set", href: "/products/some-white-dress", image: "/premiumkurtiset.webp", price: "₹2,499" },
-  { name: "Women Printed Flared Anarkali Kurta with Pant Dupatta Suit Set", href: "/products/blue-dress", image: "/bluekurti.webp", price: "₹1,799" },
-  { name: "Elegant Embroidered Sharara Set with Dupatta", href: "/products/kurti", image: "/sharara.webp", price: "₹3,399" },
-  { name: "Wedding Special Embroidery Work Top Sharara with Dupatta - Red", href: "/products/red-plazo", image: "/redfloraldress.webp", price: "₹4,899" }
+    {
+        name: "Premium Branded Quality Kurtis Set",
+        href: "/products/some-white-dress",
+        image: "/premiumkurtiset.webp",
+        price: 2499,
+        originalPrice: 3999,
+        category: "KURTI SET"
+    },
+    {
+        name: "Women Printed Flared Anarkali Kurta with Pant Dupatta Suit Set",
+        href: "/products/blue-dress",
+        image: "/bluekurti.webp",
+        price: 1799,
+        originalPrice: 2999,
+        category: "ANARKALI"
+    },
+    {
+        name: "Elegant Embroidered Sharara Set with Dupatta",
+        href: "/products/kurti",
+        image: "/sharara.webp",
+        price: 3399,
+        originalPrice: 4999,
+        category: "SHARARA"
+    },
+    {
+        name: "Wedding Special Embroidery Work Top Sharara with Dupatta - Red",
+        href: "/products/red-plazo",
+        image: "/redfloraldress.webp",
+        price: 4899,
+        originalPrice: 6999,
+        category: "WEDDING"
+    }
 ];
 
 const FeaturedProducts = () => {
-  return (
-    <section className="py-10 px-4 md:px-8 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {featuredProducts.map((product) => (
-            <Link
-              key={product.name}
-              href={product.href}
-              className="group block"
-            >
-              <div className="relative overflow-hidden rounded-xl aspect-[3/4] mb-4 shadow-sm group-hover:shadow-xl transition-all duration-500">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-8 max-w-7xl mx-auto">
+            {featuredProducts.map((product) => {
+                const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
 
-                {/* Overlay Button */}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="bg-white text-black px-8 py-3 rounded-full font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 shadow-lg hover:bg-[var(--gold)] hover:text-white">
-                    View Details
-                  </span>
-                </div>
-              </div>
+                return (
+                    <div
+                        key={product.name}
+                        className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                    >
+                        {/* Product Image */}
+                        <Link href={product.href} className="relative block aspect-[3/4] overflow-hidden">
+                            <Image
+                                src={product.image}
+                                alt={product.name}
+                                fill
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
 
-              <div className="text-center px-2">
-                <h3 className="text-lg font-serif text-gray-900 mb-2 line-clamp-1 group-hover:text-[var(--gold)] transition-colors">
-                  {product.name}
-                </h3>
-                <p className="text-black font-semibold text-lg tracking-wide">
-                  {product.price}
-                </p>
-              </div>
-            </Link>
-          ))}
+                            {/* Category Badge */}
+                            <div className="absolute top-3 left-3 bg-white shadow-sm px-3 py-1 rounded-full">
+                                <span className="text-xs font-semibold text-gray-900 tracking-wide">{product.category}</span>
+                            </div>
+
+                            {/* Discount Badge */}
+                            <div className="absolute top-3 right-3 bg-red-500 text-white px-2.5 py-1 rounded-full">
+                                <span className="text-xs font-bold">{discount}% OFF</span>
+                            </div>
+                        </Link>
+
+                        {/* Product Info */}
+                        <div className="p-4">
+                            <Link href={product.href}>
+                                <h3 className="text-base font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-[var(--sage)] transition-colors">
+                                    {product.name}
+                                </h3>
+                            </Link>
+
+                            {/* Pricing */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                                <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                            </div>
+
+                        </div>
+                    </div>
+                );
+            })}
         </div>
-      </div>
-    </section>
-  );
+    );
 };
 
 export default FeaturedProducts;

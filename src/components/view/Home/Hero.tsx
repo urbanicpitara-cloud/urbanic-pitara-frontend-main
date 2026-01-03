@@ -52,8 +52,8 @@ const Hero: React.FC<HeroProps> = ({
             className="object-cover"
           />
         </picture>
-        <div className="absolute inset-0 bg-black/30 md:bg-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
       </motion.div>
 
       {/* Content Overlay */}
@@ -92,30 +92,25 @@ const Hero: React.FC<HeroProps> = ({
             </p>
           </motion.div>
 
-          {/* Glassmorphic Actions */}
+          {/* Dual CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
+            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
           >
             <Link
               href="/products"
-              className="group relative px-10 py-4 bg-white/5 backdrop-blur-sm border border-white/20 text-white overflow-hidden transition-all duration-500 hover:bg-white/10 hover:border-white/40 hover:scale-105"
+              className="px-8 py-3.5 bg-[var(--sage)] text-white font-medium text-sm tracking-widest uppercase transition-all duration-300 hover:bg-black hover:scale-105"
             >
-              <span className="relative z-10 text-sm tracking-[0.2em] uppercase font-medium">Explore</span>
-              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[0.16,1,0.3,1]" />
+              Shop Collection
             </Link>
 
             <Link
-              href="/customizer"
-              className="group relative px-10 py-4 bg-[var(--gold)] text-white overflow-hidden transition-all duration-500 hover:scale-105 shadow-[0_0_30px_-10px_rgba(184,134,11,0.5)]"
+              href="/collections/bridal"
+              className="px-8 py-3.5 bg-transparent border border-white/80 text-white hover:bg-white hover:text-black font-medium text-sm tracking-widest uppercase transition-all duration-300"
             >
-              <span className="relative z-10 text-sm tracking-[0.2em] uppercase font-bold flex items-center gap-2">
-                Design Your Own
-                <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
-              </span>
-              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+              View Lookbook
             </Link>
           </motion.div>
         </div>
