@@ -25,6 +25,7 @@ import ProductCard from "@/components/view/ProductCard";
 import FilterSidebar, { FilterState } from "@/components/view/FilterSidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function SearchContent() {
   const capitalizeFirst = (text: string) =>
@@ -345,7 +346,11 @@ function SearchContent() {
                 )}
 
                 {loading ? (
-                  <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-gray-300" /></div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <ProductCardSkeleton key={i} />
+                    ))}
+                  </div>
                 ) : displayedProducts.length > 0 ? (
                   <>
                     <motion.div
@@ -437,6 +442,20 @@ function SearchContent() {
     </div>
   );
 }
+
+
+function ProductCardSkeleton() {
+  return (
+    <div className="space-y-3">
+       <Skeleton className="aspect-[3/4] w-full rounded-lg bg-muted/70" />
+      <Skeleton className="h-4 w-3/4 bg-muted/70" />
+      <Skeleton className="h-4 w-1/2 bg-muted/70" />
+    </div>
+  );
+}
+
+
+
 
 export default function SearchPage() {
   return (
