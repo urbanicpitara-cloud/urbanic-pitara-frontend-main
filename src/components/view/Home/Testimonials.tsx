@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, ChevronLeft, ChevronRight, Quote, User } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import Image from "next/image";
+// import Image from "next/image";
 
 const testimonials = [
 	{
