@@ -242,10 +242,10 @@ const Navbar = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="min-w-[200px] shadow-md">
                                 <DropdownMenuItem asChild>
-                                    <Link href={`/search?q=${encodeURIComponent("t-shirt")}`}>T-Shirts</Link>
+                                    <Link onClick={()=>setMobileMenuOpen(false)} href={`/search?q=${encodeURIComponent("t-shirt")}`}>T-Shirts</Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href={`/search?q=${encodeURIComponent("men")}`}>All</Link>
+                                    <Link onClick={()=>setMobileMenuOpen(false)} href={`/search?q=${encodeURIComponent("men")}`}>All</Link>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -259,13 +259,13 @@ const Navbar = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="min-w-[200px] shadow-md">
                                 <DropdownMenuItem asChild>
-                                    <Link href="/search?q=lehenga">Lehenga</Link>
+                                    <Link onClick={()=>setMobileMenuOpen(false)} href="/search?q=lehenga">Lehenga</Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href="/search?q=suit">Suits</Link>
+                                    <Link onClick={()=>setMobileMenuOpen(false)} href="/search?q=suit">Suits</Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href="/search?q=traditional">Tradional</Link>
+                                    <Link onClick={()=>setMobileMenuOpen(false)} href="/search?q=traditional">Tradional</Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href="/search?q=indo-western">Indo-Western</Link>
