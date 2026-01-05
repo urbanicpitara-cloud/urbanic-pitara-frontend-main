@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
+import { toast } from 'sonner';
 // import { headers } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
@@ -13,33 +14,47 @@ const api = axios.create({
 });
 
 
-// Add response interceptor to handle errors
-// api.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
 
-//     // If the error is a 401 and we haven't already retried
-//     if (error.response?.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
 
-//       try {
-//         // Try to refresh the token
-//         await authAPI.getProfile();
-//         // Retry the original request
-//         return api(originalRequest);
-//       } catch (refreshError) {
-//         // If refresh fails, redirect to login
-//         if (typeof window !== 'undefined') {
-//           window.location.href = '/auth/login';
-//         }
-//         return Promise.reject(refreshError);
-//       }
-//     }
+// Global Error Interceptor
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // 1. Log error details to console
+    const errorDetails = {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    };
+    console.error('❌ [API Error]', errorDetails);
 
-//     return Promise.reject(error);
-//   }
-// );
+    // 2. Extract meaningful error message
+    let message = 'Something went wrong';
+
+    if (error.response?.data) {
+      // Backend standard: { error: "message" } or { message: "msg" }
+      message = error.response.data.error || error.response.data.message || message;
+    } else if (error.message) {
+      // Network errors or other issues
+      message = error.message;
+    }
+
+    // 3. Show Toast Notification (avoid duplications for 401 if handled elsewhere)
+    if (typeof window !== 'undefined') {
+      toast.error(message, {
+        description: `Status: ${error.response?.status || 'Unknown'}`,
+        duration: 4000,
+      });
+    }
+
+    // 4. Handle 401 specifically (optional, existing logic was commented out)
+    // if (error.response?.status === 401) { ... }
+
+    return Promise.reject(error);
+  }
+);
 
 // ✅ Interceptor: attach Bearer token if it exists
 api.interceptors.request.use(
