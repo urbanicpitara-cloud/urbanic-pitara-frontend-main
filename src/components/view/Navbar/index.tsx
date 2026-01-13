@@ -331,6 +331,7 @@ const Navbar = () => {
             </Link> */}
 
             <Link
+                   onClick={()=>setMobileMenuOpen(false)}
               href={"/customizer"}
               className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
             >
@@ -339,6 +340,7 @@ const Navbar = () => {
 
             {user?.isAdmin && (
               <Link
+                     onClick={()=>setMobileMenuOpen(false)}
                 href="/admin"
                 className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition font-medium"
               >
@@ -350,12 +352,14 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link
+                onClick={()=>setMobileMenuOpen(false)}
                   href="/profile"
                   className="text-gray-800 font-medium hover:text-[var(--gold)] transition"
                 >
                   Profile
                 </Link>
                 <Link
+                       onClick={()=>setMobileMenuOpen(false)}
                   href="/orders"
                   className="text-gray-800 font-medium hover:text-[var(--gold)] transition"
                 >
