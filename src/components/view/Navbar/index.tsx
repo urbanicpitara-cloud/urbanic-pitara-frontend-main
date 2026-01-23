@@ -58,11 +58,15 @@ const Navbar = () => {
     }
   };
 
+
+
+  
+
   return (
     <header
-      className={`fixed top-0 w-full z-50 border-b border-neutral-200 bg-white shadow-sm transition-transform duration-500 ${
-        visible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className={`fixed top-0 w-full z-50 border-b border-neutral-200 bg-white shadow-sm
+  transition-transform duration-300 ease-out
+  ${visible ? "translate-y-0" : "-translate-y-[80px]"}`}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
@@ -218,30 +222,42 @@ const Navbar = () => {
         </nav>
 
         {/* Mobile Menu Toggle */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-gray-800 hover:text-[var(--gold)] transition"
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
+        <div className="md:hidden flex gap-4">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+          <Link
+            href="/cart"
+            className="relative text-gray-800 hover:text-[var(--gold)] transition-colors"
+          >
+            <ShoppingCart className="h-6 w-6" />
+            {itemCount > 0 && (
+              <Badge className="absolute -right-2 -top-2 h-5 min-w-[20px] rounded-full px-1 bg-black text-white text-xs font-semibold flex items-center justify-center shadow-sm z-10">
+                {itemCount}
+              </Badge>
+            )}
+          </Link>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-gray-800 hover:text-[var(--gold)] transition"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <nav className="md:hidden bg-white border-t shadow-inner animate-slideDown">
           <div className="px-4 py-4 flex flex-col gap-4">
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-
             {/* Men Dropdown Mobile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -302,7 +318,7 @@ const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/search?q=indo-western">Indo-Western</Link>
+                  <Link  onClick={()=>setMobileMenuOpen(false)} href="/search?q=indo-western">Indo-Western</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -315,6 +331,7 @@ const Navbar = () => {
             </Link> */}
 
             <Link
+                   onClick={()=>setMobileMenuOpen(false)}
               href={"/customizer"}
               className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-[var(--gold)] transition-colors"
             >
@@ -323,6 +340,7 @@ const Navbar = () => {
 
             {user?.isAdmin && (
               <Link
+                     onClick={()=>setMobileMenuOpen(false)}
                 href="/admin"
                 className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition font-medium"
               >
@@ -330,24 +348,20 @@ const Navbar = () => {
               </Link>
             )}
 
-            <Link
-              href="/cart"
-              className="flex items-center gap-2 text-gray-800 hover:text-[var(--gold)] transition font-medium"
-            >
-              <ShoppingCart className="h-5 w-5" /> Cart ({itemCount})
-            </Link>
 
             {user ? (
               <>
                 <Link
+                onClick={()=>setMobileMenuOpen(false)}
                   href="/profile"
-                  className="text-gray-800 hover:text-[var(--gold)] transition"
+                  className="text-gray-800 font-medium hover:text-[var(--gold)] transition"
                 >
                   Profile
                 </Link>
                 <Link
+                       onClick={()=>setMobileMenuOpen(false)}
                   href="/orders"
-                  className="text-gray-800 hover:text-[var(--gold)] transition"
+                  className="text-gray-800 font-medium hover:text-[var(--gold)] transition"
                 >
                   Orders
                 </Link>
