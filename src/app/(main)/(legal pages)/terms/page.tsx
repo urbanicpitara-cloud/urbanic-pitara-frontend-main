@@ -1,4 +1,8 @@
 // app/terms/page.tsx
+
+// Full static generation - no revalidation needed
+export const dynamic = 'force-static';
+
 export default function TermsOfService() {
   return (
     <main className="max-w-6xl mx-auto px-8 py-32 text-jet leading-relaxed space-y-20">

@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { ordersAPI } from "@/lib/api";
 import { paymentRepository } from '@/lib/api/repositories/payment';
 import { PremiumLoading } from "@/components/ui/loading-states";
@@ -189,7 +190,15 @@ export default function OrderDetailsPage() {
             <div className="space-y-4">
               {order.items.map((item) => (
                 <div key={item.id} className="flex gap-4 items-start p-3 border rounded-lg">
-                  <img src={item.customProduct?.previewUrl || item.product?.featuredImage?.url || '/placeholder-product.png'} alt={item.customProduct?.title || item.product?.title} className="w-24 h-24 object-cover rounded-md border bg-gray-50" />
+                  <div className="relative w-24 h-24 flex-shrink-0">
+                    <Image
+                      src={item.customProduct?.previewUrl || item.product?.featuredImage?.url || '/placeholder-product.png'}
+                      alt={item.customProduct?.title || item.product?.title || 'Product'}
+                      fill
+                      className="object-cover rounded-md border bg-gray-50"
+                      sizes="96px"
+                    />
+                  </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">

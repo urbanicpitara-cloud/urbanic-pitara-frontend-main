@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 // app/contact/page.tsx
+
+// Full static generation - no revalidation needed
+export const dynamic = 'force-static';
+
 export default function ContactPage() {
   return (
     <main className="max-w-7xl mx-auto px-8 py-32 space-y-32 text-jet">
