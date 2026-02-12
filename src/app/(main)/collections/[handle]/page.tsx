@@ -67,10 +67,11 @@ export default function CollectionPage() {
   // Pagination
   const [displayCount, setDisplayCount] = useState(12);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasFetchedRef = useRef(false); // Prevent repeated fetches
 
   // ---------------- Fetch collection ----------------
   useEffect(() => {
-    if (!handle) return;
+    if (!handle || hasFetchedRef.current) return;
     const fetchCollection = async () => {
       setLoading(true);
       try {
@@ -151,6 +152,8 @@ export default function CollectionPage() {
           setFilters(prev => ({ ...prev, priceRange: [0, maxP] }));
         }
 
+        hasFetchedRef.current = true; // Mark as fetched
+
       } catch (err) {
         console.error(err);
         setError("Failed to load collection.");
@@ -159,6 +162,7 @@ export default function CollectionPage() {
       }
     };
     fetchCollection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handle]);
 
   // ---------------- Filtering Logic ----------------

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { collectionsAPI, productsAPI } from "@/lib/api";
 import { Product, Collection } from "@/types/collections";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
@@ -92,8 +93,8 @@ export default function CollectionAddPage() {
     .filter((p) =>
       filterTag
         ? p.tags?.some((t) =>
-            t.name.toLowerCase().includes(filterTag.toLowerCase())
-          )
+          t.name.toLowerCase().includes(filterTag.toLowerCase())
+        )
         : true
     )
     .filter((p) =>
@@ -131,11 +132,15 @@ export default function CollectionAddPage() {
         {/* Image upload */}
         <div className="flex flex-col items-center gap-2">
           {imageUrl && (
-            <img
-              src={imageUrl}
-              alt={imageAlt || "Collection image"}
-              className="w-48 h-48 object-cover rounded-md border"
-            />
+            <div className="relative w-48 h-48">
+              <Image
+                src={imageUrl}
+                alt={imageAlt || "Collection image"}
+                fill
+                className="object-cover rounded-md border"
+                sizes="192px"
+              />
+            </div>
           )}
           <label className="cursor-pointer bg-gray-100 border rounded px-3 py-1 hover:bg-gray-200 mt-2">
             {imageUploading ? "Uploading..." : "Upload Image"}
@@ -224,9 +229,8 @@ export default function CollectionAddPage() {
                 return (
                   <tr
                     key={product.id}
-                    className={`cursor-pointer transition ${
-                      isSelected ? "bg-green-50" : "hover:bg-gray-50"
-                    }`}
+                    className={`cursor-pointer transition ${isSelected ? "bg-green-50" : "hover:bg-gray-50"
+                      }`}
                     onClick={() => {
                       if (isSelected) {
                         setSelectedProductIds(
@@ -244,11 +248,15 @@ export default function CollectionAddPage() {
                       <input type="checkbox" checked={isSelected} readOnly />
                     </td>
                     <td className="p-2">
-                      <img
-                        src={product.images?.[0]?.url || ""}
-                        alt={product.title}
-                        className="w-16 h-16 object-cover rounded"
-                      />
+                      <div className="relative w-16 h-16">
+                        <Image
+                          src={product.images?.[0]?.url || "/placeholder-product.png"}
+                          alt={product.title}
+                          fill
+                          className="object-cover rounded"
+                          sizes="64px"
+                        />
+                      </div>
                     </td>
                     <td className="p-2">{product.title}</td>
                     <td className="p-2 text-sm text-gray-600">

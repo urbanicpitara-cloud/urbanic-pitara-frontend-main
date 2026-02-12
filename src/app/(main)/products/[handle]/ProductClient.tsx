@@ -390,11 +390,15 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
                           />
                         ) : hasImage ? (
                           // Show product thumbnail if no color but has image
-                          <img
-                            src={p.images[0].url}
-                            alt={color}
-                            className="h-full w-full object-cover rounded-full"
-                          />
+                          <div className="relative h-full w-full">
+                            <Image
+                              src={p.images[0].url}
+                              alt={color}
+                              fill
+                              className="object-cover rounded-full"
+                              sizes="32px"
+                            />
+                          </div>
                         ) : (
                           // Show first letter of title as fallback
                           <span className="text-xs font-medium text-gray-600">

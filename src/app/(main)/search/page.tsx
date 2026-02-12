@@ -64,10 +64,11 @@ function SearchContent() {
   // Pagination
   const [displayCount, setDisplayCount] = useState(12);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasFetchedRef = useRef<Map<string, boolean>>(new Map()); // Track fetches per query
 
   // 🧠 Fetch search results
   useEffect(() => {
-    if (!queryParam) return;
+    if (!queryParam || hasFetchedRef.current.get(queryParam)) return;
 
     const fetchResults = async () => {
       setLoading(true);
@@ -146,6 +147,8 @@ function SearchContent() {
         if (filters.priceRange[1] === 50000) {
           setFilters(prev => ({ ...prev, priceRange: [0, maxP] }));
         }
+
+        hasFetchedRef.current.set(queryParam, true); // Mark this query as fetched
 
       } catch (err) {
         console.error(err);
@@ -447,7 +450,7 @@ function SearchContent() {
 function ProductCardSkeleton() {
   return (
     <div className="space-y-3">
-       <Skeleton className="aspect-[3/4] w-full rounded-lg bg-muted/70" />
+      <Skeleton className="aspect-[3/4] w-full rounded-lg bg-muted/70" />
       <Skeleton className="h-4 w-3/4 bg-muted/70" />
       <Skeleton className="h-4 w-1/2 bg-muted/70" />
     </div>

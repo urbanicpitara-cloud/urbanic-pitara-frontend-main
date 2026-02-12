@@ -1,3 +1,6 @@
+// Full static generation - no revalidation needed
+export const dynamic = 'force-static';
+
 export default function ShippingPolicy() {
   return (
     <main className="max-w-5xl mx-auto px-6 py-12 leading-relaxed">

@@ -134,6 +134,16 @@ export const cartAPI = {
   addItem: (data: Record<string, any>) => api.post('/cart/lines', data),
   updateItem: (lineId: string, data: Record<string, any>) => api.put(`/cart/lines/${lineId}`, data),
   removeItem: (lineId: string, cartId?: string) => api.delete(`/cart/lines/${lineId}`, { params: cartId ? { cartId } : {} }),
+
+  // Batch operations for multiple cart actions in a single request
+  batch: (operations: Array<{
+    type: 'add' | 'update' | 'remove';
+    productId?: string;
+    variantId?: string;
+    customProductId?: string;
+    quantity?: number;
+    lineId?: string;
+  }>, cartId?: string) => api.post('/cart/batch', { operations, cartId }),
 };
 
 // ----------------- Orders API -----------------

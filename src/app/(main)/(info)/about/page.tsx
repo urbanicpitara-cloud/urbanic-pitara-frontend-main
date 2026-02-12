@@ -2,6 +2,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
+// Full static generation - no revalidation needed
+export const dynamic = 'force-static';
+
 export default function AboutPage() {
   return (
     <main className="bg-white text-jet">
@@ -21,16 +24,16 @@ export default function AboutPage() {
         }}
           className="absolute inset-0 bg-black/60 flex items-center justify-center px-6">
           <div className="relative px-10 pt-2 pb-5">
-      {/* Dark and Blurred Overlay */}
-{/* <div className="absolute inset-0 bg-black/20 backdrop-blur-sm 
+            {/* Dark and Blurred Overlay */}
+            {/* <div className="absolute inset-0 bg-black/20 backdrop-blur-sm 
                shadow-[0_0_30px_10px_rgba(0,0,0,0.3)] 
                z-10"></div> */}
 
-      {/* Foreground Text Layer */}
-      <h1 className="relative text-5xl md:text-8xl font-extrabold text-white text-center leading-tight z-20 top-60 md:top-[6rem]">
-        Where Style Meets Story
-      </h1>
-    </div>
+            {/* Foreground Text Layer */}
+            <h1 className="relative text-5xl md:text-8xl font-extrabold text-white text-center leading-tight z-20 top-60 md:top-[6rem]">
+              Where Style Meets Story
+            </h1>
+          </div>
 
         </div>
       </section>

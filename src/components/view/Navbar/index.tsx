@@ -121,7 +121,7 @@ const Navbar = () => {
                 <Link href="/search?q=suit">Suits</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/search?q=traditional">Tradional</Link>
+                <Link href="/search?q=traditional">Traditional</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/search?q=indo-western">Indo-Western</Link>
@@ -314,7 +314,7 @@ const Navbar = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     href="/search?q=traditional"
                   >
-                    Tradional
+                    Traditional
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

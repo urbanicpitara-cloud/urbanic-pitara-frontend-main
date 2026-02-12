@@ -679,10 +679,12 @@ export default function CheckoutPage() {
               <div className="flex gap-4 flex-1">
                 {item.product.featuredImageUrl && (
                   <div className="relative h-20 w-20 flex-shrink-0">
-                    <img
+                    <Image
                       src={item.product.featuredImageUrl}
                       alt={item.product.featuredImageAlt || item.product.title}
-                      className="h-full w-full object-cover rounded-md border border-gray-100"
+                      fill
+                      className="object-cover rounded-md border border-gray-100"
+                      sizes="80px"
                     />
                   </div>
                 )}
