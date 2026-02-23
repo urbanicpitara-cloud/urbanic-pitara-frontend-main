@@ -36,8 +36,8 @@ export default function ProductsToolbar({
   };
 
   const handleBulkEditSave = async (updates: Record<string, any>) => {
-    await onBulkEdit(updates, onRefresh);
     setEditModalOpen(false);
+    await onBulkEdit(updates, onRefresh);
   };
 
   return (

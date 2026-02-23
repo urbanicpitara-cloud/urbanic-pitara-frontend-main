@@ -98,8 +98,8 @@ export default function BulkEditProductsModal({
       cleanUpdates.stockAdjustment = updates.stockOperation === 'subtract' ? -value : value;
     }
 
-    await onSave(cleanUpdates);
     onClose();
+    await onSave(cleanUpdates);
   };
 
   return (

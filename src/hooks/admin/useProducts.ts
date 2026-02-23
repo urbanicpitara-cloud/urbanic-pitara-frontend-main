@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { productsAPI } from "@/lib/api";
 
 interface PaginationState {
@@ -38,6 +39,7 @@ export function useProducts(): UseProductsResult {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const pathname = usePathname();
 
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -87,10 +89,10 @@ export function useProducts(): UseProductsResult {
     return () => clearTimeout(timeout);
   }, [search, filters]);
 
-  // 🔹 Immediate fetch when page changes (no debounce)
+  // 🔹 Immediate fetch when page changes or navigates back (no debounce)
   useEffect(() => {
     fetchProducts(pagination.page);
-  }, [pagination.page]);
+  }, [pagination.page, pathname]);
 
   const refresh = useCallback(async () => {
     setSearch("")
