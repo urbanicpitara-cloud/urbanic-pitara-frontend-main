@@ -2,8 +2,8 @@
 import { motion, easeOut } from "motion/react";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Logo from "@/components/view/Logo";
 import {
   ShoppingCart,
   ChevronDown,
@@ -70,22 +70,7 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: easeOut }}
-            className="relative w-[180px] md:w-[200px] h-[60px] md:h-[70px]"
-          >
-            <Image
-              src="/new_logo.png"
-              alt="Urbanic Pitara"
-              fill
-              className="object-contain"
-              priority
-            />
-          </motion.div>
-        </Link>
+        <Logo />
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">

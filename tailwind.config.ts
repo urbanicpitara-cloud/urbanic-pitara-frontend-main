@@ -53,7 +53,7 @@ export default {
         },
       },
       fontFamily: {
-        samarkan: ["var(--font-samarkan)"],
+        samarkan: ["var(--font-samarkan)", "serif"],
       },
 
       // GRADIENTS

@@ -68,10 +68,14 @@ const Hero: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-end"
           >
-            <h1 className="text-white text-6xl md:text-8xl lg:text-[10rem] font-medium mb-2 leading-none tracking-tight font-samarkan drop-shadow-2xl">
-              Urbanic Pitara
+            <h1 className="text-white text-6xl md:text-8xl lg:text-[10rem] font-medium leading-none tracking-[-0.05em] font-samarkan drop-shadow-2xl">
+              urbanic<span className="tracking-[-0.1em]"> </span>pitara
             </h1>
+            <p className="text-white text-2xl md:text-3xl lg:text-4xl font-samarkan tracking-[-0.02em] mt-2 mr-2 drop-shadow-lg">
+              by shubrak
+            </p>
           </motion.div>
 
           {/* Elegant Divider */}
