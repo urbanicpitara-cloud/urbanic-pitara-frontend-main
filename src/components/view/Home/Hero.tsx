@@ -92,7 +92,7 @@ const Hero: React.FC<HeroProps> = ({
             transition={{ delay: 0.3, duration: 1 }}
           >
             <p className="text-gray-100 text-lg md:text-2xl lg:text-3xl mb-12 max-w-2xl font-light tracking-widest uppercase font-[family-name:var(--font-cinzel)]">
-              Where Tradition Meets <span className="text-[var(--gold)] font-semibold">Elegance</span>
+              Where Tradition Meets <span className="text-[#D4AF37] font-semibold">Elegance</span>
             </p>
           </motion.div>
 

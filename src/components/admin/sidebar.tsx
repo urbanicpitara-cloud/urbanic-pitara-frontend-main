@@ -123,7 +123,7 @@ export default function Sidebar({ mobileNavOpen, setMobileNavOpen }: SidebarProp
       {/* Desktop Sidebar - Hidden on mobile */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col border-r border-gray-100 bg-white transition-all duration-300 ease-in-out relative z-20 h-screen sticky top-0",
+          "hidden lg:flex flex-col border-r border-gray-100 bg-white transition-all duration-300 ease-in-out z-20 h-screen sticky top-0",
           collapsed ? "w-20" : "w-64"
         )}
       >

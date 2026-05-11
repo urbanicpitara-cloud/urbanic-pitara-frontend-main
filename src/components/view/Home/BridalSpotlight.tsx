@@ -29,7 +29,7 @@ const BridalSpotlight = () => {
 
         <h2 className="text-white text-5xl md:text-8xl font-[family-name:var(--font-cinzel)] font-normal mb-8 leading-[0.9] drop-shadow-lg">
           Royal{" "}
-          <span className="italic font-serif text-[var(--gold)]">Opulence</span>
+          <span className="italic font-serif text-[#D4AF37]">Opulence</span>
         </h2>
 
         <p className="text-gray-200 text-lg md:text-2xl mb-12 max-w-2xl font-light leading-relaxed font-[family-name:var(--font-geist-sans)] tracking-wide">
