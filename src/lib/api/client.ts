@@ -49,6 +49,11 @@ export const apiClient = {
     });
 
     if (!response.ok) {
+      // Auto-clear expired/invalid tokens on 401
+      if (response.status === 401 && typeof window !== "undefined") {
+        localStorage.removeItem("auth_token");
+      }
+
       // Try to parse JSON error, fallback to status text
       const error = await response.json().catch(() => ({}));
       throw new Error(error.message || response.statusText || "Request failed");
