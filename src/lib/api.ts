@@ -193,6 +193,7 @@ export const ordersAPI = {
     api.delete('/orders/admin/bulk-delete', { data: { orderIds } }), // Bulk delete orders
 
   resendInvoice: (id: string) => api.post(`/orders/admin/${id}/invoice`), // Resend invoice email
+  getNotifications: () => api.get('/orders/admin/notifications').then(res => res.data), // Get notification counts (admin)
 };
 
 export const usersAPI = {
