@@ -132,7 +132,25 @@ export const ordersAPI = {
     request<Order>(`/orders/${id}`),
 
   create: (data: { cartId: string; shippingAddressId?: string }) =>
-    request<Order>('/orders', { method: 'POST', body: data })
+    request<Order>('/orders', { method: 'POST', body: data }),
+
+  getAllAdmin: (params?: { status?: string; all?: boolean }) =>
+    request<{ data: { orders: Order[] } }>('/orders/admin/all', { params }),
+
+  updateStatusAdmin: (id: string, data: { status: string }) =>
+    request(`/orders/admin/${id}/status`, { method: 'PUT', body: data }),
+
+  resendInvoice: (id: string) =>
+    request(`/orders/admin/${id}/invoice`, { method: 'POST' }),
+
+  getNotifications: () =>
+    request<{
+      pendingOrders: number;
+      lowStock: number;
+      outOfStock: number;
+      total: number;
+      recentPending: { id: string; orderNumber: string; totalAmount: string; status: string; createdAt: string; user: { firstName: string; lastName: string } }[];
+    }>('/orders/admin/notifications'),
 };
 
 export const menuAPI = {

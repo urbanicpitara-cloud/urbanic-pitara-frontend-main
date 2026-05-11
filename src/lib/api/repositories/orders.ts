@@ -18,6 +18,21 @@ export type Order = {
   items: OrderItem[];
 };
 
+export type NotificationData = {
+  pendingOrders: number;
+  lowStock: number;
+  outOfStock: number;
+  total: number;
+  recentPending: {
+    id: string;
+    orderNumber: string;
+    totalAmount: string;
+    status: string;
+    createdAt: string;
+    user: { firstName: string; lastName: string };
+  }[];
+};
+
 export const ordersRepository = {
   async list(token: string): Promise<{ items: Order[] }> {
     return await apiClient.get<{ items: Order[] }>("/orders", { headers: { Authorization: `Bearer ${token}` } });
@@ -27,6 +42,9 @@ export const ordersRepository = {
   },
   async checkout(token: string, payload: { cartId: string; shippingAddressId?: string }): Promise<Order> {
     return await apiClient.post<Order>("/orders/checkout", payload, { headers: { Authorization: `Bearer ${token}` } });
+  },
+  async notifications(token: string): Promise<NotificationData> {
+    return await apiClient.get<NotificationData>("/orders/admin/notifications", { headers: { Authorization: `Bearer ${token}` } });
   },
 };
 
