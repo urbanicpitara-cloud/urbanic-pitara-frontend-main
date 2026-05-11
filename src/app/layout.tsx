@@ -65,6 +65,9 @@ export default function RootLayout({
           name="google-site-verification"
           content="oDHM7r4eT6IyyvfUaaSxH6f23MYhdL1K0GGVSLv0y9k"
         />
+        {/* Preload Hero Images for LCP speed */}
+        <link rel="preload" as="image" href="/34.jpg" media="(min-width: 640px)" />
+        <link rel="preload" as="image" href="/12.jpg" media="(max-width: 639px)" />
       </head>
       <Providers>
         <body

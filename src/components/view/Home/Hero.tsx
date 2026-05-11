@@ -41,17 +41,32 @@ const Hero: React.FC<HeroProps> = ({
         transition={{ duration: 20, ease: "linear", repeat: Infinity, repeatType: "mirror" }}
         className="absolute inset-0 z-0"
       >
-        <picture>
-          <source media="(min-width: 1024px)" srcSet={sources.desktop} />
-          <source media="(min-width: 640px)" srcSet={sources.tablet} />
+        {/* Optimized Desktop Image */}
+        <div className="hidden sm:block absolute inset-0">
           <Image
-            src={sources.mobile}
-            alt="Royal Collection"
+            src={sources.desktop}
+            alt="Royal Collection Desktop"
             fill
             priority
+            quality={90}
+            sizes="100vw"
             className="object-cover"
           />
-        </picture>
+        </div>
+
+        {/* Optimized Mobile Image */}
+        <div className="block sm:hidden absolute inset-0">
+          <Image
+            src={sources.mobile}
+            alt="Royal Collection Mobile"
+            fill
+            priority
+            quality={85}
+            sizes="100vw"
+            className="object-cover"
+          />
+        </div>
+
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
       </motion.div>
