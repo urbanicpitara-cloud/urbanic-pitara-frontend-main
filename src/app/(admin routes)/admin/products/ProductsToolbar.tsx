@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RefreshCw, Filter, Plus, Trash2, Edit, Search } from "lucide-react";
+import { RefreshCw, Filter, Plus, Trash2, Edit, Search, FileDown } from "lucide-react";
 import { useState } from "react";
 import BulkEditProductsModal from "./BulkEditModal";
 import Link from "next/link";
@@ -29,6 +29,7 @@ export default function ProductsToolbar({
 }: ProductsToolbarProps) {
   const [searchValue, setSearchValue] = useState(search);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +39,35 @@ export default function ProductsToolbar({
   const handleBulkEditSave = async (updates: Record<string, any>) => {
     setEditModalOpen(false);
     await onBulkEdit(updates, onRefresh);
+  };
+
+  const handleDownloadCatalog = async () => {
+    setDownloading(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const response = await fetch(`${apiUrl}/catalog/pdf`);
+      if (!response.ok) throw new Error("Failed to generate PDF");
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "product-catalog.pdf";
+      a.type = "application/pdf";
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
+      }, 100);
+    } catch (err) {
+      console.error("Failed to download catalog:", err);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -92,6 +122,21 @@ export default function ProductsToolbar({
             title="Refresh List"
           >
             <RefreshCw className="w-4 h-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleDownloadCatalog}
+            disabled={downloading}
+            className="h-9 w-9 text-gray-600 hover:text-black"
+            title="Download Catalog PDF"
+          >
+            {downloading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4" />
+            )}
           </Button>
 
           {onOpenFilters && (
