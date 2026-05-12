@@ -44,7 +44,7 @@ export default function ProductsToolbar({
   const handleDownloadCatalog = async () => {
     setDownloading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
       const response = await fetch(`${apiUrl}/catalog/pdf`);
       if (!response.ok) throw new Error("Failed to generate PDF");
       
